@@ -1,0 +1,21 @@
+{
+  "name": "react-json-form",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "source": "./src/index.js",
+  "exports": "./dist/react-json-form.modern.js",
+  "main": "./dist/react-json-form.cjs",
+  "module": "./dist/react-json-form.module.js",
+  "unpkg": "./dist/react-json-form.js",
+  "scripts": {
+    "build": "microbundle",
+    "dev": "microbundle watch --no-compress --jsx React.createElement --output ./dev/dist/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "microbundle": "^0.13.3"
+  }
+}
