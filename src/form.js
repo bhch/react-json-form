@@ -226,13 +226,20 @@ export default class Form extends React.Component {
         return true;
     }
 
+    getAddButtonText = () => {
+        let name = this.schema.verbose_name || getVerboseName(this.schema.name);
+        return this.state.data.length > 0 ? 'Add more' : 'Add ' + name;
+    }
+
     render() {
         return (
             <div className="rjf-form-wrapper">
                 <fieldset className="module aligned">
                     {this.getFields()}
                     {this.canAdd() && 
-                        <button type="button" onClick={this.addFieldset} className="rjf-add-button">Add more</button>
+                        <button type="button" onClick={this.addFieldset} className="rjf-add-button">
+                            {this.getAddButtonText()}
+                        </button>
                     }
                 </fieldset>
             </div>
