@@ -4,8 +4,11 @@ import {capitalize} from './util';
 function getBlankItem(schema) {
     let dataObject = {};
 
-    for (let key in schema.items) {
-        let item = schema.items[key];
+    for (let key in schema.fields) {
+        if (!schema.fields.hasOwnProperty(key))
+            continue;
+
+        let item = schema.fields[key];
 
         dataObject[key] = '';
     }
@@ -29,6 +32,22 @@ function getBlankData(schema) {
     }
 }
 
+function getSyncedData(data, schema) {
+    // adds those keys to data which are in schema but not in data
+
+    let blankItem = getBlankItem(schema);
+
+    if (schema.data_type === 'object') {
+        return {...blankItem, ...data};
+    } else if (schema.data_type === 'array') {
+        for (let i = 0; i < data.length; i++) {
+            data[i] = {...blankItem, ...data[i]};
+        }
+    }
+
+    return data;
+}
+
 function getDefaultSchema(schema) {
     let defaults = {
         min_items: 1,
@@ -47,20 +66,27 @@ export default class Form extends React.Component {
     constructor(props) {
         super(props);
 
-        this.schema = getDefaultSchema(props.schema)
+        this.dataInput = document.getElementById(this.props.dataInputId);
+        this.schema = getDefaultSchema(props.schema);
+
+        let data = props.data;
+
+        if (!data) {
+            // create empty data from schema
+            data = getBlankData(this.schema);
+        } else {
+            // if data is stale and schema has new keys,
+            // add them to data\
+            data = getSyncedData(data, this.schema);
+        }
 
         this.state = {
             value: '',
-            data: props.data
+            data: data
         };
-
-        this.dataInput = document.getElementById(this.props.dataInputId);
-
-        if (!props.data) {
-            // create empty data from schema
-            this.state.data = getBlankData(this.schema);
-            this.populateDataInput();
-        }
+        
+        // update data in the input
+        this.populateDataInput();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -70,7 +96,7 @@ export default class Form extends React.Component {
     }
 
     populateDataInput = () => {
-        this.dataInput.value = JSON.stringify(this.state.data, null, 2);
+        this.dataInput.value = JSON.stringify(this.state.data);
     }
 
     handleChange = (e, index) => {
@@ -105,15 +131,23 @@ export default class Form extends React.Component {
         if (this.schema.data_type === 'object')
             data = [data];
 
-        let fieldsets = [];
+        let formGroups = [];
 
         for (let i = 0; i < data.length; i++) {
             let item = data[i];
 
-            let fieldset = [];
+            let formRows = [];
 
             for (let key in item) {
-                let schemaObject = this.schema.items[key];
+                if (!item.hasOwnProperty(key))
+                    continue;
+
+                let schemaObject = this.schema.fields[key];
+
+                if (!schemaObject) {
+                    // this item is in data but not in schema
+                    continue;
+                }
 
                 let name = key;
                 let value = item[key];
@@ -121,36 +155,39 @@ export default class Form extends React.Component {
 
                 let Field = FIELD_MAP[schemaObject.type];
 
-                fieldset.push(
-                    <Field
-                        key={name} 
-                        name={name}
-                        label={label}
-                        value={value}
-                        onChange={(e) => this.handleChange(e, i)}
-                        type={schemaObject.type}
-                    />
+                formRows.push(
+                    <div className="rjf-form-row" key={name + '_' + i}>
+                        <Field 
+                            name={name}
+                            label={label}
+                            value={value}
+                            onChange={(e) => this.handleChange(e, i)}
+                            type={schemaObject.type}
+                        />
+                    </div>
                 )
             }
 
-            let fieldsetKey = 'fieldset_' + i;
+            let formGroupKey = 'form_group_' + i;
 
-            fieldsets.push(
-                <div className="je-fieldset" key={fieldsetKey}>
+            formGroups.push(
+                <div className="rjf-form-group" key={formGroupKey}>
                     {this.canRemove() && 
                         <button 
-                            className="je-remove-fieldset-button" 
+                            className="rjf-remove-form-group-button" 
+                            type="button"
                             onClick={(e) => this.removeFieldset(e, i)}
+                            title="Remove"
                         >
-                            &times;
+                            Remove
                         </button>
                     }
-                    {fieldset}
+                    {formRows}
                 </div>
             );
         }
 
-        return fieldsets;
+        return formGroups;
     }
 
     addFieldset = (e) => {
@@ -191,12 +228,14 @@ export default class Form extends React.Component {
 
     render() {
         return (
-            <div>
-                {this.getFields()}
-                {this.canAdd() && 
-                    <button type="button" onClick={this.addFieldset}>+ Add more</button>
-                }
-                <pre>{JSON.stringify(this.schema, null, 2)}</pre>
+            <div className="rjf-form-wrapper">
+                <fieldset className="module aligned">
+                    {this.getFields()}
+                    {this.canAdd() && 
+                        <button type="button" onClick={this.addFieldset} className="rjf-add-button">Add more</button>
+                    }
+                </fieldset>
+                {JSON.stringify(this.state.data)}
             </div>
         );
     }
@@ -210,7 +249,7 @@ function FormInput({label, help_text, error, ...props}) {
         label = props.name.toUpperCase();
 
     return (
-        <div className="je-form-group">
+        <div>
             <label>{label}</label>
             <input {...props} />
         </div>
@@ -227,7 +266,7 @@ function CheckInput({label, help_text, error, ...props}) {
         props.type = 'checkbox';
 
     return (
-        <div className="je-form-group">
+        <div>
             <label><input {...props} /> {label}</label>
         </div>
     );
