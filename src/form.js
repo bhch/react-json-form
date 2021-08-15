@@ -235,7 +235,6 @@ export default class Form extends React.Component {
                         <button type="button" onClick={this.addFieldset} className="rjf-add-button">Add more</button>
                     }
                 </fieldset>
-                {JSON.stringify(this.state.data)}
             </div>
         );
     }
@@ -257,13 +256,19 @@ function FormInput({label, help_text, error, ...props}) {
 }
 
 
-function CheckInput({label, help_text, error, ...props}) {
+function CheckInput({label, help_text, error, value, ...props}) {
 
     if (!label)
         label = props.name.toUpperCase();
 
     if (props.type === 'bool')
         props.type = 'checkbox';
+
+    if (props.checked === undefined)
+        props.checked = value;
+
+    if (props.checked === '')
+        props.checked = false
 
     return (
         <div>
