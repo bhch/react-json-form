@@ -17,18 +17,46 @@ function getBlankItem(schema) {
 }
 
 
-function getBlankData(schema) {
-    if (schema.data_type === 'array') {
-        let data = [];
-        let min_items = schema.min_items || 1; // add 1 item if min_items is 0
+function getBlankObject(schema) {
+    let keys = {};
 
-        while (data.length < min_items) {
-            data.push(getBlankItem(schema));
-        }
-        return data;
+    for (let key in schema.keys) {
+        let value = schema.keys[key];
+        let type = value.type;
+
+        if (type === 'string')
+            keys[key] = ''; 
+        else if (type === 'array')
+            keys[key] = getBlankArray(value);
+        else if (type === 'object')
+            keys[key] = getBlankObject(value);
+    }
+    
+    return keys;
+}
+
+
+function getBlankArray(schema) {
+    let items = [];
+    let type = schema.items.type;
+
+    if (type === 'string')
+        items.push('');
+    else if (type === 'array')
+        items.push(getBlankArray(schema.items))
+    else if (type === 'object')
+        items.push(getBlankObject(schema.items));
+
+    return items;
+}
+
+
+function getBlankData(schema) {
+    if (schema.type === 'array') {
+        return getBlankArray(schema);
     }
     else {
-        return getBlankItem(schema);
+        return getBlankObject(schema);
     }
 }
 
@@ -37,9 +65,9 @@ function getSyncedData(data, schema) {
 
     let blankItem = getBlankItem(schema);
 
-    if (schema.data_type === 'object') {
+    if (schema.type === 'object') {
         return {...blankItem, ...data};
-    } else if (schema.data_type === 'array') {
+    } else if (schema.type === 'array') {
         for (let i = 0; i < data.length; i++) {
             data[i] = {...blankItem, ...data[i]};
         }
@@ -48,10 +76,63 @@ function getSyncedData(data, schema) {
     return data;
 }
 
+function getStringFormRow(data, name, onChange) {
+    return (
+        <div className="rjf-form-row" key={name}>
+            <FormInput 
+                name={name}
+                label={"label"}
+                value={data}
+                onChange={onChange}
+                type="text"
+            />
+        </div>
+    );
+}
+
+function getArrayFormRow(data, schema, name, onChange) {
+    let rows = [];
+
+    for (let i = 0; i < data.length; i++) {
+        let item = data[i];
+        let childName = name + '-' + i;
+        if (schema.items.type === 'string') {
+            rows.push(getStringFormRow(item, childName, onChange));
+        } else if (schema.items.type === 'array') {
+            rows.push(getArrayFormRow(item, schema.items, childName, onChange));
+        } else if (schema.items.type === 'object') {
+            rows.push(getObjectFormRow(item, schema.items, childName, onChange));
+        }
+    }
+
+    return rows;
+}
+
+
+function getObjectFormRow(data, schema, name, onChange) {
+    let rows = [];
+
+    for (let key in schema.keys) {
+        let value = data[key];
+        let schemaValue = schema.keys[key];
+        let childName = name + '-' + key;
+
+         if (schemaValue.type === 'string') {
+            rows.push(getStringFormRow(value, childName, onChange));
+        } else if (schemaValue.type === 'array') {
+            rows.push(getArrayFormRow(value, schemaValue, childName, onChange));
+        } else if (schemaValue.type === 'object') {
+            rows.push(getObjectFormRow(value, schemaValue, childName, onChange));
+        }
+    }
+
+    return rows;
+}
+
 function getDefaultSchema(schema) {
     let defaults = {
         min_items: 1,
-        max_items: schema.data_type === 'array' ? 1000 : 1,
+        max_items: schema.type === 'array' ? 1000 : 1,
     };
 
     return {...defaults, ...schema};
@@ -77,7 +158,7 @@ export default class Form extends React.Component {
         } else {
             // if data is stale and schema has new keys,
             // add them to data\
-            data = getSyncedData(data, this.schema);
+            //data = getSyncedData(data, this.schema);
         }
 
         this.state = {
@@ -99,36 +180,55 @@ export default class Form extends React.Component {
         this.dataInput.value = JSON.stringify(this.state.data);
     }
 
-    handleChange = (e, index) => {
-        let data;
+    handleChange = (e) => {
+        /*
+            e.target.name is a chain of indices and keys:
+            xxx-0-key-1-key2 and so on.
+            These can be used as coordinates to locate 
+            a particular deeply nested item.
 
-        if (Array.isArray(this.state.data)) {
-            data = [...this.state.data];
-        } else {
-            data = [{...this.state.data}];
+            This first coordinate is not important and should be removed.
+        */
+        let coords = e.target.name.split('-');
+
+        coords.shift(); // remove first coord
+
+        function setDataUsingCoords(coords, data, value) {
+            console.log(coords, data, value)
+            let coord = coords.shift();
+            if (!isNaN(Number(coord)))
+                coord = Number(coord);
+
+            if (coords.length) {
+                setDataUsingCoords(coords, data[coord], value);
+            } else {
+                data[coord] = value;
+            }
         }
 
-        let value = '';
+        let _data = JSON.parse(JSON.stringify(this.state.data));
 
-        if (e.target.type === 'checkbox') {
-            value = e.target.checked;
-        } else {
-            value = e.target.value;
-        }
+        setDataUsingCoords(coords, _data, e.target.value);
 
-        data[index][e.target.name] = value;
-
-        if (this.schema.data_type === 'object')
-            data = data[0];
-
-        this.setState({
-            data: data,
-        });
+        this.setState({data: _data});
     }
 
     getFields = () => {
         let data = this.state.data;
-        if (this.schema.data_type === 'object')
+        let formGroups = [];
+
+        if (this.schema.type === 'array') {
+            return getArrayFormRow(data, this.schema, 'rjf', this.handleChange);
+        } else if (this.schema.type === 'object') {
+            return getObjectFormRow(data, this.schema, 'rjf', this.handleChange);
+        }
+
+        return formGroups;
+    }
+
+    _getFields = () => {
+        let data = this.state.data;
+        if (this.schema.type === 'object')
             data = [data];
 
         let formGroups = [];
@@ -206,7 +306,9 @@ export default class Form extends React.Component {
     }
 
     canAdd = () => {
-        if (this.schema.data_type === 'object')
+        return true; // temporary
+
+        if (this.schema.type === 'object')
             return false;
 
         if (this.state.data.length >= this.schema.max_items) {
@@ -217,7 +319,7 @@ export default class Form extends React.Component {
     }
 
     canRemove = () => {
-        if (this.schema.data_type === 'object')
+        if (this.schema.type === 'object')
             return false;
 
         if (this.state.data.length <= this.schema.min_items)
@@ -253,6 +355,9 @@ function FormInput({label, help_text, error, ...props}) {
 
     if (!label)
         label = props.name.toUpperCase();
+
+    if (props.type === 'string')
+        props.type = 'text'
 
     return (
         <div>
@@ -291,7 +396,7 @@ function FileInput(props) {
 
 
 const FIELD_MAP = {
-    text: FormInput,
+    string: FormInput,
     number: FormInput,
     email: FormInput,
     file: FileInput,

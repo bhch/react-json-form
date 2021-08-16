@@ -76,10 +76,19 @@
 
 <div class="container">
     <div class="split">
-        <div id="editor_container2"></div>
+        <div id="editor_container_2"></div>
     </div>
     <div class="split">
-        <textarea id="id_editor_data2" cols="40" rows="10"></textarea>
+        <textarea id="id_editor_data_2" cols="40" rows="10"></textarea>
+    </div>
+</div>
+
+<div class="container">
+    <div class="split">
+        <div id="editor_container_3"></div>
+    </div>
+    <div class="split">
+        <textarea id="id_editor_data_3" cols="40" rows="10"></textarea>
     </div>
 </div>
 
@@ -92,28 +101,18 @@
         containerId: 'editor_container',
         dataInputId: 'id_editor_data',
         data: [
-            {
-                url: '/asf/',
-                new_tab: true,
-                label: 'Home',
-            }
+            "python",
+            "javascript",
+            "html"
         ],
         schema: {
-            data_type: 'array',
+            type: 'array',
             name: 'menu',
+            verbose_name: "Menu item",
             max_items: 5,
             min_items: 0,
-            fields: {
-                label: {
-                  type: 'text', 
-                },
-                url: {
-                    type: 'text',
-                },
-                new_tab: {
-                    type: 'bool',
-                    verbose_name: 'Open in new tab',
-                }
+            items: {
+                type: 'string',
             }
         },
     });
@@ -122,35 +121,73 @@
 
 
     let editor2 = new reactJsonForm.JSONForm({
-        containerId: 'editor_container2',
-        dataInputId: 'id_editor_data2',
-        data: {
-            site_name: 'hllo',
-            twitter: '@twetsf',
-        },
+        containerId: 'editor_container_2',
+        dataInputId: 'id_editor_data_2',
+        _data: [
+            {
+                url: '/asf/',
+                new_tab: true,
+                label: 'Home',
+            }
+        ],
         schema: {
-            data_type: 'object',
-            name: 'settings',
-            field_order: ['site_name', 'site_title', 'logo', 'twitter'],
-            fields: {
-                site_name: {
-                  type: 'text', 
-                },
-                site_title: {
-                    type: 'text',
-
-                },
-                logo: {
-                    type: 'file',
-                },
-                twitter: {
-                    type: 'text',
+            type: 'array',
+            name: 'menu',
+            verbose_name: "Menu item",
+            max_items: 5,
+            min_items: 0,
+            items: {
+                type: 'object',
+                keys: {
+                    label: {
+                      type: 'string',
+                    },
+                    url: {
+                        type: 'string',
+                    },
+                    new_tab: {
+                        type: 'boolean',
+                        verbose_name: 'Open in new tab',
+                    }
                 }
             }
         },
     });
 
     editor2.render();
+
+
+    let editor3 = new reactJsonForm.JSONForm({
+        containerId: 'editor_container_3',
+        dataInputId: 'id_editor_data_3',
+        data: {
+            site_name: 'hllo',
+            twitter: '@twetsf',
+        },
+        schema: {
+            type: 'object',
+            name: 'settings',
+            extandable: true,
+            field_order: ['site_name', 'site_title', 'logo', 'twitter'],
+            keys: {
+                site_name: {
+                  type: 'string', 
+                },
+                site_title: {
+                    type: 'string',
+
+                },
+                logo: {
+                    type: 'string',
+                },
+                twitter: {
+                    type: 'string',
+                }
+            }
+        },
+    });
+
+    //editor3.render();
 </script>
 </body>
 </html>
