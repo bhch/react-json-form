@@ -35,17 +35,31 @@
             font-size: 1rem;
             padding: 6px 10px;
         }
-        .je-fieldset {
-            border: 1px solid #ddd;
+        fieldset {
+            border: none;
+        }
+        .rjf-form-row {
             margin-bottom: 15px;
+        }
+        .rjf-form-group-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #666;
+        }
+        .rjf-form-group {
+            margin-bottom: 15px;
+        }
+        .rjf-form-group-inner {
+            border: 1px solid #ddd;
             padding: 15px;
             border-radius: 3px;
             position: relative;
         }
-        .je-form-group {
+        .rjf-form-group-inner > .rjf-form-group > .rjf-form-group-inner {
             margin-top: 15px;
+            margin-bottom: 0;
         }
-        .je-remove-fieldset-button {
+        .rjf-remove-fieldset-button {
             color: #ff4444;
             background-color: #ffeeee;
             position: absolute;
@@ -92,6 +106,15 @@
     </div>
 </div>
 
+<div class="container">
+    <div class="split">
+        <div id="editor_container_4"></div>
+    </div>
+    <div class="split">
+        <textarea id="id_editor_data_4" cols="40" rows="10"></textarea>
+    </div>
+</div>
+
 <script type="text/javascript" src="vendor/react.development-17.0.2.js"></script>
 <script type="text/javascript" src="vendor/react-dom.development-17.0.2.js"></script>
 <script type="text/javascript" src="dist/react-json-form.js"></script>
@@ -107,12 +130,12 @@
         ],
         schema: {
             type: 'array',
-            name: 'menu',
-            verbose_name: "Menu item",
+            title: "Menu items",
             max_items: 5,
             min_items: 0,
             items: {
                 type: 'string',
+                title: 'Tag'
             }
         },
     });
@@ -128,12 +151,28 @@
                 url: '/asf/',
                 new_tab: true,
                 label: 'Home',
+                tags: ["asf", "Asf"]
+            },
+            {
+                url: '/asf/',
+                new_tab: true,
+                label: 'Home',
+                tags: ["asf", "Asf"]
             }
+        ],
+        data: [
+            {
+                label: 'Hello 1',
+                tags: ['1', '2'],
+            },
+            {
+                label: 'Hello 2',
+                tags: ['3', '4'],
+            },
         ],
         schema: {
             type: 'array',
-            name: 'menu',
-            verbose_name: "Menu item",
+            title: "Menu items",
             max_items: 5,
             min_items: 0,
             items: {
@@ -142,12 +181,11 @@
                     label: {
                       type: 'string',
                     },
-                    url: {
-                        type: 'string',
-                    },
-                    new_tab: {
-                        type: 'boolean',
-                        verbose_name: 'Open in new tab',
+                    tags: {
+                        type: 'array',
+                        items: {
+                            type: 'string',
+                        }
                     }
                 }
             }
@@ -160,34 +198,63 @@
     let editor3 = new reactJsonForm.JSONForm({
         containerId: 'editor_container_3',
         dataInputId: 'id_editor_data_3',
-        data: {
+        _data: {
             site_name: 'hllo',
             twitter: '@twetsf',
         },
         schema: {
             type: 'object',
-            name: 'settings',
+            title: 'Settings',
             extandable: true,
             field_order: ['site_name', 'site_title', 'logo', 'twitter'],
             keys: {
-                site_name: {
-                  type: 'string', 
+                name: {
+                    type: 'string'
                 },
-                site_title: {
-                    type: 'string',
-
-                },
-                logo: {
-                    type: 'string',
-                },
-                twitter: {
-                    type: 'string',
+                age: {
+                    type: 'string'
                 }
             }
         },
     });
 
-    //editor3.render();
+    editor3.render();
+
+    let editor4 = new reactJsonForm.JSONForm({
+        containerId: 'editor_container_4',
+        dataInputId: 'id_editor_data_4',
+        _data: {
+            site_name: 'hllo',
+            twitter: '@twetsf',
+        },
+        schema: {
+            type: 'object',
+            title: 'Settings',
+            extandable: true,
+            field_order: ['site_name', 'site_title', 'logo', 'twitter'],
+            keys: {
+                logo: {
+                    type: "string"
+                },
+                site_name: {
+                  type: 'object',
+                  keys: {
+                    name1: {
+                        type: 'string'
+                    }
+                  } 
+                },
+                site_title: {
+                    type: 'array',
+                    items: {
+                        type: 'string'
+                    }
+                },
+            }
+        },
+    });
+
+    editor4.render();
 </script>
 </body>
 </html>

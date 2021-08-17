@@ -31,7 +31,7 @@ function getBlankObject(schema) {
         else if (type === 'object')
             keys[key] = getBlankObject(value);
     }
-    
+
     return keys;
 }
 
@@ -55,8 +55,10 @@ function getBlankData(schema) {
     if (schema.type === 'array') {
         return getBlankArray(schema);
     }
-    else {
+    else if (schema.type === 'object') {
         return getBlankObject(schema);
+    } else if (schema.type === 'string') {
+        return '';
     }
 }
 
@@ -76,12 +78,12 @@ function getSyncedData(data, schema) {
     return data;
 }
 
-function getStringFormRow(data, name, onChange) {
+function getStringFormRow(data, schema, name, onChange) {
     return (
         <div className="rjf-form-row" key={name}>
             <FormInput 
                 name={name}
-                label={"label"}
+                label={schema.title}
                 value={data}
                 onChange={onChange}
                 type="text"
@@ -90,40 +92,131 @@ function getStringFormRow(data, name, onChange) {
     );
 }
 
-function getArrayFormRow(data, schema, name, onChange) {
+function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     let rows = [];
+    let groups = [];
+
+    let groupTitle = schema.title ? <div className="rjf-form-group-title">{schema.title}</div> : null;
+
+
+    /*
+    if (!data) {
+        if (level === 0) {
+            return (
+                <div className="rjf-form-group" key={'row_' + name}>
+                    {groupTitle}
+                <button type="button" className="rjf-add-button">+ Add item</button>
+                </div>
+            );
+        } else {
+            return (
+                <div className="rjf-form-group" key={'row_' + name}>
+                    <div className="rjf-form-group-inner">
+                    {groupTitle}
+                <button type="button" className="rjf-add-button">+ Add item</button>
+                </div>
+                </div>
+            );
+        }
+    }
+    */
 
     for (let i = 0; i < data.length; i++) {
         let item = data[i];
         let childName = name + '-' + i;
+
         if (schema.items.type === 'string') {
-            rows.push(getStringFormRow(item, childName, onChange));
+            rows.push(getStringFormRow(item, schema.items, childName, onChange));
         } else if (schema.items.type === 'array') {
-            rows.push(getArrayFormRow(item, schema.items, childName, onChange));
+            groups.push(getArrayFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
         } else if (schema.items.type === 'object') {
-            rows.push(getObjectFormRow(item, schema.items, childName, onChange));
+            groups.push(getObjectFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
         }
     }
 
-    return rows;
+    let coords = name; // coordinates for insertion and deletion
+
+    if (rows.length) {
+        rows = (
+            <div className="rjf-form-group" key={'row_' + name}>
+                {level === 0 && groupTitle}
+                <div className="rjf-form-group-inner">
+                    {level > 0 && groupTitle}
+                    {rows}
+                    <button 
+                        type="button"
+                        className="rjf-add-button"
+                        onClick={(e) => onAdd(getBlankData(schema.items), coords)}
+                    >
+                        + Add item
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (groups.length) {
+        groups = (
+            <div key={'group_' + name}>
+                {groupTitle}
+                {groups}
+                <button 
+                    type="button"
+                    className="rjf-add-button"
+                    onClick={(e) => onAdd(getBlankData(schema.items), coords)}
+                >
+                    + Add Group Array
+                </button>
+            </div>
+        )
+    }
+
+    return [...rows, ...groups];
 }
 
 
-function getObjectFormRow(data, schema, name, onChange) {
+function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     let rows = [];
 
     for (let key in schema.keys) {
         let value = data[key];
-        let schemaValue = schema.keys[key];
         let childName = name + '-' + key;
+        let schemaValue = schema.keys[key];
+
+        if (!schemaValue.title)
+            schemaValue.title = getVerboseName(key);
 
          if (schemaValue.type === 'string') {
-            rows.push(getStringFormRow(value, childName, onChange));
+            rows.push(getStringFormRow(value, schemaValue, childName, onChange));
         } else if (schemaValue.type === 'array') {
-            rows.push(getArrayFormRow(value, schemaValue, childName, onChange));
+            rows.push(getArrayFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
         } else if (schemaValue.type === 'object') {
-            rows.push(getObjectFormRow(value, schemaValue, childName, onChange));
+            rows.push(getObjectFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
         }
+    }
+
+    let groupTitle = schema.title ? <div className="rjf-form-group-title">{schema.title}</div> : null;
+
+    let coords = name;
+
+    if (rows.length) {
+        rows = (
+            <div className="rjf-form-group" key={name}>
+                {level === 0 && groupTitle}
+                <div className="rjf-form-group-inner">
+                    {level > 0 && groupTitle}
+                    {rows}
+                    <button 
+                        type="button"
+                        className="rjf-add-button"
+                        onClick={(e) => onAdd("", coords)}
+                    >
+                        + Add key value
+                    </button>
+                </div>
+
+            </div>
+        );
     }
 
     return rows;
@@ -139,6 +232,9 @@ function getDefaultSchema(schema) {
 }
 
 function getVerboseName(name) {
+    if (name === undefined || name === null)
+        return '';
+
     name = name.replace(/_/g, ' ');
     return capitalize(name);
 }
@@ -148,7 +244,7 @@ export default class Form extends React.Component {
         super(props);
 
         this.dataInput = document.getElementById(this.props.dataInputId);
-        this.schema = getDefaultSchema(props.schema);
+        this.schema = props.schema; //getDefaultSchema(props.schema);
 
         let data = props.data;
 
@@ -194,7 +290,6 @@ export default class Form extends React.Component {
         coords.shift(); // remove first coord
 
         function setDataUsingCoords(coords, data, value) {
-            console.log(coords, data, value)
             let coord = coords.shift();
             if (!isNaN(Number(coord)))
                 coord = Number(coord);
@@ -218,88 +313,59 @@ export default class Form extends React.Component {
         let formGroups = [];
 
         if (this.schema.type === 'array') {
-            return getArrayFormRow(data, this.schema, 'rjf', this.handleChange);
+            return getArrayFormRow(
+                data, this.schema, 'rjf',
+                this.handleChange, this.addFieldset, this.removeFieldset,
+                0
+            );
         } else if (this.schema.type === 'object') {
-            return getObjectFormRow(data, this.schema, 'rjf', this.handleChange);
-        }
-
-        return formGroups;
-    }
-
-    _getFields = () => {
-        let data = this.state.data;
-        if (this.schema.type === 'object')
-            data = [data];
-
-        let formGroups = [];
-
-        for (let i = 0; i < data.length; i++) {
-            let item = data[i];
-
-            let formRows = [];
-
-            for (let key in item) {
-                if (!item.hasOwnProperty(key))
-                    continue;
-
-                let schemaObject = this.schema.fields[key];
-
-                if (!schemaObject) {
-                    // this item is in data but not in schema
-                    continue;
-                }
-
-                let name = key;
-                let value = item[key];
-                let label = schemaObject.verbose_name || getVerboseName(key);
-
-                let Field = FIELD_MAP[schemaObject.type];
-
-                formRows.push(
-                    <div className="rjf-form-row" key={name + '_' + i}>
-                        <Field 
-                            name={name}
-                            label={label}
-                            value={value}
-                            onChange={(e) => this.handleChange(e, i)}
-                            type={schemaObject.type}
-                        />
-                    </div>
-                )
-            }
-
-            let formGroupKey = 'form_group_' + i;
-
-            formGroups.push(
-                <div className="rjf-form-group" key={formGroupKey}>
-                    {this.canRemove() && 
-                        <button 
-                            className="rjf-remove-form-group-button" 
-                            type="button"
-                            onClick={(e) => this.removeFieldset(e, i)}
-                            title="Remove"
-                        >
-                            Remove
-                        </button>
-                    }
-                    {formRows}
-                </div>
+            return getObjectFormRow(
+                data, this.schema, 'rjf',
+                this.handleChange, this.addFieldset, this.removeFieldset,
+                0
             );
         }
 
         return formGroups;
     }
 
-    addFieldset = (e) => {
-        this.setState((state) => {
-            let data = [...state.data];
-            data.push(getBlankItem(this.schema));
+    addFieldset = (blankData, coords) => {
+        coords = coords.split('-');
+        coords.shift();
 
-            return {data: data};
-        });
+        function addDataUsingCoords(coords, data, value) {
+            let coord = coords.shift();
+            if (!isNaN(Number(coord)))
+                coord = Number(coord);
+
+            if (coords.length) {
+                appendDataUsingCoords(coords, data[coord], value);
+            } else {
+                if (Array.isArray(data)) {
+                    data.push(value);
+                }
+                else {
+                    if (Array.isArray(data[coord])) {
+                        data[coord].push(value);
+                    } else {
+                        if (coord) {
+                            data = data[coord];
+                        }
+                        let newLen = Object.keys(data).length + 1;
+                        data['key_' + newLen] = value;
+                    }
+                }
+            }
+        }
+
+        let _data = JSON.parse(JSON.stringify(this.state.data));
+
+        addDataUsingCoords(coords, _data, blankData);
+
+        this.setState({data: _data});
     }
 
-    removeFieldset = (e, index) => {
+    removeFieldset = (coords) => {
         this.setState((state) => {
             return {data: state.data.filter((item, idx) => idx !== index)};
         });
@@ -338,7 +404,7 @@ export default class Form extends React.Component {
             <div className="rjf-form-wrapper">
                 <fieldset className="module aligned">
                     {this.getFields()}
-                    {this.canAdd() && 
+                    {this.canAdd() && false && 
                         <button type="button" onClick={this.addFieldset} className="rjf-add-button">
                             {this.getAddButtonText()}
                         </button>
@@ -353,15 +419,12 @@ export default class Form extends React.Component {
 
 function FormInput({label, help_text, error, ...props}) {
 
-    if (!label)
-        label = props.name.toUpperCase();
-
     if (props.type === 'string')
         props.type = 'text'
 
     return (
         <div>
-            <label>{label}</label>
+            {label && <label>{label}</label>}
             <input {...props} />
         </div>
     );
