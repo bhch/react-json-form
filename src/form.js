@@ -78,7 +78,7 @@ function getSyncedData(data, schema) {
     return data;
 }
 
-function getStringFormRow(data, schema, name, onChange, onRemove, removable) {
+function getStringFormRow(data, schema, name, onChange, onRemove, removable, onEdit) {
     return (
         <div className="rjf-form-row" key={name}>
             {removable && 
@@ -93,7 +93,11 @@ function getStringFormRow(data, schema, name, onChange, onRemove, removable) {
             <div className="rjf-form-row-inner">
                 <FormInput 
                     name={name}
-                    label={schema.title}
+                    label={
+                        onEdit ? <span>{schema.title} <button type="button" className="rjf-edit-button" onClick={onEdit}>Edit</button></span>
+                        :
+                        schema.title
+                    }
                     value={data}
                     onChange={onChange}
                     type="text"
@@ -234,7 +238,6 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     return [...rows, ...groups];
 }
 
-
 function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     let rows = [];
 
@@ -257,7 +260,27 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
             removable = true;
 
          if (schemaValue.type === 'string') {
-            rows.push(getStringFormRow(value, schemaValue, childName, onChange, onRemove, removable));
+            rows.push(getStringFormRow(
+                value, schemaValue, childName, onChange, onRemove, removable, 
+                removable ? (e) => {
+                    let newKey = prompt("Rename key", key);
+                    if (newKey === null) // clicked cancel
+                        return;
+
+                    newKey = newKey.trim();
+
+                    if (newKey === key) // same keys
+                        return;
+
+                    if (!newKey)
+                        return alert("(!) Key name can't be empty.\r\n\r\n‎");
+                    else if (data.hasOwnProperty(newKey))
+                        return alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
+
+                    onAdd(value, name + '-' + newKey);
+                    onRemove(childName);
+                } : null
+            ));
         } else if (schemaValue.type === 'array') {
             rows.push(getArrayFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
         } else if (schemaValue.type === 'object') {
@@ -285,7 +308,7 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
                         type="button"
                         className="rjf-add-button"
                         onClick={(e) => {
-                            key = prompt("Add new key");
+                            let key = prompt("Add new key");
                             if (key === null) // clicked cancel
                                 return;
 
@@ -421,58 +444,62 @@ export default class Form extends React.Component {
         coords = coords.split('-');
         coords.shift();
 
-        function addDataUsingCoords(coords, data, value) {
-            let coord = coords.shift();
-            if (!isNaN(Number(coord)))
-                coord = Number(coord);
+        this.setState((state) => {
+            function addDataUsingCoords(coords, data, value) {
+                let coord = coords.shift();
+                if (!isNaN(Number(coord)))
+                    coord = Number(coord);
 
-            if (coords.length) {
-                addDataUsingCoords(coords, data[coord], value);
-            } else {
-                if (Array.isArray(data)) {
-                    data.push(value);
-                }
-                else {
-                    if (Array.isArray(data[coord])) {
-                        data[coord].push(value);
-                    } else {
-                        data[coord] = value;
+                if (coords.length) {
+                    addDataUsingCoords(coords, data[coord], value);
+                } else {
+                    if (Array.isArray(data)) {
+                        data.push(value);
+                    }
+                    else {
+                        if (Array.isArray(data[coord])) {
+                            data[coord].push(value);
+                        } else {
+                            data[coord] = value;
+                        }
                     }
                 }
             }
-        }
 
-        let _data = JSON.parse(JSON.stringify(this.state.data));
+            let _data = JSON.parse(JSON.stringify(state.data));
 
-        addDataUsingCoords(coords, _data, blankData);
+            addDataUsingCoords(coords, _data, blankData);
 
-        this.setState({data: _data});
+            return {data: _data};
+        });
     }
 
     removeFieldset = (coords) => {
         coords = coords.split('-');
         coords.shift();
 
-        function removeDataUsingCoords(coords, data) {
-            let coord = coords.shift();
-            if (!isNaN(Number(coord)))
-                coord = Number(coord);
+        this.setState((state) => {
+            function removeDataUsingCoords(coords, data) {
+                let coord = coords.shift();
+                if (!isNaN(Number(coord)))
+                    coord = Number(coord);
 
-            if (coords.length) {
-                removeDataUsingCoords(coords, data[coord]);
-            } else {
-                if (Array.isArray(data))
-                    data = data.splice(coord, 1); // in-place mutation
-                else
-                    delete data[coord];
+                if (coords.length) {
+                    removeDataUsingCoords(coords, data[coord]);
+                } else {
+                    if (Array.isArray(data))
+                        data = data.splice(coord, 1); // in-place mutation
+                    else
+                        delete data[coord];
+                }
             }
-        }
 
-        let _data = JSON.parse(JSON.stringify(this.state.data));
+            let _data = JSON.parse(JSON.stringify(state.data));
 
-        removeDataUsingCoords(coords, _data);
+            removeDataUsingCoords(coords, _data);
 
-        this.setState({data: _data});
+            return {data: _data};
+        });
     }
 
     canAdd = () => {
