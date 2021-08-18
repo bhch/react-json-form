@@ -78,21 +78,32 @@ function getSyncedData(data, schema) {
     return data;
 }
 
-function getStringFormRow(data, schema, name, onChange) {
+function getStringFormRow(data, schema, name, onChange, onRemove, removable) {
     return (
         <div className="rjf-form-row" key={name}>
-            <FormInput 
-                name={name}
-                label={schema.title}
-                value={data}
-                onChange={onChange}
-                type="text"
-            />
+            {removable && 
+                <button 
+                    type="button"
+                    className="rjf-remove-button"
+                    onClick={(e) => onRemove(name)}
+                >
+                    &times;
+                </button>
+            }
+            <div className="rjf-form-row-inner">
+                <FormInput 
+                    name={name}
+                    label={schema.title}
+                    value={data}
+                    onChange={onChange}
+                    type="text"
+                />
+            </div>
         </div>
     );
 }
 
-function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
+function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level, groupRemovable) {
     let rows = [];
     let groups = [];
 
@@ -121,20 +132,43 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     }
     */
 
+    let removable = true;
+
     for (let i = 0; i < data.length; i++) {
         let item = data[i];
         let childName = name + '-' + i;
 
         if (schema.items.type === 'string') {
-            rows.push(getStringFormRow(item, schema.items, childName, onChange));
+            rows.push(getStringFormRow(item, schema.items, childName, onChange, onRemove, removable));
         } else if (schema.items.type === 'array') {
-            groups.push(getArrayFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
+            groups.push(getArrayFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1, removable));
         } else if (schema.items.type === 'object') {
             groups.push(getObjectFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
         }
     }
 
     let coords = name; // coordinates for insertion and deletion
+
+    if (!rows.length && !groups.length) {
+        let className = "rjf-form-group-inner";
+        if (level === 0)
+            className = "";
+        return (
+            <div className="rjf-form-group" key={'row_' + name}>
+                {level === 0 && groupTitle}
+                <div className={className}>
+                    {level > 0 && groupTitle}
+                    <button 
+                        type="button"
+                        className="rjf-add-button"
+                        onClick={(e) => onAdd(getBlankData(schema.items), coords)}
+                    >
+                        + Add item
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (rows.length) {
         rows = (
@@ -159,7 +193,21 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
         groups = (
             <div key={'group_' + name}>
                 {groupTitle}
-                {groups}
+                {groups.map((i, index) => (
+                    <div className="rjf-form-group-wrapper">
+                        {removable && 
+                            <button 
+                                type="button"
+                                className="rjf-remove-button"
+                                onClick={(e) => onRemove(name + '-' + index)}
+                            >
+                                &times;
+                            </button>
+                        }
+                        {i}
+                    </div>
+                    )
+                )}
                 <button 
                     type="button"
                     className="rjf-add-button"
@@ -178,10 +226,16 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
 function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     let rows = [];
 
-    for (let key in schema.keys) {
+    let keys = [...Object.keys(schema.keys)];
+
+    if (schema.additionalProperties)
+        keys = [...keys, ...Object.keys(data).filter((k) => keys.indexOf(k) === -1)];
+
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
         let value = data[key];
         let childName = name + '-' + key;
-        let schemaValue = schema.keys[key];
+        let schemaValue = schema.keys[key] || {type: 'string'};
 
         if (!schemaValue.title)
             schemaValue.title = getVerboseName(key);
@@ -206,6 +260,7 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
                 <div className="rjf-form-group-inner">
                     {level > 0 && groupTitle}
                     {rows}
+                    {schema.additionalProperties && 
                     <button 
                         type="button"
                         className="rjf-add-button"
@@ -213,6 +268,7 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
                     >
                         + Add key value
                     </button>
+                    }
                 </div>
 
             </div>
@@ -339,7 +395,7 @@ export default class Form extends React.Component {
                 coord = Number(coord);
 
             if (coords.length) {
-                appendDataUsingCoords(coords, data[coord], value);
+                addDataUsingCoords(coords, data[coord], value);
             } else {
                 if (Array.isArray(data)) {
                     data.push(value);
@@ -366,9 +422,30 @@ export default class Form extends React.Component {
     }
 
     removeFieldset = (coords) => {
-        this.setState((state) => {
-            return {data: state.data.filter((item, idx) => idx !== index)};
-        });
+        coords = coords.split('-');
+        coords.shift();
+
+        function removeDataUsingCoords(coords, data) {
+            let coord = coords.shift();
+            if (!isNaN(Number(coord)))
+                coord = Number(coord);
+
+            if (coords.length) {
+                removeDataUsingCoords(coords, data[coord]);
+            } else {
+                console.log(coord);
+                if (Array.isArray(data))
+                    data = data.splice(coord, 1); // in-place mutation
+                else
+                    delete data[coord];
+            }
+        }
+
+        let _data = JSON.parse(JSON.stringify(this.state.data));
+
+        removeDataUsingCoords(coords, _data);
+
+        this.setState({data: _data});
     }
 
     canAdd = () => {

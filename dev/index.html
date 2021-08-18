@@ -40,6 +40,14 @@
         }
         .rjf-form-row {
             margin-bottom: 15px;
+            position: relative;
+        }
+        .rjf-form-row-inner {
+            padding: 5px;
+            transition: background-color 0.12s ease-in-out;
+        }
+        .rjf-form-group-wrapper {
+            position: relative;
         }
         .rjf-form-group-title {
             font-weight: bold;
@@ -48,6 +56,8 @@
         }
         .rjf-form-group {
             margin-bottom: 15px;
+            position: relative;
+            transition: background-color 0.12s ease-in-out;
         }
         .rjf-form-group-inner {
             border: 1px solid #ddd;
@@ -59,7 +69,7 @@
             margin-top: 15px;
             margin-bottom: 0;
         }
-        .rjf-remove-fieldset-button {
+        .rjf-remove-button {
             color: #ff4444;
             background-color: #ffeeee;
             position: absolute;
@@ -73,6 +83,20 @@
             font-size: 1.3rem;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.12s ease-in-out, border-color 0.12s ease-in-out;
+            z-index: 2;
+        }
+        .rjf-form-row > .rjf-remove-button {
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .rjf-remove-button:hover {
+            background-color: #fff;
+            border-color: #ff4444;
+        }
+        .rjf-remove-button:hover + .rjf-form-row-inner,
+        .rjf-remove-button:hover + .rjf-form-group {
+            background-color: #fff3f3;
         }
     </style>
 </head>
@@ -205,8 +229,8 @@
         schema: {
             type: 'object',
             title: 'Settings',
-            extandable: true,
-            field_order: ['site_name', 'site_title', 'logo', 'twitter'],
+            order: ['site_name', 'site_title', 'logo', 'twitter'],
+            additionalProperties: true,
             keys: {
                 name: {
                     type: 'string'
