@@ -269,11 +269,14 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
 
     let coords = name;
 
-    if (rows.length) {
+    if (rows.length || schema.additionalProperties) {
+        let className = "rjf-form-group-inner";
+        if (level === 0 && !rows.length)
+            className = "";
         rows = (
             <div className="rjf-form-group" key={name}>
                 {level === 0 && groupTitle}
-                <div className="rjf-form-group-inner">
+                <div className={className}>
                     {level > 0 && groupTitle}
                     {rows}
                     {schema.additionalProperties && 
