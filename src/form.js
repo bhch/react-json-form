@@ -103,7 +103,7 @@ function getStringFormRow(data, schema, name, onChange, onRemove, removable) {
     );
 }
 
-function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level, groupRemovable) {
+function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     let rows = [];
     let groups = [];
 
@@ -133,6 +133,14 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level, g
     */
 
     let removable = true;
+    let min_items = schema.min_items || 0;
+    if (data.length <= min_items)
+        removable = false;
+
+    let addable = true;
+    let max_items = schema.max_items || 100;
+    if (data.length >= max_items)
+        addable = false;
 
     for (let i = 0; i < data.length; i++) {
         let item = data[i];
@@ -141,7 +149,7 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level, g
         if (schema.items.type === 'string') {
             rows.push(getStringFormRow(item, schema.items, childName, onChange, onRemove, removable));
         } else if (schema.items.type === 'array') {
-            groups.push(getArrayFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1, removable));
+            groups.push(getArrayFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
         } else if (schema.items.type === 'object') {
             groups.push(getObjectFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
         }
@@ -177,13 +185,15 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level, g
                 <div className="rjf-form-group-inner">
                     {level > 0 && groupTitle}
                     {rows}
-                    <button 
-                        type="button"
-                        className="rjf-add-button"
-                        onClick={(e) => onAdd(getBlankData(schema.items), coords)}
-                    >
-                        + Add item
-                    </button>
+                    {addable && 
+                        <button 
+                            type="button"
+                            className="rjf-add-button"
+                            onClick={(e) => onAdd(getBlankData(schema.items), coords)}
+                        >
+                            + Add item
+                        </button>
+                    }
                 </div>
             </div>
         );
@@ -208,13 +218,15 @@ function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level, g
                     </div>
                     )
                 )}
-                <button 
-                    type="button"
-                    className="rjf-add-button"
-                    onClick={(e) => onAdd(getBlankData(schema.items), coords)}
-                >
-                    + Add Group Array
-                </button>
+                {addable && 
+                    <button 
+                        type="button"
+                        className="rjf-add-button"
+                        onClick={(e) => onAdd(getBlankData(schema.items), coords)}
+                    >
+                        + Add Group Array
+                    </button>
+                }
             </div>
         )
     }
