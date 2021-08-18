@@ -267,12 +267,13 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
 
     let groupTitle = schema.title ? <div className="rjf-form-group-title">{schema.title}</div> : null;
 
-    let coords = name;
-
     if (rows.length || schema.additionalProperties) {
         let className = "rjf-form-group-inner";
         if (level === 0 && !rows.length)
             className = "";
+        
+        let coords = name;
+
         rows = (
             <div className="rjf-form-group" key={name}>
                 {level === 0 && groupTitle}
@@ -283,7 +284,19 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
                     <button 
                         type="button"
                         className="rjf-add-button"
-                        onClick={(e) => onAdd("", coords)}
+                        onClick={(e) => {
+                            key = prompt("Add new key");
+                            if (key === null) // clicked cancel
+                                return;
+
+                            key = key.trim();
+                            if (!key)
+                                alert("Can't add empty key");
+                            else if (data.hasOwnProperty(key))
+                                alert("Duplicate keys not allowed. This key already exists.");
+                            else
+                                onAdd("", coords + '-' + key);
+                        }}
                     >
                         + Add key value
                     </button>
@@ -423,11 +436,7 @@ export default class Form extends React.Component {
                     if (Array.isArray(data[coord])) {
                         data[coord].push(value);
                     } else {
-                        if (coord) {
-                            data = data[coord];
-                        }
-                        let newLen = Object.keys(data).length + 1;
-                        data['key_' + newLen] = value;
+                        data[coord] = value;
                     }
                 }
             }
@@ -452,7 +461,6 @@ export default class Form extends React.Component {
             if (coords.length) {
                 removeDataUsingCoords(coords, data[coord]);
             } else {
-                console.log(coord);
                 if (Array.isArray(data))
                     data = data.splice(coord, 1); // in-place mutation
                 else
