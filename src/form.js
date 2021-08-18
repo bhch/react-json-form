@@ -252,8 +252,12 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
         if (!schemaValue.title)
             schemaValue.title = getVerboseName(key);
 
+        let removable = false;
+        if (schema.keys[key] === undefined)
+            removable = true;
+
          if (schemaValue.type === 'string') {
-            rows.push(getStringFormRow(value, schemaValue, childName, onChange));
+            rows.push(getStringFormRow(value, schemaValue, childName, onChange, onRemove, removable));
         } else if (schemaValue.type === 'array') {
             rows.push(getArrayFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
         } else if (schemaValue.type === 'object') {
