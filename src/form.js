@@ -291,9 +291,9 @@ function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) 
 
                             key = key.trim();
                             if (!key)
-                                alert("Can't add empty key");
+                                alert("(!) Can't add empty key.\r\n\r\n‎");
                             else if (data.hasOwnProperty(key))
-                                alert("Duplicate keys not allowed. This key already exists.");
+                                alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
                             else
                                 onAdd("", coords + '-' + key);
                         }}
