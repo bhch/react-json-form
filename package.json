@@ -10,7 +10,8 @@
   "unpkg": "./dist/react-json-form.js",
   "scripts": {
     "build": "microbundle",
-    "dev": "microbundle watch --no-compress --jsx React.createElement --output ./dev/dist/"
+    "dev": "microbundle watch --no-compress --jsx React.createElement --output ./dev/dist/",
+    "lint": "eslint src"
   },
   "keywords": [],
   "author": "",
