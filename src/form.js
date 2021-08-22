@@ -1,4 +1,4 @@
-import {getBlankData} from './data';
+import {getBlankData, getSyncedData} from './data';
 import {getArrayFormRow, getObjectFormRow} from './ui';
 
 
@@ -15,9 +15,13 @@ export default class Form extends React.Component {
             // create empty data from schema
             data = getBlankData(this.schema);
         } else {
-            // if data is stale and schema has new keys,
-            // add them to data\
-            //data = getSyncedData(data, this.schema);
+            // data might be stale if schema has new keys, so add them to data
+            try {
+                data = getSyncedData(data, this.schema);
+            } catch (error) {
+                console.log("Error: Schema and data don't match");
+                console.log(error);
+            }
         }
 
         this.state = {
