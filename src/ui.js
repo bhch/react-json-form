@@ -177,6 +177,7 @@ export function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, 
                 schema={schema}
                 addable={schema.additionalProperties}
                 onAdd={() => handleKeyValueAdd(data, coords, onAdd)}
+                key={'row_group_' + name}
             >
                 {rows}
             </FormGroup>

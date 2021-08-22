@@ -75,17 +75,25 @@ export default class Form extends React.Component {
         let data = this.state.data;
         let formGroups = [];
 
-        if (this.schema.type === 'array') {
-            return getArrayFormRow(
-                data, this.schema, 'rjf',
-                this.handleChange, this.addFieldset, this.removeFieldset,
-                0
-            );
-        } else if (this.schema.type === 'object') {
-            return getObjectFormRow(
-                data, this.schema, 'rjf',
-                this.handleChange, this.addFieldset, this.removeFieldset,
-                0
+        try {
+            if (this.schema.type === 'array') {
+                return getArrayFormRow(
+                    data, this.schema, 'rjf',
+                    this.handleChange, this.addFieldset, this.removeFieldset,
+                    0
+                );
+            } else if (this.schema.type === 'object') {
+                return getObjectFormRow(
+                    data, this.schema, 'rjf',
+                    this.handleChange, this.addFieldset, this.removeFieldset,
+                    0
+                );
+            }
+        } catch (error) {
+            formGroups = (
+                <p style={{color: '#f00'}}>
+                    <strong>(!) Error:</strong> Schema and data do not match.
+                </p>
             );
         }
 
