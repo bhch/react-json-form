@@ -52,9 +52,9 @@ function getSyncedArray(data, schema) {
         let item = data[i];
 
         if (schema.items.type === 'array') {
-            newData[i] = syncArray(item, schema.items);
+            newData[i] = getSyncedArray(item, schema.items);
         } else if (schema.items.type === 'object') {
-            newData[i] = syncObject(item, schema.items);
+            newData[i] = getSyncedObject(item, schema.items);
         }
     }
 
@@ -75,16 +75,16 @@ function getSyncedObject(data, schema) {
             if (schemaValue.type === 'string')
                 newData[key] = '';
             else if (schemaValue.type === 'array')
-                newData[key] = syncArray([], schemaValue);
+                newData[key] = getSyncedArray([], schemaValue);
             else if (schemaValue.type === 'object')
-                newData[key] = syncObject({}, schemaValue);
+                newData[key] = getSyncedObject({}, schemaValue);
         } else {
         if (schemaValue.type === 'string')
                 newData[key] = data[key];
             else if (schemaValue.type === 'array')
-                newData[key] = syncArray(data[key], schemaValue);
+                newData[key] = getSyncedArray(data[key], schemaValue);
             else if (schemaValue.type === 'object')
-                newData[key] = syncObject(data[key], schemaValue);
+                newData[key] = getSyncedObject(data[key], schemaValue);
         }
         
     }
