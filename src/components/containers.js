@@ -32,7 +32,9 @@ export function FormRow(props) {
 
 
 export function FormGroup(props) {
-    let innerClassName = props.level === 0 && !React.Children.count(props.children) 
+    let hasChildren = React.Children.count(props.children);
+
+    let innerClassName = props.level === 0 && !hasChildren
         ? "" 
         : "rjf-form-group-inner";
 
@@ -48,7 +50,7 @@ export function FormGroup(props) {
                     onClick={(e) => props.onAdd()}
                     title="Add new"
                 >
-                    Add more
+                    {hasChildren ? 'Add more' : 'Add'}
                 </Button>
                 }
             </div>
