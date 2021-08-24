@@ -6,7 +6,9 @@ import {getVerboseName} from './util';
 const TYPE_MAP = {
     string: 'text',
     boolean: 'checkbox',
+    number: 'number'
 };
+
 const FIELD_MAP = {
     string: FormInput,
     integer: FormInput,
@@ -17,33 +19,110 @@ const FIELD_MAP = {
 
 function handleChange(e, type, callback) {
     let value;
-    if (type === 'text')
+    if (type === 'text') {
         value = e.target.value;
-    else if (type === 'checkbox')
+    }
+    else if (type === 'number') {
+        value = e.target.value.trim();
+
+        if (value !== '' && !isNaN(Number(value)))
+            value = Number(value);
+    }
+    else if (type === 'checkbox') {
         value = e.target.checked;
+    }
+
     callback(e.target.name, value);
 }
 
 
+function FormField(props) {
+    let inputProps = {
+        name: props.name,
+        value: props.data,
+    };
+
+    let type = props.schema.type;
+    if (props.schema.choices) {
+        inputProps.options = props.schema.choices;
+        if (props.schema.multi)
+            type = 'multiselect';
+        else
+            type = 'select';
+    }
+    if (props.schema.widget)
+        type = props.schema.widget;
+
+    let InputField;
+
+    console.log(type)
+
+    switch (type) {
+        case 'string':
+            inputProps.type = 'text';
+            InputField = FormInput;
+            break;
+        case 'number':
+            inputProps.type = 'number';
+            InputField = FormInput;
+            break;
+        case 'integer':
+            inputProps.type = 'number';
+            InputField = FormInput;
+            break;
+        case 'boolean':
+            inputProps.type = 'checkbox';
+            InputField = CheckInput;
+            break;
+        case 'checkbox':
+            inputProps.type = 'checkbox';
+            InputField = CheckInput;
+            break;
+        case 'radio':
+            inputProps.type = 'checkbox';
+            InputField = CheckInput;
+            break;
+        case 'select':
+            inputProps.type = 'checkbox';
+            InputField = CheckInput;
+            break;
+        case 'multiselect':
+            inputProps.type = 'checkbox';
+            InputField = CheckInput;
+            break;
+        default:
+            inputProps.type = 'text';
+            InputField = FormInput;
+    }
+
+   return (
+        <InputField 
+            {...inputProps}
+            label={
+                props.editable ? <span>{porps.schema.title} <Button className="edit" onClick={props.onEdit} title="Edit">Edit</Button></span>
+                :
+                props.schema.title
+            }
+            onChange={(e) => handleChange(e, inputProps.type, props.onChange)}
+        />
+    );
+}
+
+
 export function getStringFormRow(data, schema, name, onChange, onRemove, removable, onEdit, editable) {
-    let InputField = FIELD_MAP[schema.type];
-    let inputType = TYPE_MAP[schema.type];
 
     return (
         <FormRow 
             key={name}
             onRemove={removable ? (e) => onRemove(name) : null}
         >
-            <InputField 
+            <FormField 
+                data={data}
+                schema={schema}
                 name={name}
-                label={
-                    editable ? <span>{schema.title} <Button className="edit" onClick={onEdit} title="Edit">Edit</Button></span>
-                    :
-                    schema.title
-                }
-                value={data}
-                onChange={(e) => handleChange(e, inputType, onChange)}
-                type={inputType}
+                onChange={onChange}
+                onEdit={onEdit}
+                editable={editable}
             />
         </FormRow>
     );
