@@ -1,35 +1,23 @@
 import {getBlankData} from './data';
-import {Button, FormInput, CheckInput, FormRow, FormGroup} from './components';
+import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
+    FormRow, FormGroup} from './components';
 import {getVerboseName} from './util';
 
 
-const TYPE_MAP = {
-    string: 'text',
-    boolean: 'checkbox',
-    number: 'number'
-};
-
-const FIELD_MAP = {
-    string: FormInput,
-    integer: FormInput,
-    number: FormInput,
-    boolean: CheckInput
-};
-
-
-function handleChange(e, type, callback) {
+function handleChange(e, valueType, callback) {
+    let type = e.target.type
     let value;
-    if (type === 'text') {
+
+    if (type === 'checkbox') {
+        value = e.target.checked;
+    } else {
         value = e.target.value;
     }
-    else if (type === 'number') {
-        value = e.target.value.trim();
 
+    if (valueType === 'number') {
+        value = value.trim();
         if (value !== '' && !isNaN(Number(value)))
             value = Number(value);
-    }
-    else if (type === 'checkbox') {
-        value = e.target.checked;
     }
 
     callback(e.target.name, value);
@@ -45,17 +33,12 @@ function FormField(props) {
     let type = props.schema.type;
     if (props.schema.choices) {
         inputProps.options = props.schema.choices;
-        if (props.schema.multi)
-            type = 'multiselect';
-        else
-            type = 'select';
+        type = 'select';
     }
     if (props.schema.widget)
         type = props.schema.widget;
 
     let InputField;
-
-    console.log(type)
 
     switch (type) {
         case 'string':
@@ -72,23 +55,18 @@ function FormField(props) {
             break;
         case 'boolean':
             inputProps.type = 'checkbox';
-            InputField = CheckInput;
+            InputField = FormCheckInput;
             break;
         case 'checkbox':
             inputProps.type = 'checkbox';
-            InputField = CheckInput;
+            InputField = FormCheckInput;
             break;
         case 'radio':
-            inputProps.type = 'checkbox';
-            InputField = CheckInput;
+            inputProps.type = 'radio';
+            InputField = FormRadioInput;
             break;
         case 'select':
-            inputProps.type = 'checkbox';
-            InputField = CheckInput;
-            break;
-        case 'multiselect':
-            inputProps.type = 'checkbox';
-            InputField = CheckInput;
+            InputField = FormSelectInput;
             break;
         default:
             inputProps.type = 'text';
@@ -103,7 +81,7 @@ function FormField(props) {
                 :
                 props.schema.title
             }
-            onChange={(e) => handleChange(e, inputProps.type, props.onChange)}
+            onChange={(e) => handleChange(e, props.schema.type, props.onChange)}
         />
     );
 }

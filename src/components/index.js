@@ -1,9 +1,9 @@
 import Button from './buttons';
-import {FormInput, CheckInput, FileInput} from './form';
+import {FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FileInput} from './form';
 import {FormRow, FormGroup} from './containers';
 
 export {
     Button,
-    FormInput, CheckInput, FileInput,
+    FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FileInput,
     FormRow, FormGroup
 };
