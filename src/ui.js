@@ -1,6 +1,6 @@
 import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
-    FormRow, FormGroup} from './components';
+    FormFileInput, FormRow, FormGroup} from './components';
 import {getVerboseName} from './util';
 
 
@@ -42,8 +42,17 @@ function FormField(props) {
 
     switch (type) {
         case 'string':
-            inputProps.type = 'text';
             InputField = FormInput;
+
+            if (props.schema.format) {
+                if (props.schema.format === 'data-url' || props.schema.format === 'file-url') {
+                    InputField = FormFileInput;
+                }
+                inputProps.type = props.schema.format;
+            }
+            else {
+                inputProps.type = 'text';
+            }
             break;
         case 'number':
             inputProps.type = 'number';
@@ -77,7 +86,7 @@ function FormField(props) {
         <InputField 
             {...inputProps}
             label={
-                props.editable ? <span>{porps.schema.title} <Button className="edit" onClick={props.onEdit} title="Edit">Edit</Button></span>
+                props.editable ? <span>{props.schema.title} <Button className="edit" onClick={props.onEdit} title="Edit">Edit</Button></span>
                 :
                 props.schema.title
             }
