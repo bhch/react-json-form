@@ -185,7 +185,7 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
                         onClick={(e) => onAdd(getBlankData(schema.items), coords)}
                         title="Add new"
                     >
-                        + Add Group Array
+                        Add item
                     </Button>
                 }
             </div>
