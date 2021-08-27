@@ -5,12 +5,14 @@ export function getBlankObject(schema) {
         let value = schema.keys[key];
         let type = value.type;
 
-        if (type === 'string')
-            keys[key] = ''; 
-        else if (type === 'array')
+        if (type === 'array')
             keys[key] = getBlankArray(value);
         else if (type === 'object')
             keys[key] = getBlankObject(value);
+        else if (type === 'string')
+            keys[key] = '';
+        else if (schema.type === 'number')
+            return '';
     }
 
     return keys;
@@ -21,12 +23,14 @@ export function getBlankArray(schema) {
     let items = [];
     let type = schema.items.type;
 
-    if (type === 'string')
-        items.push('');
-    else if (type === 'array')
+    if (type === 'array')
         items.push(getBlankArray(schema.items))
     else if (type === 'object')
         items.push(getBlankObject(schema.items));
+    else if (type === 'string')
+        items.push('');
+    else if (schema.type === 'number')
+        items.push('');
 
     return items;
 }
@@ -39,6 +43,8 @@ export function getBlankData(schema) {
     else if (schema.type === 'object') {
         return getBlankObject(schema);
     } else if (schema.type === 'string') {
+        return '';
+    } else if (schema.type === 'number') {
         return '';
     }
 }

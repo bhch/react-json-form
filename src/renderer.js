@@ -6,6 +6,7 @@ export default function JSONForm(config) {
     this.dataInputId = config.dataInputId;
     this.schema = config.schema;
     this.data = config.data;
+    this.fileUploadEndpoint = config.fileUploadEndpoint;
 
     this.render = function() {
         ReactDOM.render(
@@ -13,6 +14,7 @@ export default function JSONForm(config) {
                 schema={this.schema}
                 dataInputId={this.dataInputId}
                 data={this.data}
+                fileUploadEndpoint={this.fileUploadEndpoint}
             />,
             document.getElementById(this.containerId)
         );

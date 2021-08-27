@@ -1,3 +1,6 @@
+export const EditorContext = React.createContext();
+
+
 export function capitalize(string) {
     if (!string)
         return '';
@@ -12,4 +15,12 @@ export function getVerboseName(name) {
 
     name = name.replace(/_/g, ' ');
     return capitalize(name);
+}
+
+
+export function getCsrfCookie() {
+    if ((document.cookie.split(';').filter((item) => item.trim().indexOf('csrftoken=') === 0)).length) {
+        return document.cookie.split(';').filter((item) => item.trim().indexOf('csrftoken=') === 0)[0].split('=')[1];
+    }
+    return null;
 }

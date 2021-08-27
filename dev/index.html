@@ -98,6 +98,61 @@
         .rjf-remove-button:hover + .rjf-form-group {
             background-color: #fff3f3;
         }
+        .rjf-form-text {
+            display: block;
+            font-size: 0.88em;
+            color: #777;
+            margin-top: 8px;
+        }
+        .rjf-current-file-name {
+            font-size: 0.9em;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+        .rjf-current-file-name span {
+            display: inline-block;
+            vertical-align: bottom;
+            background-color: #eee;
+            padding: 0 4px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .rjf-loader {
+            width: 32px;
+            height: 32px;
+            clear: both;
+            margin: 20px auto;
+            display: inline-block;
+            margin: 0;
+            margin-right: 0.25em;
+            height: 1em;
+            width: 1em;
+            vertical-align: middle;;
+            border: 2px #a7e6f0 solid;
+            border-top-color: #1191a6;
+            border-radius: 50%;
+            -webkit-animation: loaderRotate .4s infinite linear;
+            animation: loaderRotate .4s infinite linear;
+        }
+
+        @-webkit-keyframes loaderRotate {
+            from {
+                -webkit-transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(359deg);
+            }
+        }
+        @keyframes loaderRotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(359deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -159,7 +214,8 @@
             min_items: 0,
             items: {
                 type: 'string',
-                title: 'Tag'
+                title: 'Tag',
+                format: 'file-url'
             }
         },
     });

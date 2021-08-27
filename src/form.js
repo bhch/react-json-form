@@ -1,5 +1,6 @@
 import {getBlankData, getSyncedData} from './data';
 import {getArrayFormRow, getObjectFormRow} from './ui';
+import {EditorContext} from './util';
 
 
 export default class Form extends React.Component {
@@ -170,7 +171,13 @@ export default class Form extends React.Component {
         return (
             <div className="rjf-form-wrapper">
                 <fieldset className="module aligned">
+                    <EditorContext.Provider 
+                        value={{
+                            fileUploadEndpoint: this.props.fileUploadEndpoint
+                        }}
+                    >
                     {this.getFields()}
+                    </EditorContext.Provider>
                 </fieldset>
             </div>
         );

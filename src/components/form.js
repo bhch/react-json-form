@@ -1,4 +1,6 @@
 import Button from './buttons';
+import Loader from './loaders';
+import {EditorContext, getCsrfCookie} from '../util';
 
 
 export function FormInput({label, help_text, error, inputRef, ...props}) {
@@ -128,12 +130,15 @@ export function dataURItoBlob(dataURI) {
 
 
 export class FormFileInput extends React.Component {
+    static contextType = EditorContext;
+
     constructor(props) {
         super(props);
 
         this.state = {
             value: props.value,
-            fileName: this.getFileName()
+            fileName: this.getFileName(),
+            loading: false
         };
 
         this.inputRef = React.createRef();
@@ -176,31 +181,71 @@ export class FormFileInput extends React.Component {
 
     handleChange = (e) => {
         if (this.props.type === 'data-url') {
+            let file = e.target.files[0];
+            let fileName = file.name
+
+            let reader = new FileReader();
+
+            reader.onload = () => {
+
+                // this.setState({src: reader.result});
+
+                // we create a fake event object
+                let event = {
+                    target: {
+                        type: 'text',
+                        value: this.addNameToDataURL(reader.result, fileName),
+                        name: this.props.name
+                    }
+                };
+
+                this.props.onChange(event);
+
+            }
+            reader.readAsDataURL(file);
+        } else if (this.props.type === 'file-url') {
+            let endpoint = this.context.fileUploadEndpoint;
+            if (!endpoint) {
+                console.error(
+                    "Error: fileUploadEndpoint option need to be passed "
+                    + "while initializing editor for enabling file uploads.");
+                alert("Files can't be uploaded.");
+                return;
+            }
+
+            this.setState({loading: true});
+
+            let formData = new FormData();
+            formData.append('file', e.target.files[0]);
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfCookie(),
+                },
+                body: formData
+            })
+            .then((response) => response.json())
+            .then((result) => {
+                // we create a fake event object
+                let event = {
+                    target: {
+                        type: 'text',
+                        value: result.file_path,
+                        name: this.props.name
+                    }
+                };
+
+                this.props.onChange(event);
+                this.setState({loading: false});
+            })
+            .catch((error) => {
+                alert('Something went wrong while uploading file');
+                console.error('Error:', error);
+                this.setState({loading: false});
+            });
 
         }
-
-        let file = e.target.files[0];
-        let fileName = file.name
-
-        let reader = new FileReader();
-
-        reader.onload = () => {
-
-            // this.setState({src: reader.result});
-
-            // we create a fake event object
-            let event = {
-                target: {
-                    type: 'text',
-                    value: this.addNameToDataURL(reader.result, fileName),
-                    name: this.props.name
-                }
-            };
-
-            this.props.onChange(event);
-
-        }
-        reader.readAsDataURL(file);
 
     }
 
@@ -220,10 +265,14 @@ export class FormFileInput extends React.Component {
                     {this.state.value && 
                         <div className="rjf-current-file-name">Current file: <span>{this.state.fileName}</span></div>
                     }
-                    {this.state.value && 'Change:'}
+                    {this.state.value && !this.state.loading && 'Change:'}
+                    {this.state.loading ?
+                        <div className="rjf-file-field-loading"><Loader/> Uploading...</div>
+                    : 
                     <div className="rjf-file-field-input">
                         <FormInput {...props} inputRef={this.inputRef} />
                     </div>
+                    }
                     </div>
             </div>
         );
