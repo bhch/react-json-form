@@ -173,7 +173,9 @@ export default class Form extends React.Component {
                 <fieldset className="module aligned">
                     <EditorContext.Provider 
                         value={{
-                            fileUploadEndpoint: this.props.fileUploadEndpoint
+                            fileUploadEndpoint: this.props.fileUploadEndpoint,
+                            fieldName: this.props.fieldName,
+                            modelName: this.props.modelName,
                         }}
                     >
                     {this.getFields()}
