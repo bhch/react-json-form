@@ -7,10 +7,12 @@
   "exports": "./dist/react-json-form.modern.js",
   "main": "./dist/react-json-form.js",
   "module": "./dist/react-json-form.module.js",
-  "unpkg": "./dist/react-json-form.min.js",
+  "unpkg": "./dist/react-json-form.js",
   "scripts": {
-    "build": "microbundle --format umd,cjs",
-    "dev": "microbundle watch --format umd,cjs --no-compress --jsx React.createElement --output ./dev/dist/",
+    "build": "npm run build:uncompressed && npm run build:compressed",
+    "build:uncompressed": "microbundle --format umd --no-compress",
+    "build:compressed": "microbundle --format umd -o ./dist/react-json-form.min.js",
+    "dev": "microbundle watch --format umd --no-compress --jsx React.createElement --output ./dev/dist/",
     "lint": "eslint src"
   },
   "keywords": [],
