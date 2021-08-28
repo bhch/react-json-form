@@ -1,6 +1,6 @@
 {
   "name": "react-json-form",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "",
   "type": "module",
   "source": "./src/index.js",
@@ -16,7 +16,7 @@
     "lint": "eslint src"
   },
   "keywords": [],
-  "author": "",
+  "author": "Bharat Chauhan",
   "license": "ISC",
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.0",
