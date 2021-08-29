@@ -133,14 +133,14 @@
 
     if (!className) className = '';
     className = 'rjf-' + className + '-button';
-    return h("button", _extends({
+    return /*#__PURE__*/React.createElement("button", _extends({
       className: className,
       type: "button"
     }, props), props.children);
   }
 
   function Loader(props) {
-    return h("div", {
+    return /*#__PURE__*/React.createElement("div", {
       className: "rjf-loader"
     });
   }
@@ -179,7 +179,7 @@
 
     if (props.type === 'string') props.type = 'text';
     if (inputRef) props.ref = inputRef;
-    return h("div", null, label && h("label", null, label), h("input", props));
+    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("input", props));
   }
   function FormCheckInput(_ref2) {
     var label = _ref2.label,
@@ -190,7 +190,7 @@
     if (props.type === 'bool') props.type = 'checkbox';
     if (props.checked === undefined) props.checked = value;
     if (props.checked === '') props.checked = false;
-    return h("div", null, h("label", null, h("input", props), " ", label));
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", props), " ", label));
   }
   function FormRadioInput(_ref3) {
     var label = _ref3.label,
@@ -198,7 +198,7 @@
         options = _ref3.options,
         props = _objectWithoutPropertiesLoose(_ref3, _excluded3);
 
-    return h("div", null, h("label", null, label), options.map(function (option, i) {
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, label), options.map(function (option, i) {
       var label, inputValue;
 
       if (typeof option === 'object') {
@@ -209,9 +209,9 @@
         inputValue = option;
       }
 
-      return h("label", {
+      return /*#__PURE__*/React.createElement("label", {
         key: label + '_' + inputValue + '_' + i
-      }, h("input", _extends({}, props, {
+      }, /*#__PURE__*/React.createElement("input", _extends({}, props, {
         value: inputValue,
         checked: inputValue === value
       })), " ", label);
@@ -222,9 +222,9 @@
         options = _ref4.options,
         props = _objectWithoutPropertiesLoose(_ref4, _excluded4);
 
-    return h("div", null, label && h("label", null, label), h("select", _extends({
+    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("select", _extends({
       defaultValue: ""
-    }, props), h("option", {
+    }, props), /*#__PURE__*/React.createElement("option", {
       disabled: true,
       value: "",
       key: '__placehlder'
@@ -239,7 +239,7 @@
         inputValue = option;
       }
 
-      return h("option", {
+      return /*#__PURE__*/React.createElement("option", {
         value: inputValue,
         key: label + '_' + inputValue + '_' + i
       }, label);
@@ -427,15 +427,15 @@
 
       props.type = 'file';
       props.onChange = this.handleChange;
-      return h("div", null, label && h("label", null, label), h("div", {
+      return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
         className: "rjf-file-field"
-      }, this.state.value && h("div", {
+      }, this.state.value && /*#__PURE__*/React.createElement("div", {
         className: "rjf-current-file-name"
-      }, "Current file: ", h("span", null, this.state.fileName)), this.state.value && !this.state.loading && 'Change:', this.state.loading ? h("div", {
+      }, "Current file: ", /*#__PURE__*/React.createElement("span", null, this.state.fileName)), this.state.value && !this.state.loading && 'Change:', this.state.loading ? /*#__PURE__*/React.createElement("div", {
         className: "rjf-file-field-loading"
-      }, h(Loader, null), " Uploading...") : h("div", {
+      }, /*#__PURE__*/React.createElement(Loader, null), " Uploading...") : /*#__PURE__*/React.createElement("div", {
         className: "rjf-file-field-input"
-      }, h(FormInput, _extends({}, props, {
+      }, /*#__PURE__*/React.createElement(FormInput, _extends({}, props, {
         inputRef: this.inputRef
       })))));
     };
@@ -446,31 +446,31 @@
 
   function GroupTitle(props) {
     if (!props.children) return null;
-    return h("div", {
+    return /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-group-title"
     }, props.children);
   }
   function FormRow(props) {
-    return h("div", {
+    return /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-row"
-    }, props.onRemove && h(Button, {
+    }, props.onRemove && /*#__PURE__*/React.createElement(Button, {
       className: "remove",
       onClick: function onClick(e) {
         return props.onRemove(name);
       },
       title: "Remove"
-    }, "\xD7"), h("div", {
+    }, "\xD7"), /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-row-inner"
     }, props.children));
   }
   function FormGroup(props) {
     var hasChildren = React.Children.count(props.children);
     var innerClassName = props.level === 0 && !hasChildren ? "" : "rjf-form-group-inner";
-    return h("div", {
+    return /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-group"
-    }, props.level === 0 && h(GroupTitle, null, props.schema.title), h("div", {
+    }, props.level === 0 && /*#__PURE__*/React.createElement(GroupTitle, null, props.schema.title), /*#__PURE__*/React.createElement("div", {
       className: innerClassName
-    }, props.level > 0 && h(GroupTitle, null, props.schema.title), props.children, props.addable && h(Button, {
+    }, props.level > 0 && /*#__PURE__*/React.createElement(GroupTitle, null, props.schema.title), props.children, props.addable && /*#__PURE__*/React.createElement(Button, {
       className: "add",
       onClick: function onClick(e) {
         return props.onAdd();
@@ -562,8 +562,8 @@
         InputField = FormInput;
     }
 
-    return h(InputField, _extends({}, inputProps, {
-      label: props.editable ? h("span", null, props.schema.title, " ", h(Button, {
+    return /*#__PURE__*/React.createElement(InputField, _extends({}, inputProps, {
+      label: props.editable ? /*#__PURE__*/React.createElement("span", null, props.schema.title, " ", /*#__PURE__*/React.createElement(Button, {
         className: "edit",
         onClick: props.onEdit,
         title: "Edit"
@@ -575,12 +575,12 @@
   }
 
   function getStringFormRow(data, schema, name, onChange, onRemove, removable, onEdit, editable) {
-    return h(FormRow, {
+    return /*#__PURE__*/React.createElement(FormRow, {
       key: name,
       onRemove: removable ? function (e) {
         return onRemove(name);
       } : null
-    }, h(FormField, {
+    }, /*#__PURE__*/React.createElement(FormField, {
       data: data,
       schema: schema,
       name: name,
@@ -615,7 +615,7 @@
     var coords = name; // coordinates for insertion and deletion
 
     if (rows.length || !rows.length && !groups.length) {
-      rows = h(FormGroup, {
+      rows = /*#__PURE__*/React.createElement(FormGroup, {
         level: level,
         schema: schema,
         addable: addable,
@@ -627,23 +627,23 @@
     }
 
     if (groups.length) {
-      var groupTitle = schema.title ? h("div", {
+      var groupTitle = schema.title ? /*#__PURE__*/React.createElement("div", {
         className: "rjf-form-group-title"
       }, schema.title) : null;
-      groups = h("div", {
+      groups = /*#__PURE__*/React.createElement("div", {
         key: 'group_' + name
       }, groupTitle, groups.map(function (i, index) {
-        return h("div", {
+        return /*#__PURE__*/React.createElement("div", {
           className: "rjf-form-group-wrapper",
           key: 'group_wrapper_' + name + '_' + index
-        }, removable && h(Button, {
+        }, removable && /*#__PURE__*/React.createElement(Button, {
           className: "remove",
           onClick: function onClick(e) {
             return onRemove(name + '-' + index);
           },
           title: "Remove"
         }, "\xD7"), i);
-      }), addable && h(Button, {
+      }), addable && /*#__PURE__*/React.createElement(Button, {
         className: "add",
         onClick: function onClick(e) {
           return _onAdd(getBlankData(schema.items), coords);
@@ -689,7 +689,7 @@
 
     if (rows.length || schema.additionalProperties) {
       var coords = name;
-      rows = h(FormGroup, {
+      rows = /*#__PURE__*/React.createElement(FormGroup, {
         level: level,
         schema: schema,
         addable: schema.additionalProperties,
@@ -777,11 +777,11 @@
             return getObjectFormRow(data, _this.schema, 'rjf', _this.handleChange, _this.addFieldset, _this.removeFieldset, 0);
           }
         } catch (error) {
-          formGroups = h("p", {
+          formGroups = /*#__PURE__*/React.createElement("p", {
             style: {
               color: '#f00'
             }
-          }, h("strong", null, "(!) Error:"), " Schema and data do not match.");
+          }, /*#__PURE__*/React.createElement("strong", null, "(!) Error:"), " Schema and data do not match.");
         }
 
         return formGroups;
@@ -882,11 +882,11 @@
     };
 
     _proto.render = function render() {
-      return h("div", {
+      return /*#__PURE__*/React.createElement("div", {
         className: "rjf-form-wrapper"
-      }, h("fieldset", {
+      }, /*#__PURE__*/React.createElement("fieldset", {
         className: "module aligned"
-      }, h(EditorContext.Provider, {
+      }, /*#__PURE__*/React.createElement(EditorContext.Provider, {
         value: {
           fileUploadEndpoint: this.props.fileUploadEndpoint,
           fieldName: this.props.fieldName,
@@ -908,7 +908,7 @@
     this.modelName = config.modelName;
 
     this.render = function () {
-      ReactDOM.render(h(Form, {
+      ReactDOM.render( /*#__PURE__*/React.createElement(Form, {
         schema: this.schema,
         dataInputId: this.dataInputId,
         data: this.data,
