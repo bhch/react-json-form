@@ -607,10 +607,10 @@
     var rows = [];
     var groups = [];
     var removable = true;
-    var min_items = schema.min_items || 0;
+    var min_items = schema.min_items || schema.minItems || 0;
     if (data.length <= min_items) removable = false;
     var addable = true;
-    var max_items = schema.max_items || 100;
+    var max_items = schema.max_items || schema.maxItems || 100;
     if (data.length >= max_items) addable = false;
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
