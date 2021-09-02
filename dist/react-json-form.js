@@ -54,10 +54,12 @@
 
   function getBlankObject(schema) {
     var keys = {};
+    var schema_keys = schema.keys || schema.properties;
 
-    for (var key in schema.keys) {
-      var value = schema.keys[key];
+    for (var key in schema_keys) {
+      var value = schema_keys[key];
       var type = value.type;
+      if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
       if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'string') keys[key] = '';else if (schema.type === 'number') return '';
     }
 
@@ -66,30 +68,36 @@
   function getBlankArray(schema) {
     var items = [];
     var type = schema.items.type;
+    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
     if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'string') items.push('');else if (schema.type === 'number') items.push('');
     return items;
   }
   function getBlankData(schema) {
-    if (schema.type === 'array') {
+    var type = schema.type;
+    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+
+    if (type === 'array') {
       return getBlankArray(schema);
-    } else if (schema.type === 'object') {
+    } else if (type === 'object') {
       return getBlankObject(schema);
-    } else if (schema.type === 'string') {
+    } else if (type === 'string') {
       return '';
-    } else if (schema.type === 'number') {
+    } else if (type === 'number') {
       return '';
     }
   }
 
   function getSyncedArray(data, schema) {
     var newData = JSON.parse(JSON.stringify(data));
+    var type = schema.items.type;
+    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
     for (var i = 0; i < data.length; i++) {
       var item = data[i];
 
-      if (schema.items.type === 'array') {
+      if (type === 'array') {
         newData[i] = getSyncedArray(item, schema.items);
-      } else if (schema.items.type === 'object') {
+      } else if (type === 'object') {
         newData[i] = getSyncedObject(item, schema.items);
       }
     }
@@ -99,16 +107,19 @@
 
   function getSyncedObject(data, schema) {
     var newData = JSON.parse(JSON.stringify(data));
-    var keys = [].concat(Object.keys(schema.keys));
+    var schema_keys = schema.keys || schema.properties;
+    var keys = [].concat(Object.keys(schema_keys));
 
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
-      var schemaValue = schema.keys[key];
+      var schemaValue = schema_keys[key];
+      var type = schemaValue.type;
+      if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
       if (!data.hasOwnProperty(key)) {
-        if (schemaValue.type === 'string') newData[key] = '';else if (schemaValue.type === 'array') newData[key] = getSyncedArray([], schemaValue);else if (schemaValue.type === 'object') newData[key] = getSyncedObject({}, schemaValue);
+        if (type === 'string') newData[key] = '';else if (type === 'array') newData[key] = getSyncedArray([], schemaValue);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue);
       } else {
-        if (schemaValue.type === 'string') newData[key] = data[key];else if (schemaValue.type === 'array') newData[key] = getSyncedArray(data[key], schemaValue);else if (schemaValue.type === 'object') newData[key] = getSyncedObject(data[key], schemaValue);
+        if (type === 'string') newData[key] = data[key];else if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue);
       }
     }
 
@@ -117,9 +128,12 @@
 
   function getSyncedData(data, schema) {
     // adds those keys to data which are in schema but not in data
-    if (schema.type === 'array') {
+    var type = schema.type;
+    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+
+    if (type === 'array') {
       return getSyncedArray(data, schema);
-    } else if (schema.type === 'object') {
+    } else if (type === 'object') {
       return getSyncedObject(data, schema);
     }
 
@@ -598,14 +612,16 @@
     var addable = true;
     var max_items = schema.max_items || 100;
     if (data.length >= max_items) addable = false;
+    var type = schema.items.type;
+    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
     for (var i = 0; i < data.length; i++) {
       var item = data[i];
       var childName = name + '-' + i;
 
-      if (schema.items.type === 'array') {
+      if (type === 'array') {
         groups.push(getArrayFormRow(item, schema.items, childName, onChange, _onAdd, onRemove, level + 1));
-      } else if (schema.items.type === 'object') {
+      } else if (type === 'object') {
         groups.push(getObjectFormRow(item, schema.items, childName, onChange, _onAdd, onRemove, level + 1));
       } else {
         rows.push(getStringFormRow(item, schema.items, childName, onChange, onRemove, removable));
@@ -656,7 +672,8 @@
   }
   function getObjectFormRow(data, schema, name, onChange, _onAdd2, onRemove, level) {
     var rows = [];
-    var keys = [].concat(Object.keys(schema.keys));
+    schema_keys = schema.keys || schema.properties;
+    var keys = [].concat(Object.keys(schema_keys));
     if (schema.additionalProperties) keys = [].concat(keys, Object.keys(data).filter(function (k) {
       return keys.indexOf(k) === -1;
     }));
@@ -665,16 +682,18 @@
       var key = keys[i];
       var value = data[key];
       var childName = name + '-' + key;
-      var schemaValue = schema.keys[key] || {
+      var schemaValue = schema_keys[key] || {
         type: 'string'
       };
+      var type = schemaValue.type;
+      if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
       if (!schemaValue.title) schemaValue.title = getVerboseName(key);
       var removable = false;
-      if (schema.keys[key] === undefined) removable = true;
+      if (schema_keys[key] === undefined) removable = true;
 
-      if (schemaValue.type === 'array') {
+      if (type === 'array') {
         rows.push(getArrayFormRow(value, schemaValue, childName, onChange, _onAdd2, onRemove, level + 1));
-      } else if (schemaValue.type === 'object') {
+      } else if (type === 'object') {
         rows.push(getObjectFormRow(value, schemaValue, childName, onChange, _onAdd2, onRemove, level + 1));
       } else {
         rows.push(getStringFormRow(value, schemaValue, childName, onChange, onRemove, removable, function () {
@@ -771,9 +790,12 @@
         var formGroups = [];
 
         try {
-          if (_this.schema.type === 'array') {
+          var type = _this.schema.type;
+          if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+
+          if (type === 'array') {
             return getArrayFormRow(data, _this.schema, 'rjf', _this.handleChange, _this.addFieldset, _this.removeFieldset, 0);
-          } else if (_this.schema.type === 'object') {
+          } else if (type === 'object') {
             return getObjectFormRow(data, _this.schema, 'rjf', _this.handleChange, _this.addFieldset, _this.removeFieldset, 0);
           }
         } catch (error) {
