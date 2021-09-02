@@ -1,9 +1,16 @@
 export function getBlankObject(schema) {
     let keys = {};
 
-    for (let key in schema.keys) {
-        let value = schema.keys[key];
+    let schema_keys = schema.keys || schema.properties;
+
+    for (let key in schema_keys) {
+        let value = schema_keys[key];
         let type = value.type;
+
+        if (type === 'list')
+            type = 'array';
+        else if (type === 'dict')
+            type = 'object';
 
         if (type === 'array')
             keys[key] = getBlankArray(value);
@@ -23,6 +30,11 @@ export function getBlankArray(schema) {
     let items = [];
     let type = schema.items.type;
 
+    if (type === 'list')
+        type = 'array';
+    else if (type === 'dict')
+        type = 'object';
+
     if (type === 'array')
         items.push(getBlankArray(schema.items))
     else if (type === 'object')
@@ -37,14 +49,21 @@ export function getBlankArray(schema) {
 
 
 export function getBlankData(schema) {
-    if (schema.type === 'array') {
+    let type = schema.type;
+
+    if (type === 'list')
+        type = 'array';
+    else if (type === 'dict')
+        type = 'object';
+
+    if (type === 'array') {
         return getBlankArray(schema);
     }
-    else if (schema.type === 'object') {
+    else if (type === 'object') {
         return getBlankObject(schema);
-    } else if (schema.type === 'string') {
+    } else if (type === 'string') {
         return '';
-    } else if (schema.type === 'number') {
+    } else if (type === 'number') {
         return '';
     }
 }
@@ -54,12 +73,19 @@ export function getBlankData(schema) {
 function getSyncedArray(data, schema) {
     let newData = JSON.parse(JSON.stringify(data));
 
+    let type = schema.items.type;
+    
+    if (type === 'list')
+        type = 'array';
+    else if (type === 'dict')
+        type = 'object';
+
     for (let i = 0; i < data.length; i++) {
         let item = data[i];
 
-        if (schema.items.type === 'array') {
+        if (type === 'array') {
             newData[i] = getSyncedArray(item, schema.items);
-        } else if (schema.items.type === 'object') {
+        } else if (type === 'object') {
             newData[i] = getSyncedObject(item, schema.items);
         }
     }
@@ -71,25 +97,33 @@ function getSyncedArray(data, schema) {
 function getSyncedObject(data, schema) {
     let newData = JSON.parse(JSON.stringify(data));
 
-    let keys = [...Object.keys(schema.keys)];
+    let schema_keys = schema.keys || schema.properties;
+
+    let keys = [...Object.keys(schema_keys)];
 
     for (let i = 0; i < keys.length; i++) {
         let key = keys[i];
-        let schemaValue = schema.keys[key];
+        let schemaValue = schema_keys[key];
+        let type = schemaValue.type;
+    
+        if (type === 'list')
+            type = 'array';
+        else if (type === 'dict')
+            type = 'object';
       
         if (!data.hasOwnProperty(key)) {
-            if (schemaValue.type === 'string')
+            if (type === 'string')
                 newData[key] = '';
-            else if (schemaValue.type === 'array')
+            else if (type === 'array')
                 newData[key] = getSyncedArray([], schemaValue);
-            else if (schemaValue.type === 'object')
+            else if (type === 'object')
                 newData[key] = getSyncedObject({}, schemaValue);
         } else {
-        if (schemaValue.type === 'string')
+        if (type === 'string')
                 newData[key] = data[key];
-            else if (schemaValue.type === 'array')
+            else if (type === 'array')
                 newData[key] = getSyncedArray(data[key], schemaValue);
-            else if (schemaValue.type === 'object')
+            else if (type === 'object')
                 newData[key] = getSyncedObject(data[key], schemaValue);
         }
         
@@ -102,9 +136,16 @@ function getSyncedObject(data, schema) {
 export function getSyncedData(data, schema) {
     // adds those keys to data which are in schema but not in data
 
-    if (schema.type === 'array') {
+    let type = schema.type;
+    
+    if (type === 'list')
+        type = 'array';
+    else if (type === 'dict')
+        type = 'object';
+
+    if (type === 'array') {
         return getSyncedArray(data, schema);
-    } else if (schema.type === 'object') {
+    } else if (type === 'object') {
         return getSyncedObject(data, schema);
     }
 

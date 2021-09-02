@@ -81,13 +81,20 @@ export default class Form extends React.Component {
         let formGroups = [];
 
         try {
-            if (this.schema.type === 'array') {
+            let type = this.schema.type;
+    
+            if (type === 'list')
+                type = 'array';
+            else if (type === 'dict')
+                type = 'object';
+
+            if (type === 'array') {
                 return getArrayFormRow(
                     data, this.schema, 'rjf',
                     this.handleChange, this.addFieldset, this.removeFieldset,
                     0
                 );
-            } else if (this.schema.type === 'object') {
+            } else if (type === 'object') {
                 return getObjectFormRow(
                     data, this.schema, 'rjf',
                     this.handleChange, this.addFieldset, this.removeFieldset,

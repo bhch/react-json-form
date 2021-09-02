@@ -129,13 +129,20 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
     if (data.length >= max_items)
         addable = false;
 
+    let type = schema.items.type;
+    
+    if (type === 'list')
+        type = 'array';
+    else if (type === 'dict')
+        type = 'object';
+
     for (let i = 0; i < data.length; i++) {
         let item = data[i];
         let childName = name + '-' + i;
 
-        if (schema.items.type === 'array') {
+        if (type === 'array') {
             groups.push(getArrayFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
-        } else if (schema.items.type === 'object') {
+        } else if (type === 'object') {
             groups.push(getObjectFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
         } else {
             rows.push(getStringFormRow(item, schema.items, childName, onChange, onRemove, removable));
@@ -199,7 +206,9 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
 export function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     let rows = [];
 
-    let keys = [...Object.keys(schema.keys)];
+    schema_keys = schema.keys || schema.properties;
+
+    let keys = [...Object.keys(schema_keys)];
 
     if (schema.additionalProperties)
         keys = [...keys, ...Object.keys(data).filter((k) => keys.indexOf(k) === -1)];
@@ -208,18 +217,25 @@ export function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, 
         let key = keys[i];
         let value = data[key];
         let childName = name + '-' + key;
-        let schemaValue = schema.keys[key] || {type: 'string'};
+        let schemaValue = schema_keys[key] || {type: 'string'};
+
+        let type = schemaValue.type;
+    
+        if (type === 'list')
+            type = 'array';
+        else if (type === 'dict')
+            type = 'object';
 
         if (!schemaValue.title)
             schemaValue.title = getVerboseName(key);
 
         let removable = false;
-        if (schema.keys[key] === undefined)
+        if (schema_keys[key] === undefined)
             removable = true;
 
-         if (schemaValue.type === 'array') {
+         if (type === 'array') {
             rows.push(getArrayFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
-        } else if (schemaValue.type === 'object') {
+        } else if (type === 'object') {
             rows.push(getObjectFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
         } else {
             rows.push(getStringFormRow(
