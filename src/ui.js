@@ -120,12 +120,12 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
     let groups = [];
 
     let removable = true;
-    let min_items = schema.min_items || 0;
+    let min_items = schema.min_items || schema.minItems || 0;
     if (data.length <= min_items)
         removable = false;
 
     let addable = true;
-    let max_items = schema.max_items || 100;
+    let max_items = schema.max_items || schema.maxItems || 100;
     if (data.length >= max_items)
         addable = false;
 
