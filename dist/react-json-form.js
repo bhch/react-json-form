@@ -821,11 +821,11 @@
             if (coords.length) {
               addDataUsingCoords(coords, data[coord], value);
             } else {
-              if (Array.isArray(data)) {
-                data.push(value);
+              if (Array.isArray(data[coord])) {
+                data[coord].push(value);
               } else {
-                if (Array.isArray(data[coord])) {
-                  data[coord].push(value);
+                if (Array.isArray(data)) {
+                  data.push(value);
                 } else {
                   data[coord] = value;
                 }
