@@ -473,7 +473,7 @@
         return props.onRemove(name);
       },
       title: "Remove"
-    }, "\xD7"), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("span", null, "\xD7")), /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-row-inner"
     }, props.children));
   }
@@ -658,7 +658,7 @@
             return onRemove(name + '-' + index);
           },
           title: "Remove"
-        }, "\xD7"), i);
+        }, /*#__PURE__*/React.createElement("span", null, "\xD7")), i);
       }), addable && /*#__PURE__*/React.createElement(Button, {
         className: "add",
         onClick: function onClick(e) {
