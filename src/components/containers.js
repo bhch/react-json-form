@@ -20,7 +20,7 @@ export function FormRow(props) {
                     onClick={(e) => props.onRemove(name)}
                     title="Remove"
                 >
-                    &times;
+                    <span>&times;</span>
                 </Button>
             }
             <div className="rjf-form-row-inner">

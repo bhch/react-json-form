@@ -179,7 +179,7 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
                                 onClick={(e) => onRemove(name + '-' + index)}
                                 title="Remove"
                             >
-                                &times;
+                                <span>&times;</span>
                             </Button>
                         }
                         {i}
