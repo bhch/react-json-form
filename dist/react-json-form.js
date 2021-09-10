@@ -220,6 +220,7 @@
         inputValue = option.value;
       } else {
         label = option;
+        if (typeof label === 'boolean') label = capitalize(label.toString());
         inputValue = option;
       }
 
@@ -250,6 +251,7 @@
         inputValue = option.value;
       } else {
         label = option;
+        if (typeof label === 'boolean') label = capitalize(label.toString());
         inputValue = option;
       }
 
@@ -506,6 +508,8 @@
     if (valueType === 'number') {
       value = value.trim();
       if (value !== '' && !isNaN(Number(value))) value = Number(value);
+    } else if (valueType === 'boolean') {
+      if (value === 'false') value = false;else value = true;
     }
 
     callback(e.target.name, value);
