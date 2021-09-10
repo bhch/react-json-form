@@ -18,6 +18,11 @@ function handleChange(e, valueType, callback) {
         value = value.trim();
         if (value !== '' && !isNaN(Number(value)))
             value = Number(value);
+    } else if (valueType === 'boolean') {
+        if (value === 'false')
+            value = false;
+        else
+            value = true;
     }
 
     callback(e.target.name, value);

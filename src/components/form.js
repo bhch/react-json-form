@@ -1,6 +1,6 @@
 import Button from './buttons';
 import Loader from './loaders';
-import {EditorContext, getCsrfCookie} from '../util';
+import {EditorContext, getCsrfCookie, capitalize} from '../util';
 
 
 export function FormInput({label, help_text, error, inputRef, ...props}) {
@@ -53,6 +53,8 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
                     inputValue = option.value;
                 } else {
                     label = option;
+                    if (typeof label === 'boolean')
+                        label = capitalize(label.toString());
                     inputValue = option;
                 }
 
@@ -80,6 +82,8 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
                         inputValue = option.value;
                     } else {
                         label = option;
+                        if (typeof label === 'boolean')
+                            label = capitalize(label.toString());
                         inputValue = option;
                     }
 
