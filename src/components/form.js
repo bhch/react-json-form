@@ -285,3 +285,19 @@ export class FormFileInput extends React.Component {
         );
     }
 }
+
+
+export function FormTextareaInput({label, help_text, error, inputRef, ...props}) {
+
+    delete props.type;
+
+    if (inputRef)
+        props.ref = inputRef;
+
+    return (
+        <div>
+            {label && <label>{label}</label>}
+            <textarea {...props} />
+        </div>
+    );
+}

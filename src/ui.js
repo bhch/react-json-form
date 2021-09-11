@@ -1,6 +1,6 @@
 import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
-    FormFileInput, FormRow, FormGroup} from './components';
+    FormFileInput, FormRow, FormGroup, FormTextareaInput} from './components';
 import {getVerboseName} from './util';
 
 
@@ -81,6 +81,9 @@ function FormField(props) {
             break;
         case 'select':
             InputField = FormSelectInput;
+            break;
+        case 'textarea':
+            InputField = FormTextareaInput;
             break;
         default:
             inputProps.type = 'text';
