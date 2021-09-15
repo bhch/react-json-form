@@ -214,7 +214,7 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
 export function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
     let rows = [];
 
-    schema_keys = schema.keys || schema.properties;
+    let schema_keys = schema.keys || schema.properties;
 
     let keys = [...Object.keys(schema_keys)];
 
