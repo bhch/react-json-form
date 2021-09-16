@@ -104,7 +104,8 @@ function FormField(props) {
 }
 
 
-export function getStringFormRow(data, schema, name, onChange, onRemove, removable, onEdit, editable) {
+export function getStringFormRow(args) {
+    let {data, schema, name, onChange, onRemove, removable, onEdit, editable} = args;
 
     return (
         <FormRow 
@@ -123,7 +124,9 @@ export function getStringFormRow(data, schema, name, onChange, onRemove, removab
     );
 }
 
-export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
+export function getArrayFormRow(args) {
+    let {data, schema, name, onChange, onAdd, onRemove, level} = args;
+
     let rows = [];
     let groups = [];
 
@@ -144,16 +147,24 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
     else if (type === 'dict')
         type = 'object';
 
+    let nextArgs = {
+        schema: schema.items,
+        onChange: onChange,
+        onAdd: onAdd,
+        onRemove: onRemove,
+        level: level + 1
+    };
+
     for (let i = 0; i < data.length; i++) {
-        let item = data[i];
-        let childName = name + '-' + i;
+        nextArgs.data = data[i];
+        nextArgs.name = name + '-' + i;
 
         if (type === 'array') {
-            groups.push(getArrayFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
+            groups.push(getArrayFormRow(nextArgs));
         } else if (type === 'object') {
-            groups.push(getObjectFormRow(item, schema.items, childName, onChange, onAdd, onRemove, level + 1));
+            groups.push(getObjectFormRow(nextArgs));
         } else {
-            rows.push(getStringFormRow(item, schema.items, childName, onChange, onRemove, removable));
+            rows.push(getStringFormRow(nextArgs));
         } 
     }
 
@@ -211,7 +222,9 @@ export function getArrayFormRow(data, schema, name, onChange, onAdd, onRemove, l
 }
 
 
-export function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, level) {
+export function getObjectFormRow(args) {
+    let {data, schema, name, onChange, onAdd, onRemove, level} = args;
+
     let rows = [];
 
     let schema_keys = schema.keys || schema.properties;
@@ -241,16 +254,24 @@ export function getObjectFormRow(data, schema, name, onChange, onAdd, onRemove, 
         if (schema_keys[key] === undefined)
             removable = true;
 
+        let nextArgs = {
+            data: value,
+            schema: schemaValue,
+            name: childName,
+            onChange: onChange,
+            onAdd: onAdd,
+            onRemove: onRemove,
+            level: level + 1
+        };
+
          if (type === 'array') {
-            rows.push(getArrayFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
+            rows.push(getArrayFormRow(nextArgs));
         } else if (type === 'object') {
-            rows.push(getObjectFormRow(value, schemaValue, childName, onChange, onAdd, onRemove, level + 1));
+            rows.push(getObjectFormRow(nextArgs));
         } else {
-            rows.push(getStringFormRow(
-                value, schemaValue, childName, onChange, onRemove, removable, 
-                () => handleKeyEdit(data, key, value, childName, onAdd, onRemove),
-                removable
-            ));
+            nextArgs.onEdit = () => handleKeyEdit(data, key, value, childName, onAdd, onRemove);
+            nextArgs.editable = removable;
+            rows.push(getStringFormRow(nextArgs));
         }
     }
 
