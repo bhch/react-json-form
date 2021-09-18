@@ -152,7 +152,8 @@ export function getArrayFormRow(args) {
         onChange: onChange,
         onAdd: onAdd,
         onRemove: onRemove,
-        level: level + 1
+        level: level + 1,
+        removable: removable
     };
 
     for (let i = 0; i < data.length; i++) {
@@ -261,7 +262,8 @@ export function getObjectFormRow(args) {
             onChange: onChange,
             onAdd: onAdd,
             onRemove: onRemove,
-            level: level + 1
+            level: level + 1,
+            removable: removable
         };
 
          if (type === 'array') {
