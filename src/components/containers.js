@@ -11,18 +11,44 @@ export function GroupTitle(props) {
 }
 
 
-export function FormRow(props) {
+export function FormRowControls(props) {
     return (
-        <div className="rjf-form-row">
+        <div className="rjf-form-row-controls">
+            {props.onMoveUp &&
+                <Button 
+                    className="move-up"
+                    onClick={props.onMoveUp}
+                    title="Move up"
+                >
+                    <span>&uarr;</span>
+                </Button>
+            }
+            {props.onMoveDown &&
+                <Button 
+                    className="move-down"
+                    onClick={props.onMoveDown}
+                    title="Move down"
+                >
+                    <span>&darr;</span>
+                </Button>
+            }
             {props.onRemove &&
                 <Button 
                     className="remove"
-                    onClick={(e) => props.onRemove(name)}
+                    onClick={props.onRemove}
                     title="Remove"
                 >
                     <span>&times;</span>
                 </Button>
             }
+        </div>
+    );
+}
+
+export function FormRow(props) {
+    return (
+        <div className="rjf-form-row">
+            <FormRowControls {...props} />
             <div className="rjf-form-row-inner">
                 {props.children}
             </div>

@@ -69,34 +69,59 @@
             margin-top: 15px;
             margin-bottom: 0;
         }
-        .rjf-remove-button {
-            color: #ff4444;
-            background-color: #ffeeee;
+        .rjf-form-row-controls {
             position: absolute;
-            top: 0.3rem;
             right: 0.3rem;
-            border-radius: 100%;
-            padding: 0.3rem 0.58rem;
-            text-align: center;
-            line-height: 1;
-            border: 1px solid #ffcccc;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.12s ease-in-out, border-color 0.12s ease-in-out;
+            top: 0.3rem;
             z-index: 2;
+            border-radius: 10rem; /* same as child button */
         }
-        .rjf-form-row > .rjf-remove-button {
+        .rjf-form-row > .rjf-form-row-controls {
             top: 50%;
             transform: translateY(-50%);
         }
-        .rjf-remove-button:hover {
-            background-color: #fff;
-            border-color: #ff4444;
+        .rjf-form-row-controls:hover + .rjf-form-row-inner,
+        .rjf-form-row-controls:hover + .rjf-form-group {
+            background-color: #fffedd;
         }
-        .rjf-remove-button:hover + .rjf-form-row-inner,
-        .rjf-remove-button:hover + .rjf-form-group {
-            background-color: #fff3f3;
+        .rjf-form-row-controls button {
+            position: relative;
+            color: #333;
+            background-color: #f3f3f3;
+            padding: 0.3rem 0.58rem;
+            margin-left: -1px;
+            text-align: center;
+            line-height: 1;
+            border: 1px solid #ccc;
+            border-radius: 10rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.12s ease-in-out,
+                        border-color 0.12s ease-in-out,
+                        color 0.12s ease-in-out;
+        }
+        .rjf-form-row-controls > button:not(:last-child) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .rjf-form-row-controls > button:not(:first-child) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        .rjf-form-row-controls button:hover {
+            background-color: #fff;
+            border-color: #333;
+            z-index: 1;
+        }
+        .rjf-form-row-controls .rjf-remove-button {
+            color: #ff4444;
+            background-color: #ffeeee;
+            border-color: #ffcccc;
+        }
+        .rjf-form-row-controls .rjf-remove-button:hover {
+            color: #ff4444;
+            border-color: #ff4444;
         }
         .rjf-form-text {
             display: block;

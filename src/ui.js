@@ -1,6 +1,6 @@
 import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
-    FormFileInput, FormRow, FormGroup, FormTextareaInput} from './components';
+    FormFileInput, FormRow, FormGroup, FormRowControls, FormTextareaInput} from './components';
 import {getVerboseName} from './util';
 
 
@@ -105,12 +105,17 @@ function FormField(props) {
 
 
 export function getStringFormRow(args) {
-    let {data, schema, name, onChange, onRemove, removable, onEdit, editable} = args;
+    let {
+        data, schema, name, onChange, onRemove, removable, onEdit, editable, 
+        onMoveUp, onMoveDown
+    } = args;
 
     return (
         <FormRow 
             key={name}
             onRemove={removable ? (e) => onRemove(name) : null}
+            onMoveUp={onMoveUp}
+            onMoveDown={onMoveDown}
         >
             <FormField 
                 data={data}
@@ -125,7 +130,7 @@ export function getStringFormRow(args) {
 }
 
 export function getArrayFormRow(args) {
-    let {data, schema, name, onChange, onAdd, onRemove, level} = args;
+    let {data, schema, name, onChange, onAdd, onRemove, onMove, level} = args;
 
     let rows = [];
     let groups = [];
@@ -153,12 +158,23 @@ export function getArrayFormRow(args) {
         onAdd: onAdd,
         onRemove: onRemove,
         level: level + 1,
-        removable: removable
+        removable: removable,
+        onMove: onMove,
     };
 
     for (let i = 0; i < data.length; i++) {
         nextArgs.data = data[i];
         nextArgs.name = name + '-' + i;
+
+        if (i === 0)
+            nextArgs.onMoveUp = null;
+        else
+            nextArgs.onMoveUp = (e) => onMove(name + '-' + i, name + '-' + (i - 1));
+
+        if (i === data.length - 1)
+            nextArgs.onMoveDown = null;
+        else
+            nextArgs.onMoveDown = (e) => onMove(name + '-' + i, name + '-' + (i + 1));;
 
         if (type === 'array') {
             groups.push(getArrayFormRow(nextArgs));
@@ -193,15 +209,11 @@ export function getArrayFormRow(args) {
                 {groupTitle}
                 {groups.map((i, index) => (
                     <div className="rjf-form-group-wrapper" key={'group_wrapper_' + name + '_' + index}>
-                        {removable && 
-                            <Button
-                                className="remove"
-                                onClick={(e) => onRemove(name + '-' + index)}
-                                title="Remove"
-                            >
-                                <span>&times;</span>
-                            </Button>
-                        }
+                        <FormRowControls
+                            onRemove={removable ? (e) => onRemove(name + '-' + index) : null}
+                            onMoveUp={index > 0 ? (e) => onMove(name + '-' + index, name + '-' + (index - 1)) : null}
+                            onMoveDown={index < groups.length - 1 ? (e) => onMove(name + '-' + index, name + '-' + (index + 1)) : null}
+                        />
                         {i}
                     </div>
                     )
@@ -224,7 +236,7 @@ export function getArrayFormRow(args) {
 
 
 export function getObjectFormRow(args) {
-    let {data, schema, name, onChange, onAdd, onRemove, level} = args;
+    let {data, schema, name, onChange, onAdd, onRemove, level, onMove} = args;
 
     let rows = [];
 
@@ -263,7 +275,8 @@ export function getObjectFormRow(args) {
             onAdd: onAdd,
             onRemove: onRemove,
             level: level + 1,
-            removable: removable
+            removable: removable,
+            onMove: onMove
         };
 
          if (type === 'array') {

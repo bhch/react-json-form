@@ -95,6 +95,7 @@ export default class Form extends React.Component {
                 onChange: this.handleChange,
                 onAdd: this.addFieldset,
                 onRemove: this.removeFieldset,
+                onMove: this.moveFieldset,
                 level: 0
             };
 
@@ -162,7 +163,7 @@ export default class Form extends React.Component {
                     removeDataUsingCoords(coords, data[coord]);
                 } else {
                     if (Array.isArray(data))
-                        data = data.splice(coord, 1); // in-place mutation
+                        data.splice(coord, 1); // in-place mutation
                     else
                         delete data[coord];
                 }
@@ -171,6 +172,47 @@ export default class Form extends React.Component {
             let _data = JSON.parse(JSON.stringify(state.data));
 
             removeDataUsingCoords(coords, _data);
+
+            return {data: _data};
+        });
+    }
+
+    moveFieldset = (oldCoords, newCoords) => {
+        oldCoords = oldCoords.split("-");
+        oldCoords.shift();
+
+        newCoords = newCoords.split("-");
+        newCoords.shift();
+
+        this.setState((state) => {
+            function moveDataUsingCoords(oldCoords, newCoords, data) {
+                let oldCoord = oldCoords.shift();
+
+                if (!isNaN(Number(oldCoord)))
+                    oldCoord = Number(oldCoord);
+
+                if (oldCoords.length) {
+                    moveDataUsingCoords(oldCoords, newCoords, data[oldCoord]);
+                } else {
+                    if (Array.isArray(data)) {
+                        /* Using newCoords allows us to move items from 
+                        one array to another. 
+                        However, for now, we're only moving items in a 
+                        single array.
+                        */
+                        let newCoord = newCoords[newCoords.length - 1];
+                        
+                        let item = data[oldCoord];
+
+                        data.splice(oldCoord, 1);
+                        data.splice(newCoord, 0, item);
+                    }
+                }
+            }
+
+            let _data = JSON.parse(JSON.stringify(state.data));
+
+            moveDataUsingCoords(oldCoords, newCoords, _data);
 
             return {data: _data};
         });
