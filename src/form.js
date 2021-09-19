@@ -120,27 +120,6 @@ export default class Form extends React.Component {
         coords.shift();
 
         this.setState((state) => {
-            function addDataUsingCoords(coords, data, value) {
-                let coord = coords.shift();
-                if (!isNaN(Number(coord)))
-                    coord = Number(coord);
-
-                if (coords.length) {
-                    addDataUsingCoords(coords, data[coord], value);
-                } else {
-                    if (Array.isArray(data[coord])) {
-                        data[coord].push(value);
-                    }
-                    else {
-                        if (Array.isArray(data)) {
-                            data.push(value);
-                        } else {
-                            data[coord] = value;
-                        }
-                    }
-                }
-            }
-
             let _data = JSON.parse(JSON.stringify(state.data));
 
             addDataUsingCoords(coords, _data, blankData);
@@ -154,21 +133,6 @@ export default class Form extends React.Component {
         coords.shift();
 
         this.setState((state) => {
-            function removeDataUsingCoords(coords, data) {
-                let coord = coords.shift();
-                if (!isNaN(Number(coord)))
-                    coord = Number(coord);
-
-                if (coords.length) {
-                    removeDataUsingCoords(coords, data[coord]);
-                } else {
-                    if (Array.isArray(data))
-                        data.splice(coord, 1); // in-place mutation
-                    else
-                        delete data[coord];
-                }
-            }
-
             let _data = JSON.parse(JSON.stringify(state.data));
 
             removeDataUsingCoords(coords, _data);
@@ -185,31 +149,6 @@ export default class Form extends React.Component {
         newCoords.shift();
 
         this.setState((state) => {
-            function moveDataUsingCoords(oldCoords, newCoords, data) {
-                let oldCoord = oldCoords.shift();
-
-                if (!isNaN(Number(oldCoord)))
-                    oldCoord = Number(oldCoord);
-
-                if (oldCoords.length) {
-                    moveDataUsingCoords(oldCoords, newCoords, data[oldCoord]);
-                } else {
-                    if (Array.isArray(data)) {
-                        /* Using newCoords allows us to move items from 
-                        one array to another. 
-                        However, for now, we're only moving items in a 
-                        single array.
-                        */
-                        let newCoord = newCoords[newCoords.length - 1];
-                        
-                        let item = data[oldCoord];
-
-                        data.splice(oldCoord, 1);
-                        data.splice(newCoord, 0, item);
-                    }
-                }
-            }
-
             let _data = JSON.parse(JSON.stringify(state.data));
 
             moveDataUsingCoords(oldCoords, newCoords, _data);
@@ -234,5 +173,68 @@ export default class Form extends React.Component {
                 </fieldset>
             </div>
         );
+    }
+}
+
+
+function addDataUsingCoords(coords, data, value) {
+    let coord = coords.shift();
+    if (!isNaN(Number(coord)))
+        coord = Number(coord);
+
+    if (coords.length) {
+        addDataUsingCoords(coords, data[coord], value);
+    } else {
+        if (Array.isArray(data[coord])) {
+            data[coord].push(value);
+        }
+        else {
+            if (Array.isArray(data)) {
+                data.push(value);
+            } else {
+                data[coord] = value;
+            }
+        }
+    }
+}
+
+function removeDataUsingCoords(coords, data) {
+    let coord = coords.shift();
+    if (!isNaN(Number(coord)))
+        coord = Number(coord);
+
+    if (coords.length) {
+        removeDataUsingCoords(coords, data[coord]);
+    } else {
+        if (Array.isArray(data))
+            data.splice(coord, 1); // in-place mutation
+        else
+            delete data[coord];
+    }
+}
+
+
+function moveDataUsingCoords(oldCoords, newCoords, data) {
+    let oldCoord = oldCoords.shift();
+
+    if (!isNaN(Number(oldCoord)))
+        oldCoord = Number(oldCoord);
+
+    if (oldCoords.length) {
+        moveDataUsingCoords(oldCoords, newCoords, data[oldCoord]);
+    } else {
+        if (Array.isArray(data)) {
+            /* Using newCoords allows us to move items from 
+            one array to another. 
+            However, for now, we're only moving items in a 
+            single array.
+            */
+            let newCoord = newCoords[newCoords.length - 1];
+            
+            let item = data[oldCoord];
+
+            data.splice(oldCoord, 1);
+            data.splice(newCoord, 0, item);
+        }
     }
 }
