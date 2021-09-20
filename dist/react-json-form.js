@@ -146,9 +146,15 @@
         props = _objectWithoutPropertiesLoose(_ref, _excluded$1);
 
     if (!className) className = '';
-    className = 'rjf-' + className + '-button';
+    var classes = className.split(' ');
+    className = '';
+
+    for (var i = 0; i < classes.length; i++) {
+      className = className + 'rjf-' + classes[i] + '-button ';
+    }
+
     return /*#__PURE__*/React.createElement("button", _extends({
-      className: className,
+      className: className.trim(),
       type: "button"
     }, props), props.children);
   }
@@ -185,7 +191,8 @@
       _excluded2 = ["label", "help_text", "error", "value"],
       _excluded3 = ["label", "help_text", "error", "value", "options"],
       _excluded4 = ["label", "help_text", "error", "value", "options"],
-      _excluded5 = ["label", "value"];
+      _excluded5 = ["label", "value"],
+      _excluded6 = ["label", "help_text", "error", "inputRef"];
   function FormInput(_ref) {
     var label = _ref.label,
         inputRef = _ref.inputRef,
@@ -459,6 +466,15 @@
     return FormFileInput;
   }(React.Component);
   FormFileInput.contextType = EditorContext;
+  function FormTextareaInput(_ref5) {
+    var label = _ref5.label,
+        inputRef = _ref5.inputRef,
+        props = _objectWithoutPropertiesLoose(_ref5, _excluded6);
+
+    delete props.type;
+    if (inputRef) props.ref = inputRef;
+    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("textarea", props));
+  }
 
   function GroupTitle(props) {
     if (!props.children) return null;
@@ -466,16 +482,27 @@
       className: "rjf-form-group-title"
     }, props.children);
   }
+  function FormRowControls(props) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "rjf-form-row-controls"
+    }, props.onMoveUp && /*#__PURE__*/React.createElement(Button, {
+      className: "move-up",
+      onClick: props.onMoveUp,
+      title: "Move up"
+    }, /*#__PURE__*/React.createElement("span", null, "\u2191")), props.onMoveDown && /*#__PURE__*/React.createElement(Button, {
+      className: "move-down",
+      onClick: props.onMoveDown,
+      title: "Move down"
+    }, /*#__PURE__*/React.createElement("span", null, "\u2193")), props.onRemove && /*#__PURE__*/React.createElement(Button, {
+      className: "remove",
+      onClick: props.onRemove,
+      title: "Remove"
+    }, /*#__PURE__*/React.createElement("span", null, "\xD7")));
+  }
   function FormRow(props) {
     return /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-row"
-    }, props.onRemove && /*#__PURE__*/React.createElement(Button, {
-      className: "remove",
-      onClick: function onClick(e) {
-        return props.onRemove(name);
-      },
-      title: "Remove"
-    }, /*#__PURE__*/React.createElement("span", null, "\xD7")), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(FormRowControls, props), /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-row-inner"
     }, props.children));
   }
@@ -575,6 +602,10 @@
         InputField = FormSelectInput;
         break;
 
+      case 'textarea':
+        InputField = FormTextareaInput;
+        break;
+
       default:
         inputProps.type = 'text';
         InputField = FormInput;
@@ -592,12 +623,24 @@
     }));
   }
 
-  function getStringFormRow(data, schema, name, onChange, onRemove, removable, onEdit, editable) {
+  function getStringFormRow(args) {
+    var data = args.data,
+        schema = args.schema,
+        name = args.name,
+        onChange = args.onChange,
+        onRemove = args.onRemove,
+        removable = args.removable,
+        onEdit = args.onEdit,
+        editable = args.editable,
+        onMoveUp = args.onMoveUp,
+        onMoveDown = args.onMoveDown;
     return /*#__PURE__*/React.createElement(FormRow, {
       key: name,
       onRemove: removable ? function (e) {
         return onRemove(name);
-      } : null
+      } : null,
+      onMoveUp: onMoveUp,
+      onMoveDown: onMoveDown
     }, /*#__PURE__*/React.createElement(FormField, {
       data: data,
       schema: schema,
@@ -607,7 +650,15 @@
       editable: editable
     }));
   }
-  function getArrayFormRow(data, schema, name, onChange, _onAdd, onRemove, level) {
+  function getArrayFormRow(args) {
+    var data = args.data,
+        schema = args.schema,
+        name = args.name,
+        onChange = args.onChange,
+        _onAdd = args.onAdd,
+        onRemove = args.onRemove,
+        onMove = args.onMove,
+        level = args.level;
     var rows = [];
     var groups = [];
     var removable = true;
@@ -618,18 +669,37 @@
     if (data.length >= max_items) addable = false;
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+    var nextArgs = {
+      schema: schema.items,
+      onChange: onChange,
+      onAdd: _onAdd,
+      onRemove: onRemove,
+      level: level + 1,
+      removable: removable,
+      onMove: onMove
+    };
 
-    for (var i = 0; i < data.length; i++) {
-      var item = data[i];
-      var childName = name + '-' + i;
+    var _loop = function _loop(i) {
+      nextArgs.data = data[i];
+      nextArgs.name = name + '-' + i;
+      if (i === 0) nextArgs.onMoveUp = null;else nextArgs.onMoveUp = function (e) {
+        return onMove(name + '-' + i, name + '-' + (i - 1));
+      };
+      if (i === data.length - 1) nextArgs.onMoveDown = null;else nextArgs.onMoveDown = function (e) {
+        return onMove(name + '-' + i, name + '-' + (i + 1));
+      };
 
       if (type === 'array') {
-        groups.push(getArrayFormRow(item, schema.items, childName, onChange, _onAdd, onRemove, level + 1));
+        groups.push(getArrayFormRow(nextArgs));
       } else if (type === 'object') {
-        groups.push(getObjectFormRow(item, schema.items, childName, onChange, _onAdd, onRemove, level + 1));
+        groups.push(getObjectFormRow(nextArgs));
       } else {
-        rows.push(getStringFormRow(item, schema.items, childName, onChange, onRemove, removable));
+        rows.push(getStringFormRow(nextArgs));
       }
+    };
+
+    for (var i = 0; i < data.length; i++) {
+      _loop(i);
     }
 
     var coords = name; // coordinates for insertion and deletion
@@ -656,13 +726,17 @@
         return /*#__PURE__*/React.createElement("div", {
           className: "rjf-form-group-wrapper",
           key: 'group_wrapper_' + name + '_' + index
-        }, removable && /*#__PURE__*/React.createElement(Button, {
-          className: "remove",
-          onClick: function onClick(e) {
+        }, /*#__PURE__*/React.createElement(FormRowControls, {
+          onRemove: removable ? function (e) {
             return onRemove(name + '-' + index);
-          },
-          title: "Remove"
-        }, /*#__PURE__*/React.createElement("span", null, "\xD7")), i);
+          } : null,
+          onMoveUp: index > 0 ? function (e) {
+            return onMove(name + '-' + index, name + '-' + (index - 1));
+          } : null,
+          onMoveDown: index < groups.length - 1 ? function (e) {
+            return onMove(name + '-' + index, name + '-' + (index + 1));
+          } : null
+        }), i);
       }), addable && /*#__PURE__*/React.createElement(Button, {
         className: "add",
         onClick: function onClick(e) {
@@ -674,15 +748,23 @@
 
     return [].concat(rows, groups);
   }
-  function getObjectFormRow(data, schema, name, onChange, _onAdd2, onRemove, level) {
+  function getObjectFormRow(args) {
+    var data = args.data,
+        schema = args.schema,
+        name = args.name,
+        onChange = args.onChange,
+        _onAdd2 = args.onAdd,
+        onRemove = args.onRemove,
+        level = args.level,
+        onMove = args.onMove;
     var rows = [];
-    schema_keys = schema.keys || schema.properties;
+    var schema_keys = schema.keys || schema.properties;
     var keys = [].concat(Object.keys(schema_keys));
     if (schema.additionalProperties) keys = [].concat(keys, Object.keys(data).filter(function (k) {
       return keys.indexOf(k) === -1;
     }));
 
-    var _loop = function _loop(i) {
+    var _loop2 = function _loop2(i) {
       var key = keys[i];
       var value = data[key];
       var childName = name + '-' + key;
@@ -694,20 +776,34 @@
       if (!schemaValue.title) schemaValue.title = getVerboseName(key);
       var removable = false;
       if (schema_keys[key] === undefined) removable = true;
+      var nextArgs = {
+        data: value,
+        schema: schemaValue,
+        name: childName,
+        onChange: onChange,
+        onAdd: _onAdd2,
+        onRemove: onRemove,
+        level: level + 1,
+        removable: removable,
+        onMove: onMove
+      };
 
       if (type === 'array') {
-        rows.push(getArrayFormRow(value, schemaValue, childName, onChange, _onAdd2, onRemove, level + 1));
+        rows.push(getArrayFormRow(nextArgs));
       } else if (type === 'object') {
-        rows.push(getObjectFormRow(value, schemaValue, childName, onChange, _onAdd2, onRemove, level + 1));
+        rows.push(getObjectFormRow(nextArgs));
       } else {
-        rows.push(getStringFormRow(value, schemaValue, childName, onChange, onRemove, removable, function () {
+        nextArgs.onEdit = function () {
           return handleKeyEdit(data, key, value, childName, _onAdd2, onRemove);
-        }, removable));
+        };
+
+        nextArgs.editable = removable;
+        rows.push(getStringFormRow(nextArgs));
       }
     };
 
     for (var i = 0; i < keys.length; i++) {
-      _loop(i);
+      _loop2(i);
     }
 
     if (rows.length || schema.additionalProperties) {
@@ -796,11 +892,21 @@
         try {
           var type = _this.schema.type;
           if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+          var args = {
+            data: data,
+            schema: _this.schema,
+            name: 'rjf',
+            onChange: _this.handleChange,
+            onAdd: _this.addFieldset,
+            onRemove: _this.removeFieldset,
+            onMove: _this.moveFieldset,
+            level: 0
+          };
 
           if (type === 'array') {
-            return getArrayFormRow(data, _this.schema, 'rjf', _this.handleChange, _this.addFieldset, _this.removeFieldset, 0);
+            return getArrayFormRow(args);
           } else if (type === 'object') {
-            return getObjectFormRow(data, _this.schema, 'rjf', _this.handleChange, _this.addFieldset, _this.removeFieldset, 0);
+            return getObjectFormRow(args);
           }
         } catch (error) {
           formGroups = /*#__PURE__*/React.createElement("p", {
@@ -818,25 +924,6 @@
         coords.shift();
 
         _this.setState(function (state) {
-          function addDataUsingCoords(coords, data, value) {
-            var coord = coords.shift();
-            if (!isNaN(Number(coord))) coord = Number(coord);
-
-            if (coords.length) {
-              addDataUsingCoords(coords, data[coord], value);
-            } else {
-              if (Array.isArray(data[coord])) {
-                data[coord].push(value);
-              } else {
-                if (Array.isArray(data)) {
-                  data.push(value);
-                } else {
-                  data[coord] = value;
-                }
-              }
-            }
-          }
-
           var _data = JSON.parse(JSON.stringify(state.data));
 
           addDataUsingCoords(coords, _data, blankData);
@@ -851,21 +938,25 @@
         coords.shift();
 
         _this.setState(function (state) {
-          function removeDataUsingCoords(coords, data) {
-            var coord = coords.shift();
-            if (!isNaN(Number(coord))) coord = Number(coord);
-
-            if (coords.length) {
-              removeDataUsingCoords(coords, data[coord]);
-            } else {
-              if (Array.isArray(data)) data = data.splice(coord, 1); // in-place mutation
-              else delete data[coord];
-            }
-          }
-
           var _data = JSON.parse(JSON.stringify(state.data));
 
           removeDataUsingCoords(coords, _data);
+          return {
+            data: _data
+          };
+        });
+      };
+
+      _this.moveFieldset = function (oldCoords, newCoords) {
+        oldCoords = oldCoords.split("-");
+        oldCoords.shift();
+        newCoords = newCoords.split("-");
+        newCoords.shift();
+
+        _this.setState(function (state) {
+          var _data = JSON.parse(JSON.stringify(state.data));
+
+          moveDataUsingCoords(oldCoords, newCoords, _data);
           return {
             data: _data
           };
@@ -923,6 +1014,58 @@
 
     return Form;
   }(React.Component);
+
+  function addDataUsingCoords(coords, data, value) {
+    var coord = coords.shift();
+    if (!isNaN(Number(coord))) coord = Number(coord);
+
+    if (coords.length) {
+      addDataUsingCoords(coords, data[coord], value);
+    } else {
+      if (Array.isArray(data[coord])) {
+        data[coord].push(value);
+      } else {
+        if (Array.isArray(data)) {
+          data.push(value);
+        } else {
+          data[coord] = value;
+        }
+      }
+    }
+  }
+
+  function removeDataUsingCoords(coords, data) {
+    var coord = coords.shift();
+    if (!isNaN(Number(coord))) coord = Number(coord);
+
+    if (coords.length) {
+      removeDataUsingCoords(coords, data[coord]);
+    } else {
+      if (Array.isArray(data)) data.splice(coord, 1); // in-place mutation
+      else delete data[coord];
+    }
+  }
+
+  function moveDataUsingCoords(oldCoords, newCoords, data) {
+    var oldCoord = oldCoords.shift();
+    if (!isNaN(Number(oldCoord))) oldCoord = Number(oldCoord);
+
+    if (oldCoords.length) {
+      moveDataUsingCoords(oldCoords, newCoords, data[oldCoord]);
+    } else {
+      if (Array.isArray(data)) {
+        /* Using newCoords allows us to move items from 
+        one array to another. 
+        However, for now, we're only moving items in a 
+        single array.
+        */
+        var newCoord = newCoords[newCoords.length - 1];
+        var item = data[oldCoord];
+        data.splice(oldCoord, 1);
+        data.splice(newCoord, 0, item);
+      }
+    }
+  }
 
   function JSONForm(config) {
     this.containerId = config.containerId;
