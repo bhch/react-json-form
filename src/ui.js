@@ -19,7 +19,7 @@ function handleChange(e, valueType, callback) {
         if (value !== '' && !isNaN(Number(value)))
             value = Number(value);
     } else if (valueType === 'boolean') {
-        if (value === 'false')
+        if (value === 'false' || value === false)
             value = false;
         else
             value = true;
