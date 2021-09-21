@@ -16,10 +16,10 @@ export function getBlankObject(schema) {
             keys[key] = getBlankArray(value);
         else if (type === 'object')
             keys[key] = getBlankObject(value);
-        else if (type === 'string')
+        else if (type === 'boolean')
+            keys[key] = false;
+        else // string, numbe, integer, etc.
             keys[key] = '';
-        else if (schema.type === 'number')
-            return '';
     }
 
     return keys;
@@ -39,9 +39,9 @@ export function getBlankArray(schema) {
         items.push(getBlankArray(schema.items))
     else if (type === 'object')
         items.push(getBlankObject(schema.items));
-    else if (type === 'string')
-        items.push('');
-    else if (schema.type === 'number')
+    else if (type === 'boolean')
+        items.push(false);
+    else // string, number, integer, etc.
         items.push('');
 
     return items;
@@ -56,16 +56,14 @@ export function getBlankData(schema) {
     else if (type === 'dict')
         type = 'object';
 
-    if (type === 'array') {
+    if (type === 'array')
         return getBlankArray(schema);
-    }
-    else if (type === 'object') {
+    else if (type === 'object')
         return getBlankObject(schema);
-    } else if (type === 'string') {
+    else if (type === 'boolean')
+        return false;
+    else // string, number, integer, etc.
         return '';
-    } else if (type === 'number') {
-        return '';
-    }
 }
 
 
@@ -112,19 +110,21 @@ function getSyncedObject(data, schema) {
             type = 'object';
       
         if (!data.hasOwnProperty(key)) {
-            if (type === 'string')
-                newData[key] = '';
-            else if (type === 'array')
+            if (type === 'array')
                 newData[key] = getSyncedArray([], schemaValue);
             else if (type === 'object')
                 newData[key] = getSyncedObject({}, schemaValue);
+            else if (type === 'boolean')
+                newData[key] = false;
+            else
+                newData[key] = '';
         } else {
-        if (type === 'string')
-                newData[key] = data[key];
-            else if (type === 'array')
+            if (type === 'array')
                 newData[key] = getSyncedArray(data[key], schemaValue);
             else if (type === 'object')
                 newData[key] = getSyncedObject(data[key], schemaValue);
+            else
+                newData[key] = data[key];
         }
         
     }

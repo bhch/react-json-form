@@ -31,7 +31,7 @@ export function FormCheckInput({label, help_text, error, value, ...props}) {
     if (props.checked === undefined)
         props.checked = value;
 
-    if (props.checked === '')
+    if (props.checked === '' || props.checked === null || props.checked === undefined)
         props.checked = false
 
     return (
