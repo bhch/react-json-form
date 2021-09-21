@@ -4,7 +4,7 @@ import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
 import {getVerboseName} from './util';
 
 
-function handleChange(e, valueType, callback) {
+function handleChange(e, fieldType, callback) {
     let type = e.target.type
     let value;
 
@@ -14,11 +14,11 @@ function handleChange(e, valueType, callback) {
         value = e.target.value;
     }
 
-    if (valueType === 'number') {
+    if (fieldType === 'number' || fieldType === 'integer') {
         value = value.trim();
         if (value !== '' && !isNaN(Number(value)))
             value = Number(value);
-    } else if (valueType === 'boolean') {
+    } else if (fieldType === 'boolean') {
         if (value === 'false' || value === false)
             value = false;
         else
@@ -65,6 +65,7 @@ function FormField(props) {
             break;
         case 'integer':
             inputProps.type = 'number';
+            inputProps.step = '1';
             InputField = FormInput;
             break;
         case 'boolean':
