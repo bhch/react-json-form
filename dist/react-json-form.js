@@ -60,7 +60,8 @@
       var value = schema_keys[key];
       var type = value.type;
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'string') keys[key] = '';else if (schema.type === 'number') return '';
+      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = false;else // string, numbe, integer, etc.
+        keys[key] = '';
     }
 
     return keys;
@@ -69,22 +70,15 @@
     var items = [];
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'string') items.push('');else if (schema.type === 'number') items.push('');
+    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(false);else // string, number, integer, etc.
+      items.push('');
     return items;
   }
   function getBlankData(schema) {
     var type = schema.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-
-    if (type === 'array') {
-      return getBlankArray(schema);
-    } else if (type === 'object') {
-      return getBlankObject(schema);
-    } else if (type === 'string') {
+    if (type === 'array') return getBlankArray(schema);else if (type === 'object') return getBlankObject(schema);else if (type === 'boolean') return false;else // string, number, integer, etc.
       return '';
-    } else if (type === 'number') {
-      return '';
-    }
   }
 
   function getSyncedArray(data, schema) {
@@ -117,9 +111,9 @@
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
       if (!data.hasOwnProperty(key)) {
-        if (type === 'string') newData[key] = '';else if (type === 'array') newData[key] = getSyncedArray([], schemaValue);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue);
+        if (type === 'array') newData[key] = getSyncedArray([], schemaValue);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue);else if (type === 'boolean') newData[key] = false;else newData[key] = '';
       } else {
-        if (type === 'string') newData[key] = data[key];else if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue);
+        if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue);else newData[key] = data[key];
       }
     }
 
@@ -210,7 +204,7 @@
     if (!label) label = props.name.toUpperCase();
     if (props.type === 'bool') props.type = 'checkbox';
     if (props.checked === undefined) props.checked = value;
-    if (props.checked === '') props.checked = false;
+    if (props.checked === '' || props.checked === null || props.checked === undefined) props.checked = false;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", props), " ", label));
   }
   function FormRadioInput(_ref3) {
@@ -522,7 +516,7 @@
     }, hasChildren ? 'Add more' : 'Add')));
   }
 
-  function handleChange(e, valueType, callback) {
+  function handleChange(e, fieldType, callback) {
     var type = e.target.type;
     var value;
 
@@ -532,11 +526,11 @@
       value = e.target.value;
     }
 
-    if (valueType === 'number') {
+    if (fieldType === 'number' || fieldType === 'integer') {
       value = value.trim();
       if (value !== '' && !isNaN(Number(value))) value = Number(value);
-    } else if (valueType === 'boolean') {
-      if (value === 'false') value = false;else value = true;
+    } else if (fieldType === 'boolean') {
+      if (value === 'false' || value === false) value = false;else value = true;
     }
 
     callback(e.target.name, value);
@@ -580,6 +574,7 @@
 
       case 'integer':
         inputProps.type = 'number';
+        inputProps.step = '1';
         InputField = FormInput;
         break;
 
