@@ -70,13 +70,14 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
 
 
 export function FormSelectInput({label, help_text, error, value, options, ...props}) {
+    console.log("********", options, value)
     return (
         <div>
             {label && <label>{label}</label>}
-            <select defaultValue="" {...props}>
+            <select value={value || ''} {...props}>
                 <option disabled value="" key={'__placehlder'}>Select...</option>
                 {options.map((option, i) => {
-                    let label, inputValue;
+                    let label, inputValue, selected;
                     if (typeof option === 'object') {
                         label = option.label;
                         inputValue = option.value;
