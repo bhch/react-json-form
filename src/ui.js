@@ -16,7 +16,9 @@ function handleChange(e, fieldType, callback) {
 
     if (fieldType === 'number' || fieldType === 'integer') {
         value = value.trim();
-        if (value !== '' && !isNaN(Number(value)))
+        if (value === '')
+            value = null;
+        else if (!isNaN(Number(value)))
             value = Number(value);
     } else if (fieldType === 'boolean') {
         if (value === 'false' || value === false)

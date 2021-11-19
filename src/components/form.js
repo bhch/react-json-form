@@ -11,6 +11,9 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
     if (inputRef)
         props.ref = inputRef;
 
+    if (props.type === 'number' && props.value === null)
+        props.value = '';
+
     return (
         <div>
             {label && <label>{label}</label>}

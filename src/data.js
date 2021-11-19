@@ -18,7 +18,9 @@ export function getBlankObject(schema) {
             keys[key] = getBlankObject(value);
         else if (type === 'boolean')
             keys[key] = false;
-        else // string, numbe, integer, etc.
+        else if (type === 'integer' || type === 'number')
+            keys[key] = null;
+        else // string etc.
             keys[key] = '';
     }
 
@@ -41,7 +43,9 @@ export function getBlankArray(schema) {
         items.push(getBlankObject(schema.items));
     else if (type === 'boolean')
         items.push(false);
-    else // string, number, integer, etc.
+    else if (type === 'integer' || type === 'number')
+        items.push(null);
+    else // string, etc.
         items.push('');
 
     return items;
@@ -62,7 +66,9 @@ export function getBlankData(schema) {
         return getBlankObject(schema);
     else if (type === 'boolean')
         return false;
-    else // string, number, integer, etc.
+    else if (type === 'integer' || type === 'number')
+        return null;
+    else // string, etc.
         return '';
 }
 
@@ -85,6 +91,10 @@ function getSyncedArray(data, schema) {
             newData[i] = getSyncedArray(item, schema.items);
         } else if (type === 'object') {
             newData[i] = getSyncedObject(item, schema.items);
+        }
+        else {
+            if ((type === 'integer' || type === 'number') && item === '')
+                newData[i] = null;
         }
     }
 
@@ -116,6 +126,8 @@ function getSyncedObject(data, schema) {
                 newData[key] = getSyncedObject({}, schemaValue);
             else if (type === 'boolean')
                 newData[key] = false;
+            else if (type === 'integer' || type === 'number')
+                newData[key] = null;
             else
                 newData[key] = '';
         } else {
@@ -123,8 +135,12 @@ function getSyncedObject(data, schema) {
                 newData[key] = getSyncedArray(data[key], schemaValue);
             else if (type === 'object')
                 newData[key] = getSyncedObject(data[key], schemaValue);
-            else
-                newData[key] = data[key];
+            else {
+                if ((type === 'integer' || type === 'number') && data[key] === '')
+                    newData[key] = null;
+                else
+                    newData[key] = data[key];
+            }
         }
         
     }
