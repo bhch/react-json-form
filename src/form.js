@@ -20,8 +20,8 @@ export default class Form extends React.Component {
             try {
                 data = getSyncedData(data, this.schema);
             } catch (error) {
-                console.log("Error: Schema and data don't match");
-                console.log(error);
+                console.error("Error: Schema and data structure don't match");
+                console.error(error);
             }
         }
 
@@ -107,7 +107,7 @@ export default class Form extends React.Component {
         } catch (error) {
             formGroups = (
                 <p style={{color: '#f00'}}>
-                    <strong>(!) Error:</strong> Schema and data do not match.
+                    <strong>(!) Error:</strong> Schema and data structure do not match.
                 </p>
             );
         }
