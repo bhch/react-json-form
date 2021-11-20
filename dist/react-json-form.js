@@ -60,7 +60,7 @@
       var value = schema_keys[key];
       var type = value.type;
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = false;else // string, numbe, integer, etc.
+      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = false;else if (type === 'integer' || type === 'number') keys[key] = null;else // string etc.
         keys[key] = '';
     }
 
@@ -70,14 +70,14 @@
     var items = [];
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(false);else // string, number, integer, etc.
+    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(false);else if (type === 'integer' || type === 'number') items.push(null);else // string, etc.
       items.push('');
     return items;
   }
   function getBlankData(schema) {
     var type = schema.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') return getBlankArray(schema);else if (type === 'object') return getBlankObject(schema);else if (type === 'boolean') return false;else // string, number, integer, etc.
+    if (type === 'array') return getBlankArray(schema);else if (type === 'object') return getBlankObject(schema);else if (type === 'boolean') return false;else if (type === 'integer' || type === 'number') return null;else // string, etc.
       return '';
   }
 
@@ -93,6 +93,8 @@
         newData[i] = getSyncedArray(item, schema.items);
       } else if (type === 'object') {
         newData[i] = getSyncedObject(item, schema.items);
+      } else {
+        if ((type === 'integer' || type === 'number') && item === '') newData[i] = null;
       }
     }
 
@@ -111,9 +113,11 @@
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
       if (!data.hasOwnProperty(key)) {
-        if (type === 'array') newData[key] = getSyncedArray([], schemaValue);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue);else if (type === 'boolean') newData[key] = false;else newData[key] = '';
+        if (type === 'array') newData[key] = getSyncedArray([], schemaValue);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue);else if (type === 'boolean') newData[key] = false;else if (type === 'integer' || type === 'number') newData[key] = null;else newData[key] = '';
       } else {
-        if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue);else newData[key] = data[key];
+        if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue);else {
+          if ((type === 'integer' || type === 'number') && data[key] === '') newData[key] = null;else newData[key] = data[key];
+        }
       }
     }
 
@@ -194,6 +198,7 @@
 
     if (props.type === 'string') props.type = 'text';
     if (inputRef) props.ref = inputRef;
+    if (props.type === 'number' && props.value === null) props.value = '';
     return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("input", props));
   }
   function FormCheckInput(_ref2) {
@@ -235,11 +240,12 @@
   }
   function FormSelectInput(_ref4) {
     var label = _ref4.label,
+        value = _ref4.value,
         options = _ref4.options,
         props = _objectWithoutPropertiesLoose(_ref4, _excluded4);
 
     return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("select", _extends({
-      defaultValue: ""
+      value: value || ''
     }, props), /*#__PURE__*/React.createElement("option", {
       disabled: true,
       value: "",
@@ -528,7 +534,7 @@
 
     if (fieldType === 'number' || fieldType === 'integer') {
       value = value.trim();
-      if (value !== '' && !isNaN(Number(value))) value = Number(value);
+      if (value === '') value = null;else if (!isNaN(Number(value))) value = Number(value);
     } else if (fieldType === 'boolean') {
       if (value === 'false' || value === false) value = false;else value = true;
     }
@@ -908,7 +914,7 @@
             style: {
               color: '#f00'
             }
-          }, /*#__PURE__*/React.createElement("strong", null, "(!) Error:"), " Schema and data do not match.");
+          }, /*#__PURE__*/React.createElement("strong", null, "(!) Error:"), " Schema and data structure do not match.");
         }
 
         return formGroups;
@@ -970,8 +976,8 @@
         try {
           _data2 = getSyncedData(_data2, _this.schema);
         } catch (error) {
-          console.log("Error: Schema and data don't match");
-          console.log(error);
+          console.error("Error: Schema and data structure don't match");
+          console.error(error);
         }
       }
 
