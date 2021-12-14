@@ -11,7 +11,7 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
     if (inputRef)
         props.ref = inputRef;
 
-    if (props.type === 'number' && props.value === null)
+    if (props.value === null)
         props.value = '';
 
     return (
@@ -37,6 +37,9 @@ export function FormCheckInput({label, help_text, error, value, ...props}) {
     if (props.checked === '' || props.checked === null || props.checked === undefined)
         props.checked = false
 
+    if (props.readOnly)
+        props.disabled = true;
+
     return (
         <div>
             <label><input {...props} /> {label}</label>
@@ -46,6 +49,9 @@ export function FormCheckInput({label, help_text, error, value, ...props}) {
 
 
 export function FormRadioInput({label, help_text, error, value, options, ...props}) {
+    if (props.readOnly)
+        props.disabled = true;
+
     return (
         <div>
             <label>{label}</label>
@@ -73,6 +79,9 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
 
 
 export function FormSelectInput({label, help_text, error, value, options, ...props}) {
+    if (props.readOnly)
+        props.disabled = true;
+
     return (
         <div>
             {label && <label>{label}</label>}
@@ -267,6 +276,10 @@ export class FormFileInput extends React.Component {
         let {label, value, ...props} = {value, ...this.props};
         props.type = 'file';
         props.onChange = this.handleChange;
+
+        if (props.readOnly)
+            props.disabled = true;
+
 
         return (
             <div>
