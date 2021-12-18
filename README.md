@@ -2,8 +2,6 @@
 
 React Component for editing JSON data using form inputs.
 
-Currently in beta.
-
 # Developing
 
  1. Clone the repo.
