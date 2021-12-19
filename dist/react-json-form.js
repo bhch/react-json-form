@@ -60,8 +60,8 @@
       var value = schema_keys[key];
       var type = value.type;
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = false;else if (type === 'integer' || type === 'number') keys[key] = null;else // string etc.
-        keys[key] = '';
+      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = schema["default"] || false;else if (type === 'integer' || type === 'number') keys[key] = schema["default"] || null;else // string etc.
+        keys[key] = schema["default"] || '';
     }
 
     return keys;
@@ -70,15 +70,15 @@
     var items = [];
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(false);else if (type === 'integer' || type === 'number') items.push(null);else // string, etc.
-      items.push('');
+    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(schema["default"] || false);else if (type === 'integer' || type === 'number') items.push(schema["default"] || null);else // string, etc.
+      items.push(schema["default"] || '');
     return items;
   }
   function getBlankData(schema) {
     var type = schema.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') return getBlankArray(schema);else if (type === 'object') return getBlankObject(schema);else if (type === 'boolean') return false;else if (type === 'integer' || type === 'number') return null;else // string, etc.
-      return '';
+    if (type === 'array') return getBlankArray(schema);else if (type === 'object') return getBlankObject(schema);else if (type === 'boolean') return schema["default"] || false;else if (type === 'integer' || type === 'number') return schema["default"] || null;else // string, etc.
+      return schema["default"] || '';
   }
 
   function getSyncedArray(data, schema) {
@@ -198,7 +198,7 @@
 
     if (props.type === 'string') props.type = 'text';
     if (inputRef) props.ref = inputRef;
-    if (props.type === 'number' && props.value === null) props.value = '';
+    if (props.value === null) props.value = '';
     return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("input", props));
   }
   function FormCheckInput(_ref2) {
@@ -210,6 +210,7 @@
     if (props.type === 'bool') props.type = 'checkbox';
     if (props.checked === undefined) props.checked = value;
     if (props.checked === '' || props.checked === null || props.checked === undefined) props.checked = false;
+    if (props.readOnly) props.disabled = true;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", props), " ", label));
   }
   function FormRadioInput(_ref3) {
@@ -218,6 +219,7 @@
         options = _ref3.options,
         props = _objectWithoutPropertiesLoose(_ref3, _excluded3);
 
+    if (props.readOnly) props.disabled = true;
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, label), options.map(function (option, i) {
       var label, inputValue;
 
@@ -244,6 +246,7 @@
         options = _ref4.options,
         props = _objectWithoutPropertiesLoose(_ref4, _excluded4);
 
+    if (props.readOnly) props.disabled = true;
     return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("select", _extends({
       value: value || ''
     }, props), /*#__PURE__*/React.createElement("option", {
@@ -450,6 +453,7 @@
 
       props.type = 'file';
       props.onChange = this.handleChange;
+      if (props.readOnly) props.disabled = true;
       return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
         className: "rjf-file-field"
       }, this.state.value && /*#__PURE__*/React.createElement("div", {
@@ -545,7 +549,8 @@
   function FormField(props) {
     var inputProps = {
       name: props.name,
-      value: props.data
+      value: props.data,
+      readOnly: props.schema.readOnly
     };
     var type = props.schema.type;
 
