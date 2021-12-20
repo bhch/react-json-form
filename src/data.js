@@ -17,11 +17,11 @@ export function getBlankObject(schema) {
         else if (type === 'object')
             keys[key] = getBlankObject(value);
         else if (type === 'boolean')
-            keys[key] = schema.default || false;
+            keys[key] = value.default || false;
         else if (type === 'integer' || type === 'number')
-            keys[key] = schema.default || null;
+            keys[key] = value.default || null;
         else // string etc.
-            keys[key] = schema.default || '';
+            keys[key] = value.default || '';
     }
 
     return keys;
@@ -42,11 +42,11 @@ export function getBlankArray(schema) {
     else if (type === 'object')
         items.push(getBlankObject(schema.items));
     else if (type === 'boolean')
-        items.push(schema.default || false);
+        items.push(schema.items.default || false);
     else if (type === 'integer' || type === 'number')
-        items.push(schema.default || null);
+        items.push(schema.items.default || null);
     else // string, etc.
-        items.push(schema.default || '');
+        items.push(schema.items.default || '');
 
     return items;
 }
