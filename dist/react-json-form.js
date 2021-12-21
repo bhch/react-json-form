@@ -60,8 +60,8 @@
       var value = schema_keys[key];
       var type = value.type;
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = schema["default"] || false;else if (type === 'integer' || type === 'number') keys[key] = schema["default"] || null;else // string etc.
-        keys[key] = schema["default"] || '';
+      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = value["default"] || false;else if (type === 'integer' || type === 'number') keys[key] = value["default"] || null;else // string etc.
+        keys[key] = value["default"] || '';
     }
 
     return keys;
@@ -70,8 +70,8 @@
     var items = [];
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(schema["default"] || false);else if (type === 'integer' || type === 'number') items.push(schema["default"] || null);else // string, etc.
-      items.push(schema["default"] || '');
+    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(schema.items["default"] || false);else if (type === 'integer' || type === 'number') items.push(schema.items["default"] || null);else // string, etc.
+      items.push(schema.items["default"] || '');
     return items;
   }
   function getBlankData(schema) {
@@ -550,7 +550,7 @@
     var inputProps = {
       name: props.name,
       value: props.data,
-      readOnly: props.schema.readOnly
+      readOnly: props.schema.readOnly || props.schema.readonly
     };
     var type = props.schema.type;
 
