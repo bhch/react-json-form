@@ -272,6 +272,18 @@ export class FormFileInput extends React.Component {
         this.inputRef.current.click();
     }
 
+    clearFile = () => {
+        let event = {
+            target: {
+                type: 'text',
+                value: '',
+                name: this.props.name
+            }
+        };
+
+        this.props.onChange(event);
+    }
+
     render() {
         let {label, value, ...props} = {value, ...this.props};
         props.type = 'file';
@@ -280,13 +292,15 @@ export class FormFileInput extends React.Component {
         if (props.readOnly)
             props.disabled = true;
 
-
         return (
-            <div>
+            <div> 
                 {label && <label>{label}</label>}
                 <div className="rjf-file-field">
                     {this.state.value && 
-                        <div className="rjf-current-file-name">Current file: <span>{this.state.fileName}</span></div>
+                        <div className="rjf-current-file-name">
+                            Current file: <span>{this.state.fileName}</span> {' '}
+                            <Button className="remove-file" onClick={this.clearFile}>Clear</Button>
+                        </div>
                     }
                     {this.state.value && !this.state.loading && 'Change:'}
                     {this.state.loading ?
