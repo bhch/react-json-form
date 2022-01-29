@@ -317,17 +317,47 @@ export class FormFileInput extends React.Component {
 }
 
 
-export function FormTextareaInput({label, help_text, error, inputRef, ...props}) {
+export class FormTextareaInput extends React.Component {
+    constructor(props) {
+        super(props);
 
-    delete props.type;
+        if (!props.inputRef)
+            this.inputRef = React.createRef();
+    }
 
-    if (inputRef)
-        props.ref = inputRef;
+    handleChange = (e) => {
+        this.updateHeight(e.target);
 
-    return (
-        <div>
-            {label && <label>{label}</label>}
-            <textarea {...props} />
-        </div>
-    );
+        if (this.props.onChange)
+            this.props.onChange(e);
+    }
+
+    updateHeight = (el) => {
+        let offset = el.offsetHeight - el.clientHeight;
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight + offset) + 'px';
+    }
+
+    componentDidMount() {
+        if (this.props.inputRef)
+            this.updateHeight(this.props.inputRef.current);
+        else 
+            this.updateHeight(this.inputRef.current);
+    }
+
+    render() {
+        let {label, help_text, error, inputRef, ...props} = this.props;
+
+        delete props.type;
+
+        props.ref = inputRef || this.inputRef;
+        props.onChange = this.handleChange;
+
+        return (
+            <div>
+                {label && <label>{label}</label>}
+                <textarea {...props} />
+            </div>
+        );
+    }
 }
