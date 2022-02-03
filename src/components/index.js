@@ -3,6 +3,7 @@ import {FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FormFileInpu
     FormTextareaInput} from './form';
 import {FormRow, FormGroup, FormRowControls} from './containers';
 import Loader from './loaders';
+import Icon from './icons';
 
 export {
     Button,
@@ -10,4 +11,5 @@ export {
     FormTextareaInput,
     FormRow, FormGroup, FormRowControls,
     Loader,
+    Icon,
 };
