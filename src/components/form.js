@@ -1,5 +1,6 @@
 import Button from './buttons';
 import Loader from './loaders';
+import {TimePicker} from './widgets';
 import {EditorContext, getCsrfCookie, capitalize} from '../util';
 
 
@@ -357,6 +358,166 @@ export class FormTextareaInput extends React.Component {
             <div>
                 {label && <label>{label}</label>}
                 <textarea {...props} />
+            </div>
+        );
+    }
+}
+
+
+export class FormDateTimeInput extends React.Component {
+    constructor(props) {
+        super(props);
+        // we maintain this input's state in itself
+        // so that we can only pass valid values
+        // otherwise keep the value empty if invalid
+
+        let date = '';
+        let hh = '12';
+        let mm = '00';
+        let ss = '00';
+        let ms = '000';
+        let ampm = 'am';
+
+        if (props.value) {
+            let d = new Date(props.value);
+            let year = d.getFullYear().toString().padStart(2, '0');
+            let month = (d.getMonth() + 1).toString().padStart(2, '0');
+            let day = d.getDate().toString().padStart(2, '0');
+            date = year + '-' + month + '-' + day;
+
+            hh = d.getHours();
+            if (hh === 0) {
+                hh = 12;
+            } else if (hh === 12) {
+                ampm = 'pm';
+            } else if (hh > 12) {
+                hh = hh - 12;
+                ampm = 'pm';
+            }
+
+            mm = d.getMinutes();
+            ss = d.getSeconds();
+            ms = d.getMilliseconds();
+
+            hh = hh.toString().padStart(2, '0');
+            mm = mm.toString().padStart(2, '0');
+            ss = ss.toString().padStart(2, '0');
+        }
+
+        this.state = {
+            date: date,
+            hh: hh,
+            mm: mm,
+            ss: ss,
+            ms: ms,
+            ampm: ampm,
+            showTimePicker: false,
+        };
+
+        this.timeInput = React.createRef();
+        this.timePickerContainer = React.createRef();
+    }
+
+    componentDidMount() {
+        document.addEventListener('mousedown', this.handleClickOutside);
+    }
+
+    componentWillUnmount() {
+      document.removeEventListener('mousedown', this.handleClickOutside);
+    }
+
+    handleClickOutside = (e) => {
+        if (this.state.showTimePicker) {
+            if (this.timePickerContainer.current &&
+                !this.timePickerContainer.current.contains(e.target) &&
+                !this.timeInput.current.contains(e.target)
+            )
+                this.setState({showTimePicker: false});
+        }
+    };
+
+    sendValue = () => {
+        // we create a fake event object
+        // to send a combined value from two inputs
+        let event = {
+            target: {
+                type: 'text',
+                value: '',
+                name: this.props.name
+            }
+        };
+
+        if (this.state.date === '' || this.state.date === null)
+            return this.props.onChange(event);
+
+        let hh = parseInt(this.state.hh);
+        
+        if (this.state.ampm === 'am') {
+            if (hh === 12)
+                hh = 0;
+        } else if (this.state.ampm === 'pm') {
+            if (hh !== 12)
+                hh = hh + 12;
+        }
+
+        hh = hh.toString().padStart(2, '0');
+        let mm = this.state.mm.padStart(2, '0');
+        let ss = this.state.ss.padStart(2, '0');
+
+        let date = new Date(this.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + this.state.ms);
+        let value = date.toISOString().replace('Z', '+00:00') // make compatible to python
+
+        event['target']['value'] = value;
+
+        this.props.onChange(event);
+    }
+
+    handleDateChange = (e) => {
+        this.setState({date: e.target.value}, this.sendValue);
+    }
+
+    handleTimeChange = (value) => {
+        this.setState({
+            hh: value.hh,
+            mm: value.mm,
+            ss: value.ss,
+            ampm: value.ampm,
+        }, this.sendValue);
+    }
+
+    showTimePicker = () => {
+        this.setState({showTimePicker: true});
+    }
+
+    render() {
+        return (
+            <div className="rjf-datetime-field">
+                {this.props.label && <label>{this.props.label}</label>}
+                <FormInput
+                    label='Date'
+                    type='date'
+                    value={this.state.date}
+                    onChange={this.handleDateChange}
+                />
+                <FormInput
+                    label='Time'
+                    type='text'
+                    value={this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm}
+                    onFocus={this.showTimePicker}
+                    readOnly={true}
+                    inputRef={this.timeInput}
+                />
+                <div ref={this.timePickerContainer}>
+                    {this.state.showTimePicker &&
+                        <TimePicker
+                            onChange={this.handleTimeChange}
+                            hh={this.state.hh}
+                            mm={this.state.mm}
+                            ss={this.state.ss}
+                            ampm={this.state.ampm}
+                        />
+                    }
+                </div>
             </div>
         );
     }

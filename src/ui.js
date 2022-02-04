@@ -1,6 +1,7 @@
 import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
-    FormFileInput, FormRow, FormGroup, FormRowControls, FormTextareaInput} from './components';
+    FormFileInput, FormRow, FormGroup, FormRowControls, FormTextareaInput,
+    FormDateTimeInput} from './components';
 import {getVerboseName} from './util';
 
 
@@ -55,6 +56,8 @@ function FormField(props) {
             if (props.schema.format) {
                 if (props.schema.format === 'data-url' || props.schema.format === 'file-url') {
                     InputField = FormFileInput;
+                } else if (props.schema.format === 'datetime') {
+                    InputField = FormDateTimeInput;
                 }
                 inputProps.type = props.schema.format;
             }
