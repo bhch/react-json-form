@@ -7,7 +7,7 @@ export class TimePicker extends React.Component {
         super(props);
 
         this.state = {
-            hh: props.hh || '00',
+            hh: props.hh || '12',
             mm: props.mm || '00',
             ss: props.ss || '00',
             ampm: props.ampm || 'am',
@@ -40,6 +40,9 @@ export class TimePicker extends React.Component {
             return;
 
         let validValue = this.validateValue(name, parseInt(value) || 0);
+
+        if (name === 'hh' && (value === '0' || value === '' || value === '00') && validValue === 1)
+            validValue = 0;
 
         if (value.startsWith('0') && validValue < 10 && validValue !== 0) {
             validValue = validValue.toString().padStart(2, '0');
@@ -85,8 +88,10 @@ export class TimePicker extends React.Component {
     }
 
     handleBlur = (e) => {
-        if ((parseInt(e.target.value) || 0) < 10) {
-            this.setState({[e.target.dataset.name]: e.target.value.padStart(2, '0')});
+        let value = this.validateValue(e.target.dataset.name, parseInt(e.target.value) || 0);
+
+        if (value < 10) {
+            this.setState({[e.target.dataset.name]: value.toString().padStart(2, '0')});
         }
     }
 
