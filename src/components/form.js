@@ -493,30 +493,36 @@ export class FormDateTimeInput extends React.Component {
         return (
             <div className="rjf-datetime-field">
                 {this.props.label && <label>{this.props.label}</label>}
-                <FormInput
-                    label='Date'
-                    type='date'
-                    value={this.state.date}
-                    onChange={this.handleDateChange}
-                />
-                <FormInput
-                    label='Time'
-                    type='text'
-                    value={this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm}
-                    onFocus={this.showTimePicker}
-                    readOnly={true}
-                    inputRef={this.timeInput}
-                />
-                <div ref={this.timePickerContainer}>
-                    {this.state.showTimePicker &&
-                        <TimePicker
-                            onChange={this.handleTimeChange}
-                            hh={this.state.hh}
-                            mm={this.state.mm}
-                            ss={this.state.ss}
-                            ampm={this.state.ampm}
+                <div className="rjf-datetime-field-inner">
+                    <div className="rjf-datetime-field-date">
+                        <FormInput
+                            label='Date'
+                            type='date'
+                            value={this.state.date}
+                            onChange={this.handleDateChange}
                         />
-                    }
+                    </div>
+                    <div className="rjf-datetime-field-time">
+                        <FormInput
+                            label='Time'
+                            type='text'
+                            value={this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm}
+                            onFocus={this.showTimePicker}
+                            readOnly={true}
+                            inputRef={this.timeInput}
+                        />
+                        <div ref={this.timePickerContainer}>
+                            {this.state.showTimePicker &&
+                                <TimePicker
+                                    onChange={this.handleTimeChange}
+                                    hh={this.state.hh}
+                                    mm={this.state.mm}
+                                    ss={this.state.ss}
+                                    ampm={this.state.ampm}
+                                />
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         );
