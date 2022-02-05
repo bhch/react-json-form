@@ -163,6 +163,283 @@
     });
   }
 
+  function Icon(props) {
+    var icon;
+
+    switch (props.name) {
+      case 'chevron-up':
+        icon = /*#__PURE__*/React.createElement(ChevronUp, null);
+        break;
+
+      case 'chevron-down':
+        icon = /*#__PURE__*/React.createElement(ChevronDown, null);
+        break;
+    }
+
+    return /*#__PURE__*/React.createElement("svg", {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: "16",
+      height: "16",
+      fill: "currentColor",
+      className: "rjf-icon rjf-icon-" + props.name,
+      viewBox: "0 0 16 16"
+    }, icon);
+  }
+
+  function ChevronUp(props) {
+    return /*#__PURE__*/React.createElement("path", {
+      fillRule: "evenodd",
+      d: "M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"
+    });
+  }
+
+  function ChevronDown(props) {
+    return /*#__PURE__*/React.createElement("path", {
+      fillRule: "evenodd",
+      d: "M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"
+    });
+  }
+
+  var TimePicker = /*#__PURE__*/function (_React$Component) {
+    _inheritsLoose(TimePicker, _React$Component);
+
+    function TimePicker(props) {
+      var _this;
+
+      _this = _React$Component.call(this, props) || this;
+
+      _this.validateValue = function (name, value) {
+        if (name === 'hh' && value < 1) return 1;else if (name !== 'hh' && value < 0) return 0;else if (name === 'hh' && value > 12) return 12;else if (name !== 'hh' && value > 59) return 59;
+        return value;
+      };
+
+      _this.handleChange = function (e) {
+        var _this$setState;
+
+        var name = e.target.dataset.name;
+        var value = e.target.value;
+        if (isNaN(value)) return;
+
+        var validValue = _this.validateValue(name, parseInt(value) || 0);
+
+        if (name === 'hh' && (value === '0' || value === '' || value === '00') && validValue === 1) validValue = 0;
+
+        if (value.startsWith('0') && validValue < 10 && validValue !== 0) {
+          validValue = validValue.toString().padStart(2, '0');
+        }
+
+        _this.setState((_this$setState = {}, _this$setState[name] = value !== '' ? validValue.toString() : '', _this$setState));
+      };
+
+      _this.handleKeyDown = function (e) {
+        var _this$setState2;
+
+        if (e.keyCode !== 38 && e.keyCode !== 40) return;
+        var name = e.target.dataset.name;
+        var value = parseInt(e.target.value) || 0;
+
+        if (e.keyCode === 38) {
+          value++;
+        } else if (e.keyCode === 40) {
+          value--;
+        }
+
+        _this.setState((_this$setState2 = {}, _this$setState2[name] = _this.validateValue(name, value).toString().padStart(2, '0'), _this$setState2));
+      };
+
+      _this.handleSpin = function (name, type) {
+        _this.setState(function (state) {
+          var _ref;
+
+          var value = state[name];
+
+          if (name === 'ampm') {
+            value = value === 'am' ? 'pm' : 'am';
+          } else {
+            value = parseInt(value) || 0;
+
+            if (type === 'up') {
+              value++;
+            } else {
+              value--;
+            }
+
+            value = _this.validateValue(name, value).toString().padStart(2, '0');
+          }
+
+          return _ref = {}, _ref[name] = value, _ref;
+        });
+      };
+
+      _this.handleBlur = function (e) {
+        var value = _this.validateValue(e.target.dataset.name, parseInt(e.target.value) || 0);
+
+        if (value < 10) {
+          var _this$setState3;
+
+          _this.setState((_this$setState3 = {}, _this$setState3[e.target.dataset.name] = value.toString().padStart(2, '0'), _this$setState3));
+        }
+      };
+
+      _this.state = {
+        hh: props.hh || '12',
+        mm: props.mm || '00',
+        ss: props.ss || '00',
+        ampm: props.ampm || 'am'
+      };
+      return _this;
+    }
+
+    var _proto = TimePicker.prototype;
+
+    _proto.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
+      if (this.state !== prevState) this.props.onChange(this.state);
+    };
+
+    _proto.render = function render() {
+      var _this2 = this;
+
+      return /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-row rjf-time-picker-labels"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, "Hrs"), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, "Min"), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, "Sec"), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, "am/pm")), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-row"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('hh', 'up');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-up"
+      }))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('mm', 'up');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-up"
+      }))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('ss', 'up');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-up"
+      }))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('ampm', 'up');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-up"
+      })))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-row rjf-time-picker-values"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement("input", {
+        type: "text",
+        "data-name": "hh",
+        value: this.state.hh,
+        onChange: this.handleChange,
+        onBlur: this.handleBlur,
+        onKeyDown: this.handleKeyDown
+      })), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }, ":"), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement("input", {
+        type: "text",
+        "data-name": "mm",
+        value: this.state.mm,
+        onChange: this.handleChange,
+        onBlur: this.handleBlur,
+        onKeyDown: this.handleKeyDown
+      })), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }, ":"), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement("input", {
+        type: "text",
+        "data-name": "ss",
+        value: this.state.ss,
+        onChange: this.handleChange,
+        onBlur: this.handleBlur,
+        onKeyDown: this.handleKeyDown
+      })), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, this.state.ampm)), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-row"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('hh', 'down');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-down"
+      }))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('mm', 'down');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-down"
+      }))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('ss', 'down');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-down"
+      }))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col rjf-time-picker-col-sm"
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-time-picker-col"
+      }, /*#__PURE__*/React.createElement(Button, {
+        onClick: function onClick() {
+          return _this2.handleSpin('ampm', 'down');
+        }
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "chevron-down"
+      })))));
+    };
+
+    return TimePicker;
+  }(React.Component);
+
   var EditorContext = React.createContext();
   function capitalize(string) {
     if (!string) return '';
@@ -423,6 +700,18 @@
         _this.inputRef.current.click();
       };
 
+      _this.clearFile = function () {
+        var event = {
+          target: {
+            type: 'text',
+            value: '',
+            name: _this.props.name
+          }
+        };
+
+        _this.props.onChange(event);
+      };
+
       _this.state = {
         value: props.value,
         fileName: _this.getFileName(),
@@ -458,7 +747,10 @@
         className: "rjf-file-field"
       }, this.state.value && /*#__PURE__*/React.createElement("div", {
         className: "rjf-current-file-name"
-      }, "Current file: ", /*#__PURE__*/React.createElement("span", null, this.state.fileName)), this.state.value && !this.state.loading && 'Change:', this.state.loading ? /*#__PURE__*/React.createElement("div", {
+      }, "Current file: ", /*#__PURE__*/React.createElement("span", null, this.state.fileName), " ", ' ', /*#__PURE__*/React.createElement(Button, {
+        className: "remove-file",
+        onClick: this.clearFile
+      }, "Clear")), this.state.value && !this.state.loading && 'Change:', this.state.loading ? /*#__PURE__*/React.createElement("div", {
         className: "rjf-file-field-loading"
       }, /*#__PURE__*/React.createElement(Loader, null), " Uploading...") : /*#__PURE__*/React.createElement("div", {
         className: "rjf-file-field-input"
@@ -470,15 +762,212 @@
     return FormFileInput;
   }(React.Component);
   FormFileInput.contextType = EditorContext;
-  function FormTextareaInput(_ref5) {
-    var label = _ref5.label,
-        inputRef = _ref5.inputRef,
-        props = _objectWithoutPropertiesLoose(_ref5, _excluded6);
+  var FormTextareaInput = /*#__PURE__*/function (_React$Component2) {
+    _inheritsLoose(FormTextareaInput, _React$Component2);
 
-    delete props.type;
-    if (inputRef) props.ref = inputRef;
-    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("textarea", props));
-  }
+    function FormTextareaInput(props) {
+      var _this2;
+
+      _this2 = _React$Component2.call(this, props) || this;
+
+      _this2.handleChange = function (e) {
+        _this2.updateHeight(e.target);
+
+        if (_this2.props.onChange) _this2.props.onChange(e);
+      };
+
+      _this2.updateHeight = function (el) {
+        var offset = el.offsetHeight - el.clientHeight;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + offset + 'px';
+      };
+
+      if (!props.inputRef) _this2.inputRef = React.createRef();
+      return _this2;
+    }
+
+    var _proto2 = FormTextareaInput.prototype;
+
+    _proto2.componentDidMount = function componentDidMount() {
+      if (this.props.inputRef) this.updateHeight(this.props.inputRef.current);else this.updateHeight(this.inputRef.current);
+    };
+
+    _proto2.render = function render() {
+      var _this$props = this.props,
+          label = _this$props.label,
+          inputRef = _this$props.inputRef,
+          props = _objectWithoutPropertiesLoose(_this$props, _excluded6);
+
+      delete props.type;
+      props.ref = inputRef || this.inputRef;
+      props.onChange = this.handleChange;
+      return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("textarea", props));
+    };
+
+    return FormTextareaInput;
+  }(React.Component);
+  var FormDateTimeInput = /*#__PURE__*/function (_React$Component3) {
+    _inheritsLoose(FormDateTimeInput, _React$Component3);
+
+    function FormDateTimeInput(props) {
+      var _this3;
+
+      _this3 = _React$Component3.call(this, props) || this; // we maintain this input's state in itself
+      // so that we can only pass valid values
+      // otherwise keep the value empty if invalid
+
+      _this3.handleClickOutside = function (e) {
+        if (_this3.state.showTimePicker) {
+          if (_this3.timePickerContainer.current && !_this3.timePickerContainer.current.contains(e.target) && !_this3.timeInput.current.contains(e.target)) _this3.setState({
+            showTimePicker: false
+          });
+        }
+      };
+
+      _this3.sendValue = function () {
+        // we create a fake event object
+        // to send a combined value from two inputs
+        var event = {
+          target: {
+            type: 'text',
+            value: '',
+            name: _this3.props.name
+          }
+        };
+        if (_this3.state.date === '' || _this3.state.date === null) return _this3.props.onChange(event);
+        var hh = parseInt(_this3.state.hh);
+
+        if (_this3.state.ampm === 'am') {
+          if (hh === 12) hh = 0;
+        } else if (_this3.state.ampm === 'pm') {
+          if (hh !== 12) hh = hh + 12;
+        }
+
+        hh = hh.toString().padStart(2, '0');
+
+        var mm = _this3.state.mm.padStart(2, '0');
+
+        var ss = _this3.state.ss.padStart(2, '0');
+
+        var date = new Date(_this3.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + _this3.state.ms);
+        var value = date.toISOString().replace('Z', '+00:00'); // make compatible to python
+
+        event['target']['value'] = value;
+
+        _this3.props.onChange(event);
+      };
+
+      _this3.handleDateChange = function (e) {
+        _this3.setState({
+          date: e.target.value
+        }, _this3.sendValue);
+      };
+
+      _this3.handleTimeChange = function (value) {
+        _this3.setState({
+          hh: value.hh,
+          mm: value.mm,
+          ss: value.ss,
+          ampm: value.ampm
+        }, _this3.sendValue);
+      };
+
+      _this3.showTimePicker = function () {
+        _this3.setState({
+          showTimePicker: true
+        });
+      };
+
+      var _date = '';
+      var _hh = '12';
+      var _mm = '00';
+      var _ss = '00';
+      var ms = '000';
+      var ampm = 'am';
+
+      if (props.value) {
+        var d = new Date(props.value);
+        var year = d.getFullYear().toString().padStart(2, '0');
+        var month = (d.getMonth() + 1).toString().padStart(2, '0');
+        var day = d.getDate().toString().padStart(2, '0');
+        _date = year + '-' + month + '-' + day;
+        _hh = d.getHours();
+
+        if (_hh === 0) {
+          _hh = 12;
+        } else if (_hh === 12) {
+          ampm = 'pm';
+        } else if (_hh > 12) {
+          _hh = _hh - 12;
+          ampm = 'pm';
+        }
+
+        _mm = d.getMinutes();
+        _ss = d.getSeconds();
+        ms = d.getMilliseconds();
+        _hh = _hh.toString().padStart(2, '0');
+        _mm = _mm.toString().padStart(2, '0');
+        _ss = _ss.toString().padStart(2, '0');
+      }
+
+      _this3.state = {
+        date: _date,
+        hh: _hh,
+        mm: _mm,
+        ss: _ss,
+        ms: ms,
+        ampm: ampm,
+        showTimePicker: false
+      };
+      _this3.timeInput = React.createRef();
+      _this3.timePickerContainer = React.createRef();
+      return _this3;
+    }
+
+    var _proto3 = FormDateTimeInput.prototype;
+
+    _proto3.componentDidMount = function componentDidMount() {
+      document.addEventListener('mousedown', this.handleClickOutside);
+    };
+
+    _proto3.componentWillUnmount = function componentWillUnmount() {
+      document.removeEventListener('mousedown', this.handleClickOutside);
+    };
+
+    _proto3.render = function render() {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "rjf-datetime-field"
+      }, this.props.label && /*#__PURE__*/React.createElement("label", null, this.props.label), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-datetime-field-inner"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-datetime-field-date"
+      }, /*#__PURE__*/React.createElement(FormInput, {
+        label: "Date",
+        type: "date",
+        value: this.state.date,
+        onChange: this.handleDateChange
+      })), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-datetime-field-time"
+      }, /*#__PURE__*/React.createElement(FormInput, {
+        label: "Time",
+        type: "text",
+        value: this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm,
+        onFocus: this.showTimePicker,
+        readOnly: true,
+        inputRef: this.timeInput
+      }), /*#__PURE__*/React.createElement("div", {
+        ref: this.timePickerContainer
+      }, this.state.showTimePicker && /*#__PURE__*/React.createElement(TimePicker, {
+        onChange: this.handleTimeChange,
+        hh: this.state.hh,
+        mm: this.state.mm,
+        ss: this.state.ss,
+        ampm: this.state.ampm
+      })))));
+    };
+
+    return FormDateTimeInput;
+  }(React.Component);
 
   function GroupTitle(props) {
     if (!props.children) return null;
@@ -486,20 +975,80 @@
       className: "rjf-form-group-title"
     }, props.children);
   }
+
+  function animate(e, animation, callback) {
+    var el = e.target.parentElement.parentElement;
+    var prevEl = el.previousElementSibling;
+    var nextEl = el.nextElementSibling;
+    el.classList.add('rjf-animate', 'rjf-' + animation);
+
+    if (animation === 'move-up') {
+      var _prevEl$getBoundingCl = prevEl.getBoundingClientRect(),
+          y = _prevEl$getBoundingCl.y;
+
+      var y1 = y;
+
+      var _el$getBoundingClient = el.getBoundingClientRect();
+
+      y = _el$getBoundingClient.y;
+      var y2 = y;
+      prevEl.classList.add('rjf-animate');
+      prevEl.style.opacity = 0;
+      prevEl.style.transform = 'translateY(' + (y2 - y1) + 'px)';
+      el.style.opacity = 0;
+      el.style.transform = 'translateY(-' + (y2 - y1) + 'px)';
+    } else if (animation === 'move-down') {
+      var _el$getBoundingClient2 = el.getBoundingClientRect(),
+          _y = _el$getBoundingClient2.y;
+
+      var _y2 = _y;
+
+      var _nextEl$getBoundingCl = nextEl.getBoundingClientRect();
+
+      _y = _nextEl$getBoundingCl.y;
+      var _y3 = _y;
+      nextEl.classList.add('rjf-animate');
+      nextEl.style.opacity = 0;
+      nextEl.style.transform = 'translateY(-' + (_y3 - _y2) + 'px)';
+      el.style.opacity = 0;
+      el.style.transform = 'translateY(' + (_y3 - _y2) + 'px)';
+    }
+
+    setTimeout(function () {
+      callback();
+      el.classList.remove('rjf-animate', 'rjf-' + animation);
+      el.style = null;
+
+      if (animation === 'move-up') {
+        prevEl.classList.remove('rjf-animate');
+        prevEl.style = null;
+      } else if (animation === 'move-down') {
+        nextEl.classList.remove('rjf-animate');
+        nextEl.style = null;
+      }
+    }, 200);
+  }
+
   function FormRowControls(props) {
     return /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-row-controls"
     }, props.onMoveUp && /*#__PURE__*/React.createElement(Button, {
       className: "move-up",
-      onClick: props.onMoveUp,
+      onClick: function onClick(e) {
+        return animate(e, 'move-up', props.onMoveUp);
+      },
       title: "Move up"
     }, /*#__PURE__*/React.createElement("span", null, "\u2191")), props.onMoveDown && /*#__PURE__*/React.createElement(Button, {
       className: "move-down",
-      onClick: props.onMoveDown,
+      onClick: function onClick(e) {
+        return animate(e, 'move-down', props.onMoveDown);
+      },
       title: "Move down"
     }, /*#__PURE__*/React.createElement("span", null, "\u2193")), props.onRemove && /*#__PURE__*/React.createElement(Button, {
       className: "remove",
-      onClick: props.onRemove,
+      onClick: function onClick(e) {
+        return animate(e, 'remove', props.onRemove);
+      },
       title: "Remove"
     }, /*#__PURE__*/React.createElement("span", null, "\xD7")));
   }
@@ -569,6 +1118,8 @@
         if (props.schema.format) {
           if (props.schema.format === 'data-url' || props.schema.format === 'file-url') {
             InputField = FormFileInput;
+          } else if (props.schema.format === 'datetime') {
+            InputField = FormDateTimeInput;
           }
 
           inputProps.type = props.schema.format;
