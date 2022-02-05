@@ -33,7 +33,7 @@ export class TimePicker extends React.Component {
     }
 
     handleChange = (e) => {
-        let name = e.target.name;
+        let name = e.target.dataset.name;
         let value = e.target.value;
 
         if (isNaN(value))
@@ -52,7 +52,7 @@ export class TimePicker extends React.Component {
         if (e.keyCode !== 38 && e.keyCode !== 40)
             return;
 
-        let name = e.target.name;
+        let name = e.target.dataset.name;
         let value = parseInt(e.target.value) || 0;
 
         if (e.keyCode === 38) {
@@ -86,7 +86,7 @@ export class TimePicker extends React.Component {
 
     handleBlur = (e) => {
         if ((parseInt(e.target.value) || 0) < 10) {
-            this.setState({[e.target.name]: e.target.value.padStart(2, '0')});
+            this.setState({[e.target.dataset.name]: e.target.value.padStart(2, '0')});
         }
     }
 
@@ -114,11 +114,11 @@ export class TimePicker extends React.Component {
                 </div>
 
                 <div className="rjf-time-picker-row rjf-time-picker-values">
-                    <div className="rjf-time-picker-col"><input type="text" name="hh" value={this.state.hh} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
+                    <div className="rjf-time-picker-col"><input type="text" data-name="hh" value={this.state.hh} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
                     <div className="rjf-time-picker-col rjf-time-picker-col-sm">:</div>
-                    <div className="rjf-time-picker-col"><input type="text" name="mm" value={this.state.mm} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
+                    <div className="rjf-time-picker-col"><input type="text" data-name="mm" value={this.state.mm} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
                     <div className="rjf-time-picker-col rjf-time-picker-col-sm">:</div>
-                    <div className="rjf-time-picker-col"><input type="text" name="ss" value={this.state.ss} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
+                    <div className="rjf-time-picker-col"><input type="text" data-name="ss" value={this.state.ss} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
                     <div className="rjf-time-picker-col rjf-time-picker-col-sm"></div>
                     <div className="rjf-time-picker-col">{this.state.ampm}</div>
                 </div>
