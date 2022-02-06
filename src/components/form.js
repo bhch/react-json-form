@@ -371,6 +371,16 @@ export class FormDateTimeInput extends React.Component {
         // so that we can only pass valid values
         // otherwise keep the value empty if invalid
 
+        this.state = {
+            ...this.getStateFromProps(),
+            showTimePicker: false,
+        };
+
+        this.timeInput = React.createRef();
+        this.timePickerContainer = React.createRef();
+    }
+
+    getStateFromProps = () => {
         let date = '';
         let hh = '12';
         let mm = '00';
@@ -378,8 +388,8 @@ export class FormDateTimeInput extends React.Component {
         let ms = '000';
         let ampm = 'am';
 
-        if (props.value) {
-            let d = new Date(props.value);
+        if (this.props.value) {
+            let d = new Date(this.props.value);
             let year = d.getFullYear().toString().padStart(2, '0');
             let month = (d.getMonth() + 1).toString().padStart(2, '0');
             let day = d.getDate().toString().padStart(2, '0');
@@ -404,18 +414,29 @@ export class FormDateTimeInput extends React.Component {
             ss = ss.toString().padStart(2, '0');
         }
 
-        this.state = {
-            date: date,
-            hh: hh,
-            mm: mm,
-            ss: ss,
-            ms: ms,
-            ampm: ampm,
-            showTimePicker: false,
-        };
+        return {
+            date: date, hh: hh, mm: mm, ss: ss, ms: ms, ampm: ampm
+        }
+    }
 
-        this.timeInput = React.createRef();
-        this.timePickerContainer = React.createRef();
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.value !== this.props.value) {
+            if (this.state.hh !== '' && this.state.hh !== '0' && this.state.hh !== '00') {
+
+                let changed = false;
+                let newState = this.getStateFromProps();
+                
+                for (let key in newState) {
+                    if (newState[key] !== this.state[key]) {
+                        changed = true;
+                        break;
+                    }
+                }
+
+                if (changed)
+                    this.setState({...newState});
+            }
+        }
     }
 
     componentDidMount() {
@@ -451,6 +472,10 @@ export class FormDateTimeInput extends React.Component {
             return this.props.onChange(event);
 
         let hh = parseInt(this.state.hh);
+
+        if (hh === 0)
+            hh = NaN; // zero value is invalid for 12 hour clock, but will be valid for 24 hour clock
+                      // so we set it to NaN to prevent creating a date object
         
         if (this.state.ampm === 'am') {
             if (hh === 12)
@@ -464,10 +489,13 @@ export class FormDateTimeInput extends React.Component {
         let mm = this.state.mm.padStart(2, '0');
         let ss = this.state.ss.padStart(2, '0');
 
-        let date = new Date(this.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + this.state.ms);
-        let value = date.toISOString().replace('Z', '+00:00') // make compatible to python
-
-        event['target']['value'] = value;
+        try {
+            let date = new Date(this.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + this.state.ms);
+            event['target']['value'] = date.toISOString().replace('Z', '+00:00') // make compatible to python
+        } catch (err) {
+            // invalid date
+            return this.props.onChange(event);
+        }
 
         this.props.onChange(event);
     }
@@ -477,12 +505,7 @@ export class FormDateTimeInput extends React.Component {
     }
 
     handleTimeChange = (value) => {
-        this.setState({
-            hh: value.hh,
-            mm: value.mm,
-            ss: value.ss,
-            ampm: value.ampm,
-        }, this.sendValue);
+        this.setState({...value}, this.sendValue);
     }
 
     showTimePicker = () => {

@@ -3,20 +3,17 @@ import Icon from './icons';
 
 
 export class TimePicker extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            hh: props.hh || '12',
-            mm: props.mm || '00',
-            ss: props.ss || '00',
-            ampm: props.ampm || 'am',
-        };
+    componentWillUnmount() {
+        let data = {
+            hh: this.validateValue('hh', this.props.hh).toString().padStart(2, '0'),
+            mm: this.validateValue('mm', this.props.mm).toString().padStart(2, '0'),
+            ss: this.validateValue('ss', this.props.ss).toString().padStart(2, '0')
+        }
+        this.sendValue(data);
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (this.state !== prevState)
-            this.props.onChange(this.state);
+    sendValue = (data) => {
+        this.props.onChange(data);
     }
 
     validateValue = (name, value) => {
@@ -48,7 +45,7 @@ export class TimePicker extends React.Component {
             validValue = validValue.toString().padStart(2, '0');
         }
 
-        this.setState({[name]: value !== '' ? validValue.toString() : ''});
+        this.sendValue({[name]: value !== '' ? validValue.toString() : ''});
     }
 
     handleKeyDown = (e) => {
@@ -64,34 +61,32 @@ export class TimePicker extends React.Component {
             value--;
         }
 
-        this.setState({[name]: this.validateValue(name, value).toString().padStart(2, '0')});
+        this.sendValue({[name]: this.validateValue(name, value).toString().padStart(2, '0')});
     }
 
     handleSpin = (name, type) => {
-        this.setState((state) => {
-            let value = state[name];
+        let value = this.props[name];
 
-            if (name === 'ampm') {
-                value = value === 'am' ? 'pm': 'am';
+        if (name === 'ampm') {
+            value = value === 'am' ? 'pm': 'am';
+        } else {
+            value = parseInt(value) || 0;
+            if (type === 'up') {
+                value++;
             } else {
-                value = parseInt(value) || 0;
-                if (type === 'up') {
-                    value++;
-                } else {
-                    value--;
-                }
-                value = this.validateValue(name, value).toString().padStart(2, '0');
+                value--;
             }
+            value = this.validateValue(name, value).toString().padStart(2, '0');
+        }
 
-            return {[name]: value};
-        });
+        this.sendValue({[name]: value});
     }
 
     handleBlur = (e) => {
         let value = this.validateValue(e.target.dataset.name, parseInt(e.target.value) || 0);
 
         if (value < 10) {
-            this.setState({[e.target.dataset.name]: value.toString().padStart(2, '0')});
+            this.sendValue({[e.target.dataset.name]: value.toString().padStart(2, '0')});
         }
     }
 
@@ -119,13 +114,13 @@ export class TimePicker extends React.Component {
                 </div>
 
                 <div className="rjf-time-picker-row rjf-time-picker-values">
-                    <div className="rjf-time-picker-col"><input type="text" data-name="hh" value={this.state.hh} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
+                    <div className="rjf-time-picker-col"><input type="text" data-name="hh" value={this.props.hh} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
                     <div className="rjf-time-picker-col rjf-time-picker-col-sm">:</div>
-                    <div className="rjf-time-picker-col"><input type="text" data-name="mm" value={this.state.mm} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
+                    <div className="rjf-time-picker-col"><input type="text" data-name="mm" value={this.props.mm} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
                     <div className="rjf-time-picker-col rjf-time-picker-col-sm">:</div>
-                    <div className="rjf-time-picker-col"><input type="text" data-name="ss" value={this.state.ss} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
+                    <div className="rjf-time-picker-col"><input type="text" data-name="ss" value={this.props.ss} onChange={this.handleChange} onBlur={this.handleBlur} onKeyDown={this.handleKeyDown} /></div>
                     <div className="rjf-time-picker-col rjf-time-picker-col-sm"></div>
-                    <div className="rjf-time-picker-col">{this.state.ampm}</div>
+                    <div className="rjf-time-picker-col">{this.props.ampm}</div>
                 </div>
 
                 <div className="rjf-time-picker-row">
