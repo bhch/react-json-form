@@ -181,7 +181,7 @@ export function getArrayFormRow(args) {
         if (i === data.length - 1)
             nextArgs.onMoveDown = null;
         else
-            nextArgs.onMoveDown = (e) => onMove(name + '-' + i, name + '-' + (i + 1));;
+            nextArgs.onMoveDown = (e) => onMove(name + '-' + i, name + '-' + (i + 1));
 
         if (type === 'array') {
             groups.push(getArrayFormRow(nextArgs));
