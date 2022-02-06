@@ -203,10 +203,18 @@
   var TimePicker = /*#__PURE__*/function (_React$Component) {
     _inheritsLoose(TimePicker, _React$Component);
 
-    function TimePicker(props) {
+    function TimePicker() {
       var _this;
 
-      _this = _React$Component.call(this, props) || this;
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      _this = _React$Component.call.apply(_React$Component, [this].concat(args)) || this;
+
+      _this.sendValue = function (data) {
+        _this.props.onChange(data);
+      };
 
       _this.validateValue = function (name, value) {
         if (name === 'hh' && value < 1) return 1;else if (name !== 'hh' && value < 0) return 0;else if (name === 'hh' && value > 12) return 12;else if (name !== 'hh' && value > 59) return 59;
@@ -214,7 +222,7 @@
       };
 
       _this.handleChange = function (e) {
-        var _this$setState;
+        var _this$sendValue;
 
         var name = e.target.dataset.name;
         var value = e.target.value;
@@ -228,11 +236,11 @@
           validValue = validValue.toString().padStart(2, '0');
         }
 
-        _this.setState((_this$setState = {}, _this$setState[name] = value !== '' ? validValue.toString() : '', _this$setState));
+        _this.sendValue((_this$sendValue = {}, _this$sendValue[name] = value !== '' ? validValue.toString() : '', _this$sendValue));
       };
 
       _this.handleKeyDown = function (e) {
-        var _this$setState2;
+        var _this$sendValue2;
 
         if (e.keyCode !== 38 && e.keyCode !== 40) return;
         var name = e.target.dataset.name;
@@ -244,56 +252,53 @@
           value--;
         }
 
-        _this.setState((_this$setState2 = {}, _this$setState2[name] = _this.validateValue(name, value).toString().padStart(2, '0'), _this$setState2));
+        _this.sendValue((_this$sendValue2 = {}, _this$sendValue2[name] = _this.validateValue(name, value).toString().padStart(2, '0'), _this$sendValue2));
       };
 
       _this.handleSpin = function (name, type) {
-        _this.setState(function (state) {
-          var _ref;
+        var _this$sendValue3;
 
-          var value = state[name];
+        var value = _this.props[name];
 
-          if (name === 'ampm') {
-            value = value === 'am' ? 'pm' : 'am';
+        if (name === 'ampm') {
+          value = value === 'am' ? 'pm' : 'am';
+        } else {
+          value = parseInt(value) || 0;
+
+          if (type === 'up') {
+            value++;
           } else {
-            value = parseInt(value) || 0;
-
-            if (type === 'up') {
-              value++;
-            } else {
-              value--;
-            }
-
-            value = _this.validateValue(name, value).toString().padStart(2, '0');
+            value--;
           }
 
-          return _ref = {}, _ref[name] = value, _ref;
-        });
+          value = _this.validateValue(name, value).toString().padStart(2, '0');
+        }
+
+        _this.sendValue((_this$sendValue3 = {}, _this$sendValue3[name] = value, _this$sendValue3));
       };
 
       _this.handleBlur = function (e) {
         var value = _this.validateValue(e.target.dataset.name, parseInt(e.target.value) || 0);
 
         if (value < 10) {
-          var _this$setState3;
+          var _this$sendValue4;
 
-          _this.setState((_this$setState3 = {}, _this$setState3[e.target.dataset.name] = value.toString().padStart(2, '0'), _this$setState3));
+          _this.sendValue((_this$sendValue4 = {}, _this$sendValue4[e.target.dataset.name] = value.toString().padStart(2, '0'), _this$sendValue4));
         }
       };
 
-      _this.state = {
-        hh: props.hh || '12',
-        mm: props.mm || '00',
-        ss: props.ss || '00',
-        ampm: props.ampm || 'am'
-      };
       return _this;
     }
 
     var _proto = TimePicker.prototype;
 
-    _proto.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
-      if (this.state !== prevState) this.props.onChange(this.state);
+    _proto.componentWillUnmount = function componentWillUnmount() {
+      var data = {
+        hh: this.validateValue('hh', this.props.hh).toString().padStart(2, '0'),
+        mm: this.validateValue('mm', this.props.mm).toString().padStart(2, '0'),
+        ss: this.validateValue('ss', this.props.ss).toString().padStart(2, '0')
+      };
+      this.sendValue(data);
     };
 
     _proto.render = function render() {
@@ -364,7 +369,7 @@
       }, /*#__PURE__*/React.createElement("input", {
         type: "text",
         "data-name": "hh",
-        value: this.state.hh,
+        value: this.props.hh,
         onChange: this.handleChange,
         onBlur: this.handleBlur,
         onKeyDown: this.handleKeyDown
@@ -375,7 +380,7 @@
       }, /*#__PURE__*/React.createElement("input", {
         type: "text",
         "data-name": "mm",
-        value: this.state.mm,
+        value: this.props.mm,
         onChange: this.handleChange,
         onBlur: this.handleBlur,
         onKeyDown: this.handleKeyDown
@@ -386,7 +391,7 @@
       }, /*#__PURE__*/React.createElement("input", {
         type: "text",
         "data-name": "ss",
-        value: this.state.ss,
+        value: this.props.ss,
         onChange: this.handleChange,
         onBlur: this.handleBlur,
         onKeyDown: this.handleKeyDown
@@ -394,7 +399,7 @@
         className: "rjf-time-picker-col rjf-time-picker-col-sm"
       }), /*#__PURE__*/React.createElement("div", {
         className: "rjf-time-picker-col"
-      }, this.state.ampm)), /*#__PURE__*/React.createElement("div", {
+      }, this.props.ampm)), /*#__PURE__*/React.createElement("div", {
         className: "rjf-time-picker-row"
       }, /*#__PURE__*/React.createElement("div", {
         className: "rjf-time-picker-col"
@@ -816,6 +821,49 @@
       // so that we can only pass valid values
       // otherwise keep the value empty if invalid
 
+      _this3.getStateFromProps = function () {
+        var date = '';
+        var hh = '12';
+        var mm = '00';
+        var ss = '00';
+        var ms = '000';
+        var ampm = 'am';
+
+        if (_this3.props.value) {
+          var d = new Date(_this3.props.value);
+          var year = d.getFullYear().toString().padStart(2, '0');
+          var month = (d.getMonth() + 1).toString().padStart(2, '0');
+          var day = d.getDate().toString().padStart(2, '0');
+          date = year + '-' + month + '-' + day;
+          hh = d.getHours();
+
+          if (hh === 0) {
+            hh = 12;
+          } else if (hh === 12) {
+            ampm = 'pm';
+          } else if (hh > 12) {
+            hh = hh - 12;
+            ampm = 'pm';
+          }
+
+          mm = d.getMinutes();
+          ss = d.getSeconds();
+          ms = d.getMilliseconds();
+          hh = hh.toString().padStart(2, '0');
+          mm = mm.toString().padStart(2, '0');
+          ss = ss.toString().padStart(2, '0');
+        }
+
+        return {
+          date: date,
+          hh: hh,
+          mm: mm,
+          ss: ss,
+          ms: ms,
+          ampm: ampm
+        };
+      };
+
       _this3.handleClickOutside = function (e) {
         if (_this3.state.showTimePicker) {
           if (_this3.timePickerContainer.current && !_this3.timePickerContainer.current.contains(e.target) && !_this3.timeInput.current.contains(e.target)) _this3.setState({
@@ -836,6 +884,8 @@
         };
         if (_this3.state.date === '' || _this3.state.date === null) return _this3.props.onChange(event);
         var hh = parseInt(_this3.state.hh);
+        if (hh === 0) hh = NaN; // zero value is invalid for 12 hour clock, but will be valid for 24 hour clock
+        // so we set it to NaN to prevent creating a date object
 
         if (_this3.state.ampm === 'am') {
           if (hh === 12) hh = 0;
@@ -849,10 +899,13 @@
 
         var ss = _this3.state.ss.padStart(2, '0');
 
-        var date = new Date(_this3.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + _this3.state.ms);
-        var value = date.toISOString().replace('Z', '+00:00'); // make compatible to python
-
-        event['target']['value'] = value;
+        try {
+          var date = new Date(_this3.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + _this3.state.ms);
+          event['target']['value'] = date.toISOString().replace('Z', '+00:00'); // make compatible to python
+        } catch (err) {
+          // invalid date
+          return _this3.props.onChange(event);
+        }
 
         _this3.props.onChange(event);
       };
@@ -864,12 +917,7 @@
       };
 
       _this3.handleTimeChange = function (value) {
-        _this3.setState({
-          hh: value.hh,
-          mm: value.mm,
-          ss: value.ss,
-          ampm: value.ampm
-        }, _this3.sendValue);
+        _this3.setState(_extends({}, value), _this3.sendValue);
       };
 
       _this3.showTimePicker = function () {
@@ -878,53 +926,33 @@
         });
       };
 
-      var _date = '';
-      var _hh = '12';
-      var _mm = '00';
-      var _ss = '00';
-      var ms = '000';
-      var ampm = 'am';
-
-      if (props.value) {
-        var d = new Date(props.value);
-        var year = d.getFullYear().toString().padStart(2, '0');
-        var month = (d.getMonth() + 1).toString().padStart(2, '0');
-        var day = d.getDate().toString().padStart(2, '0');
-        _date = year + '-' + month + '-' + day;
-        _hh = d.getHours();
-
-        if (_hh === 0) {
-          _hh = 12;
-        } else if (_hh === 12) {
-          ampm = 'pm';
-        } else if (_hh > 12) {
-          _hh = _hh - 12;
-          ampm = 'pm';
-        }
-
-        _mm = d.getMinutes();
-        _ss = d.getSeconds();
-        ms = d.getMilliseconds();
-        _hh = _hh.toString().padStart(2, '0');
-        _mm = _mm.toString().padStart(2, '0');
-        _ss = _ss.toString().padStart(2, '0');
-      }
-
-      _this3.state = {
-        date: _date,
-        hh: _hh,
-        mm: _mm,
-        ss: _ss,
-        ms: ms,
-        ampm: ampm,
+      _this3.state = _extends({}, _this3.getStateFromProps(), {
         showTimePicker: false
-      };
+      });
       _this3.timeInput = React.createRef();
       _this3.timePickerContainer = React.createRef();
       return _this3;
     }
 
     var _proto3 = FormDateTimeInput.prototype;
+
+    _proto3.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
+      if (prevProps.value !== this.props.value) {
+        if (this.state.hh !== '' && this.state.hh !== '0' && this.state.hh !== '00') {
+          var changed = false;
+          var newState = this.getStateFromProps();
+
+          for (var key in newState) {
+            if (newState[key] !== this.state[key]) {
+              changed = true;
+              break;
+            }
+          }
+
+          if (changed) this.setState(_extends({}, newState));
+        }
+      }
+    };
 
     _proto3.componentDidMount = function componentDidMount() {
       document.addEventListener('mousedown', this.handleClickOutside);
