@@ -1,6 +1,6 @@
 import Button from './buttons';
 import {FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FormFileInput,
-    FormTextareaInput, FormDateTimeInput} from './form';
+    FormTextareaInput, FormDateTimeInput, FormMultiSelectInput} from './form';
 import {FormRow, FormGroup, FormRowControls} from './containers';
 import Loader from './loaders';
 import Icon from './icons';
@@ -8,7 +8,7 @@ import Icon from './icons';
 export {
     Button,
     FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FormFileInput,
-    FormTextareaInput, FormDateTimeInput,
+    FormTextareaInput, FormDateTimeInput, FormMultiSelectInput,
     FormRow, FormGroup, FormRowControls,
     Loader,
     Icon,

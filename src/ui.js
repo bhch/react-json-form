@@ -1,7 +1,7 @@
 import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
     FormFileInput, FormRow, FormGroup, FormRowControls, FormTextareaInput,
-    FormDateTimeInput} from './components';
+    FormDateTimeInput, FormMultiSelectInput} from './components';
 import {getVerboseName} from './util';
 
 
@@ -89,6 +89,9 @@ function FormField(props) {
         case 'select':
             InputField = FormSelectInput;
             break;
+        case 'multiselect':
+            InputField = FormMultiSelectInput;
+            break;
         case 'textarea':
             InputField = FormTextareaInput;
             break;
@@ -114,7 +117,7 @@ function FormField(props) {
 export function getStringFormRow(args) {
     let {
         data, schema, name, onChange, onRemove, removable, onEdit, editable, 
-        onMoveUp, onMoveDown
+        onMoveUp, onMoveDown, parentType, ...fieldProps
     } = args;
 
     return (
@@ -131,6 +134,8 @@ export function getStringFormRow(args) {
                 onChange={onChange}
                 onEdit={onEdit}
                 editable={editable}
+                parentType={parentType}
+                {...fieldProps}
             />
         </FormRow>
     );
@@ -167,29 +172,41 @@ export function getArrayFormRow(args) {
         level: level + 1,
         removable: removable,
         onMove: onMove,
+        parentType: 'array',
     };
 
-    for (let i = 0; i < data.length; i++) {
-        nextArgs.data = data[i];
-        nextArgs.name = name + '-' + i;
+    if (nextArgs.schema.widget === 'multiselect') {
+        nextArgs.data = data;
+        nextArgs.name = name;
+        nextArgs.removable = false;
+        nextArgs.onMoveUp = null;
+        nextArgs.onMoveDown = null;
+        addable = false;
+        rows.push(getStringFormRow(nextArgs));
+    } else {
 
-        if (i === 0)
-            nextArgs.onMoveUp = null;
-        else
-            nextArgs.onMoveUp = (e) => onMove(name + '-' + i, name + '-' + (i - 1));
+        for (let i = 0; i < data.length; i++) {
+            nextArgs.data = data[i];
+            nextArgs.name = name + '-' + i;
 
-        if (i === data.length - 1)
-            nextArgs.onMoveDown = null;
-        else
-            nextArgs.onMoveDown = (e) => onMove(name + '-' + i, name + '-' + (i + 1));
+            if (i === 0)
+                nextArgs.onMoveUp = null;
+            else
+                nextArgs.onMoveUp = (e) => onMove(name + '-' + i, name + '-' + (i - 1));
 
-        if (type === 'array') {
-            groups.push(getArrayFormRow(nextArgs));
-        } else if (type === 'object') {
-            groups.push(getObjectFormRow(nextArgs));
-        } else {
-            rows.push(getStringFormRow(nextArgs));
-        } 
+            if (i === data.length - 1)
+                nextArgs.onMoveDown = null;
+            else
+                nextArgs.onMoveDown = (e) => onMove(name + '-' + i, name + '-' + (i + 1));
+
+            if (type === 'array') {
+                groups.push(getArrayFormRow(nextArgs));
+            } else if (type === 'object') {
+                groups.push(getObjectFormRow(nextArgs));
+            } else {
+                rows.push(getStringFormRow(nextArgs));
+            } 
+        }
     }
 
     let coords = name; // coordinates for insertion and deletion
@@ -283,7 +300,8 @@ export function getObjectFormRow(args) {
             onRemove: onRemove,
             level: level + 1,
             removable: removable,
-            onMove: onMove
+            onMove: onMove,
+            parentType: 'object',
         };
 
          if (type === 'array') {

@@ -111,6 +111,142 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
     );
 }
 
+export class FormMultiSelectInput extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            showOptions: false
+        };
+
+        this.optionsContainer = React.createRef();
+        this.input = React.createRef();
+    }
+
+    handleChange = (e) => {
+        let value = [...this.props.value];
+
+        if (e.target.checked) {
+            value.push(e.target.value);
+        } else {
+            value = value.filter((item) => item !== e.target.value);
+        }
+
+        let event = {
+            target: {
+                type: this.props.type,
+                value: value,
+                name: this.props.name
+            }
+        };
+
+        this.props.onChange(event);
+    }
+
+    showOptions = (e) => {
+        if (!this.state.showOptions)
+            this.setState({showOptions: true});
+    }
+
+    hideOptions = (e) => {
+        this.setState({showOptions: false});
+    }
+
+    toggleOptions = (e) => {
+        this.setState((state) => ({showOptions: !state.showOptions}))
+    }
+
+    render() {
+        return (
+            <div className="rjf-multiselect-field">
+                <FormInput
+                    label={this.props.label}
+                    value={this.props.value.length ? this.props.value.length + ' selected' : 'Select...'}
+                    help_text={this.props.help_text}
+                    error={this.props.error}
+                    onClick={this.toggleOptions}
+                    readOnly={true}
+                    inputRef={this.input}
+                    className="rjf-multiselect-field-input"
+                />
+                {this.state.showOptions &&
+                    <FormMultiSelectInputOptions
+                        options={this.props.options}
+                        value={this.props.value}
+                        hideOptions={this.hideOptions}
+                        onChange={this.handleChange}
+                        containerRef={this.optionsContainer}
+                        inputRef={this.input}
+                        disabled={this.props.readOnly}
+                    />
+                }
+            </div>
+        )
+    }
+}
+
+class FormMultiSelectInputOptions extends React.Component {
+    componentDidMount() {
+        document.addEventListener('mousedown', this.handleClickOutside);
+    }
+
+    componentWillUnmount() {
+      document.removeEventListener('mousedown', this.handleClickOutside);
+    }
+
+    handleClickOutside = (e) => {
+        if (this.props.containerRef.current &&
+            !this.props.containerRef.current.contains(e.target) &&
+            !this.props.inputRef.current.contains(e.target)
+        )
+            this.props.hideOptions();
+    };
+
+    render() {
+        return (
+            <div ref={this.props.containerRef}>
+                <div className="rjf-multiselect-field-options-container">
+                    {this.props.options.map((option, i) => {
+                        let label, inputValue;
+                        if (typeof option === 'object') {
+                            label = option.label;
+                            inputValue = option.value;
+                        } else {
+                            label = option;
+                            if (typeof label === 'boolean')
+                                label = capitalize(label.toString());
+                            inputValue = option;
+                        }
+
+                        let selected = this.props.value.indexOf(inputValue) > -1;
+
+                        let optionClassName = 'rjf-multiselect-field-option';
+                        if (selected)
+                            optionClassName += ' selected';
+                        if (this.props.disabled)
+                            optionClassName += ' disabled';
+
+                        return (
+                            <div key={label + '_' + inputValue + '_' + i} className={optionClassName}>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        onChange={this.props.onChange}
+                                        value={inputValue}
+                                        checked={selected}
+                                        disabled={this.props.disabled}
+                                    /> {label}
+                                </label>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+}
+
 export function dataURItoBlob(dataURI) {
       // Split metadata from data
       const splitted = dataURI.split(",");
