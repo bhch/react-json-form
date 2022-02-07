@@ -44,8 +44,14 @@ function FormField(props) {
         inputProps.options = props.schema.choices;
         type = 'select';
     }
-    if (props.schema.widget)
-        type = props.schema.widget;
+    if (props.schema.widget) {
+         if (props.schema.widget === 'multiselect' && props.parentType !== 'array') {
+            // pass
+         } else {
+            type = props.schema.widget;
+         }
+    }
+
 
     let InputField;
 
