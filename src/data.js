@@ -40,11 +40,19 @@ export function getBlankArray(schema) {
     else if (type === 'dict')
         type = 'object';
 
-    if (type === 'array')
+    if (type === 'array') {
         items.push(getBlankArray(schema.items))
-    else if (type === 'object')
+        return items;
+    }
+    else if (type === 'object') {
         items.push(getBlankObject(schema.items));
-    else if (type === 'boolean')
+        return items;
+    }
+
+    if (schema.items.widget === 'multiselect')
+        return items;
+
+    if (type === 'boolean')
         items.push(schema.items.default || false);
     else if (type === 'integer' || type === 'number')
         items.push(schema.items.default || null);
