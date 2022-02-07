@@ -29,6 +29,9 @@ export function getBlankObject(schema) {
 
 
 export function getBlankArray(schema) {
+    if (schema.default)
+        return schema.default;
+
     let items = [];
     let type = schema.items.type;
 
