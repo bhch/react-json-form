@@ -161,6 +161,7 @@ export class FormMultiSelectInput extends React.Component {
             <div className="rjf-multiselect-field">
                 <FormInput
                     label={this.props.label}
+                    type="text"
                     value={this.props.value.length ? this.props.value.length + ' selected' : 'Select...'}
                     help_text={this.props.help_text}
                     error={this.props.error}
