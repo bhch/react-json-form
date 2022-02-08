@@ -375,6 +375,11 @@ function handleKeyEdit(data, key, value, coords, onAdd, onRemove) {
     else if (data.hasOwnProperty(newKey))
         return alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
 
-    onAdd(value, name + '-' + newKey);
+    let newCoords = coords.split('-');
+    newCoords.pop();
+    newCoords.push(newKey);
+    newCoords = newCoords.join('-');
+
+    onAdd(value, newCoords);
     onRemove(coords);
 }
