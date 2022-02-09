@@ -1,6 +1,6 @@
 {
   "name": "react-json-form",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "",
   "type": "module",
   "source": "./src/index.js",

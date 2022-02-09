@@ -67,10 +67,21 @@
     return keys;
   }
   function getBlankArray(schema) {
+    if (schema["default"]) return schema["default"];
     var items = [];
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') items.push(getBlankArray(schema.items));else if (type === 'object') items.push(getBlankObject(schema.items));else if (type === 'boolean') items.push(schema.items["default"] || false);else if (type === 'integer' || type === 'number') items.push(schema.items["default"] || null);else // string, etc.
+
+    if (type === 'array') {
+      items.push(getBlankArray(schema.items));
+      return items;
+    } else if (type === 'object') {
+      items.push(getBlankObject(schema.items));
+      return items;
+    }
+
+    if (schema.items.widget === 'multiselect') return items;
+    if (type === 'boolean') items.push(schema.items["default"] || false);else if (type === 'integer' || type === 'number') items.push(schema.items["default"] || null);else // string, etc.
       items.push(schema.items["default"] || '');
     return items;
   }
@@ -138,10 +149,10 @@
     return data;
   }
 
-  var _excluded$1 = ["className"];
+  var _excluded$2 = ["className"];
   function Button(_ref) {
     var className = _ref.className,
-        props = _objectWithoutPropertiesLoose(_ref, _excluded$1);
+        props = _objectWithoutPropertiesLoose(_ref, _excluded$2);
 
     if (!className) className = '';
     var classes = className.split(' ');
@@ -467,7 +478,7 @@
     return null;
   }
 
-  var _excluded = ["label", "help_text", "error", "inputRef"],
+  var _excluded$1 = ["label", "help_text", "error", "inputRef"],
       _excluded2 = ["label", "help_text", "error", "value"],
       _excluded3 = ["label", "help_text", "error", "value", "options"],
       _excluded4 = ["label", "help_text", "error", "value", "options"],
@@ -476,7 +487,7 @@
   function FormInput(_ref) {
     var label = _ref.label,
         inputRef = _ref.inputRef,
-        props = _objectWithoutPropertiesLoose(_ref, _excluded);
+        props = _objectWithoutPropertiesLoose(_ref, _excluded$1);
 
     if (props.type === 'string') props.type = 'text';
     if (inputRef) props.ref = inputRef;
@@ -553,6 +564,161 @@
       }, label);
     })));
   }
+  var FormMultiSelectInput = /*#__PURE__*/function (_React$Component) {
+    _inheritsLoose(FormMultiSelectInput, _React$Component);
+
+    function FormMultiSelectInput(props) {
+      var _this;
+
+      _this = _React$Component.call(this, props) || this;
+
+      _this.handleChange = function (e) {
+        var value = [].concat(_this.props.value);
+
+        if (e.target.checked) {
+          value.push(e.target.value);
+        } else {
+          value = value.filter(function (item) {
+            return item !== e.target.value;
+          });
+        }
+
+        var event = {
+          target: {
+            type: _this.props.type,
+            value: value,
+            name: _this.props.name
+          }
+        };
+
+        _this.props.onChange(event);
+      };
+
+      _this.showOptions = function (e) {
+        if (!_this.state.showOptions) _this.setState({
+          showOptions: true
+        });
+      };
+
+      _this.hideOptions = function (e) {
+        _this.setState({
+          showOptions: false
+        });
+      };
+
+      _this.toggleOptions = function (e) {
+        _this.setState(function (state) {
+          return {
+            showOptions: !state.showOptions
+          };
+        });
+      };
+
+      _this.state = {
+        showOptions: false
+      };
+      _this.optionsContainer = React.createRef();
+      _this.input = React.createRef();
+      return _this;
+    }
+
+    var _proto = FormMultiSelectInput.prototype;
+
+    _proto.render = function render() {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "rjf-multiselect-field"
+      }, /*#__PURE__*/React.createElement(FormInput, {
+        label: this.props.label,
+        type: "text",
+        value: this.props.value.length ? this.props.value.length + ' selected' : 'Select...',
+        help_text: this.props.help_text,
+        error: this.props.error,
+        onClick: this.toggleOptions,
+        readOnly: true,
+        inputRef: this.input,
+        className: "rjf-multiselect-field-input"
+      }), this.state.showOptions && /*#__PURE__*/React.createElement(FormMultiSelectInputOptions, {
+        options: this.props.options,
+        value: this.props.value,
+        hideOptions: this.hideOptions,
+        onChange: this.handleChange,
+        containerRef: this.optionsContainer,
+        inputRef: this.input,
+        disabled: this.props.readOnly
+      }));
+    };
+
+    return FormMultiSelectInput;
+  }(React.Component);
+
+  var FormMultiSelectInputOptions = /*#__PURE__*/function (_React$Component2) {
+    _inheritsLoose(FormMultiSelectInputOptions, _React$Component2);
+
+    function FormMultiSelectInputOptions() {
+      var _this2;
+
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      _this2 = _React$Component2.call.apply(_React$Component2, [this].concat(args)) || this;
+
+      _this2.handleClickOutside = function (e) {
+        if (_this2.props.containerRef.current && !_this2.props.containerRef.current.contains(e.target) && !_this2.props.inputRef.current.contains(e.target)) _this2.props.hideOptions();
+      };
+
+      return _this2;
+    }
+
+    var _proto2 = FormMultiSelectInputOptions.prototype;
+
+    _proto2.componentDidMount = function componentDidMount() {
+      document.addEventListener('mousedown', this.handleClickOutside);
+    };
+
+    _proto2.componentWillUnmount = function componentWillUnmount() {
+      document.removeEventListener('mousedown', this.handleClickOutside);
+    };
+
+    _proto2.render = function render() {
+      var _this3 = this;
+
+      return /*#__PURE__*/React.createElement("div", {
+        ref: this.props.containerRef
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-multiselect-field-options-container"
+      }, this.props.options.map(function (option, i) {
+        var label, inputValue;
+
+        if (typeof option === 'object') {
+          label = option.label;
+          inputValue = option.value;
+        } else {
+          label = option;
+          if (typeof label === 'boolean') label = capitalize(label.toString());
+          inputValue = option;
+        }
+
+        var selected = _this3.props.value.indexOf(inputValue) > -1;
+        var optionClassName = 'rjf-multiselect-field-option';
+        if (selected) optionClassName += ' selected';
+        if (_this3.props.disabled) optionClassName += ' disabled';
+        return /*#__PURE__*/React.createElement("div", {
+          key: label + '_' + inputValue + '_' + i,
+          className: optionClassName
+        }, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+          type: "checkbox",
+          onChange: _this3.props.onChange,
+          value: inputValue,
+          checked: selected,
+          disabled: _this3.props.disabled
+        }), " ", label));
+      })));
+    };
+
+    return FormMultiSelectInputOptions;
+  }(React.Component);
+
   function dataURItoBlob(dataURI) {
     // Split metadata from data
     var splitted = dataURI.split(","); // Split params
@@ -592,27 +758,27 @@
       name: name
     };
   }
-  var FormFileInput = /*#__PURE__*/function (_React$Component) {
-    _inheritsLoose(FormFileInput, _React$Component);
+  var FormFileInput = /*#__PURE__*/function (_React$Component3) {
+    _inheritsLoose(FormFileInput, _React$Component3);
 
     function FormFileInput(props) {
-      var _this;
+      var _this4;
 
-      _this = _React$Component.call(this, props) || this;
+      _this4 = _React$Component3.call(this, props) || this;
 
-      _this.getFileName = function () {
-        if (!_this.props.value) return '';
+      _this4.getFileName = function () {
+        if (!_this4.props.value) return '';
 
-        if (_this.props.type === 'data-url') {
-          return _this.extractFileInfo(_this.props.value).name;
-        } else if (_this.props.type === 'file-url') {
-          return _this.props.value;
+        if (_this4.props.type === 'data-url') {
+          return _this4.extractFileInfo(_this4.props.value).name;
+        } else if (_this4.props.type === 'file-url') {
+          return _this4.props.value;
         } else {
           return 'Unknown file';
         }
       };
 
-      _this.extractFileInfo = function (dataURL) {
+      _this4.extractFileInfo = function (dataURL) {
         var _dataURItoBlob = dataURItoBlob(dataURL),
             blob = _dataURItoBlob.blob,
             name = _dataURItoBlob.name;
@@ -624,12 +790,12 @@
         };
       };
 
-      _this.addNameToDataURL = function (dataURL, name) {
+      _this4.addNameToDataURL = function (dataURL, name) {
         return dataURL.replace(';base64', ';name=' + encodeURIComponent(name) + ';base64');
       };
 
-      _this.handleChange = function (e) {
-        if (_this.props.type === 'data-url') {
+      _this4.handleChange = function (e) {
+        if (_this4.props.type === 'data-url') {
           var file = e.target.files[0];
           var fileName = file.name;
           var reader = new FileReader();
@@ -640,17 +806,17 @@
             var event = {
               target: {
                 type: 'text',
-                value: _this.addNameToDataURL(reader.result, fileName),
-                name: _this.props.name
+                value: _this4.addNameToDataURL(reader.result, fileName),
+                name: _this4.props.name
               }
             };
 
-            _this.props.onChange(event);
+            _this4.props.onChange(event);
           };
 
           reader.readAsDataURL(file);
-        } else if (_this.props.type === 'file-url') {
-          var endpoint = _this.context.fileUploadEndpoint;
+        } else if (_this4.props.type === 'file-url') {
+          var endpoint = _this4.context.fileUploadEndpoint;
 
           if (!endpoint) {
             console.error("Error: fileUploadEndpoint option need to be passed " + "while initializing editor for enabling file uploads.");
@@ -658,14 +824,14 @@
             return;
           }
 
-          _this.setState({
+          _this4.setState({
             loading: true
           });
 
           var formData = new FormData();
-          formData.append('field_name', _this.context.fieldName);
-          formData.append('model_name', _this.context.modelName);
-          formData.append('coordinates', JSON.stringify(_this.props.name.split('-').slice(1)));
+          formData.append('field_name', _this4.context.fieldName);
+          formData.append('model_name', _this4.context.modelName);
+          formData.append('coordinates', JSON.stringify(_this4.props.name.split('-').slice(1)));
           formData.append('file', e.target.files[0]);
           fetch(endpoint, {
             method: 'POST',
@@ -681,54 +847,54 @@
               target: {
                 type: 'text',
                 value: result.file_path,
-                name: _this.props.name
+                name: _this4.props.name
               }
             };
 
-            _this.props.onChange(event);
+            _this4.props.onChange(event);
 
-            _this.setState({
+            _this4.setState({
               loading: false
             });
           })["catch"](function (error) {
             alert('Something went wrong while uploading file');
             console.error('Error:', error);
 
-            _this.setState({
+            _this4.setState({
               loading: false
             });
           });
         }
       };
 
-      _this.showFileBrowser = function () {
-        _this.inputRef.current.click();
+      _this4.showFileBrowser = function () {
+        _this4.inputRef.current.click();
       };
 
-      _this.clearFile = function () {
+      _this4.clearFile = function () {
         var event = {
           target: {
             type: 'text',
             value: '',
-            name: _this.props.name
+            name: _this4.props.name
           }
         };
 
-        _this.props.onChange(event);
+        _this4.props.onChange(event);
       };
 
-      _this.state = {
+      _this4.state = {
         value: props.value,
-        fileName: _this.getFileName(),
+        fileName: _this4.getFileName(),
         loading: false
       };
-      _this.inputRef = React.createRef();
-      return _this;
+      _this4.inputRef = React.createRef();
+      return _this4;
     }
 
-    var _proto = FormFileInput.prototype;
+    var _proto3 = FormFileInput.prototype;
 
-    _proto.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
+    _proto3.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
       if (this.props.value !== prevProps.value) {
         this.setState({
           value: this.props.value,
@@ -737,7 +903,7 @@
       }
     };
 
-    _proto.render = function render() {
+    _proto3.render = function render() {
       var _value$this$props = _extends({
         value: value
       }, this.props),
@@ -767,37 +933,37 @@
     return FormFileInput;
   }(React.Component);
   FormFileInput.contextType = EditorContext;
-  var FormTextareaInput = /*#__PURE__*/function (_React$Component2) {
-    _inheritsLoose(FormTextareaInput, _React$Component2);
+  var FormTextareaInput = /*#__PURE__*/function (_React$Component4) {
+    _inheritsLoose(FormTextareaInput, _React$Component4);
 
     function FormTextareaInput(props) {
-      var _this2;
+      var _this5;
 
-      _this2 = _React$Component2.call(this, props) || this;
+      _this5 = _React$Component4.call(this, props) || this;
 
-      _this2.handleChange = function (e) {
-        _this2.updateHeight(e.target);
+      _this5.handleChange = function (e) {
+        _this5.updateHeight(e.target);
 
-        if (_this2.props.onChange) _this2.props.onChange(e);
+        if (_this5.props.onChange) _this5.props.onChange(e);
       };
 
-      _this2.updateHeight = function (el) {
+      _this5.updateHeight = function (el) {
         var offset = el.offsetHeight - el.clientHeight;
         el.style.height = 'auto';
         el.style.height = el.scrollHeight + offset + 'px';
       };
 
-      if (!props.inputRef) _this2.inputRef = React.createRef();
-      return _this2;
+      if (!props.inputRef) _this5.inputRef = React.createRef();
+      return _this5;
     }
 
-    var _proto2 = FormTextareaInput.prototype;
+    var _proto4 = FormTextareaInput.prototype;
 
-    _proto2.componentDidMount = function componentDidMount() {
+    _proto4.componentDidMount = function componentDidMount() {
       if (this.props.inputRef) this.updateHeight(this.props.inputRef.current);else this.updateHeight(this.inputRef.current);
     };
 
-    _proto2.render = function render() {
+    _proto4.render = function render() {
       var _this$props = this.props,
           label = _this$props.label,
           inputRef = _this$props.inputRef,
@@ -811,17 +977,17 @@
 
     return FormTextareaInput;
   }(React.Component);
-  var FormDateTimeInput = /*#__PURE__*/function (_React$Component3) {
-    _inheritsLoose(FormDateTimeInput, _React$Component3);
+  var FormDateTimeInput = /*#__PURE__*/function (_React$Component5) {
+    _inheritsLoose(FormDateTimeInput, _React$Component5);
 
     function FormDateTimeInput(props) {
-      var _this3;
+      var _this6;
 
-      _this3 = _React$Component3.call(this, props) || this; // we maintain this input's state in itself
+      _this6 = _React$Component5.call(this, props) || this; // we maintain this input's state in itself
       // so that we can only pass valid values
       // otherwise keep the value empty if invalid
 
-      _this3.getStateFromProps = function () {
+      _this6.getStateFromProps = function () {
         var date = '';
         var hh = '12';
         var mm = '00';
@@ -829,8 +995,8 @@
         var ms = '000';
         var ampm = 'am';
 
-        if (_this3.props.value) {
-          var d = new Date(_this3.props.value);
+        if (_this6.props.value) {
+          var d = new Date(_this6.props.value);
           var year = d.getFullYear().toString().padStart(2, '0');
           var month = (d.getMonth() + 1).toString().padStart(2, '0');
           var day = d.getDate().toString().padStart(2, '0');
@@ -864,79 +1030,79 @@
         };
       };
 
-      _this3.handleClickOutside = function (e) {
-        if (_this3.state.showTimePicker) {
-          if (_this3.timePickerContainer.current && !_this3.timePickerContainer.current.contains(e.target) && !_this3.timeInput.current.contains(e.target)) _this3.setState({
+      _this6.handleClickOutside = function (e) {
+        if (_this6.state.showTimePicker) {
+          if (_this6.timePickerContainer.current && !_this6.timePickerContainer.current.contains(e.target) && !_this6.timeInput.current.contains(e.target)) _this6.setState({
             showTimePicker: false
           });
         }
       };
 
-      _this3.sendValue = function () {
+      _this6.sendValue = function () {
         // we create a fake event object
         // to send a combined value from two inputs
         var event = {
           target: {
             type: 'text',
             value: '',
-            name: _this3.props.name
+            name: _this6.props.name
           }
         };
-        if (_this3.state.date === '' || _this3.state.date === null) return _this3.props.onChange(event);
-        var hh = parseInt(_this3.state.hh);
+        if (_this6.state.date === '' || _this6.state.date === null) return _this6.props.onChange(event);
+        var hh = parseInt(_this6.state.hh);
         if (hh === 0) hh = NaN; // zero value is invalid for 12 hour clock, but will be valid for 24 hour clock
         // so we set it to NaN to prevent creating a date object
 
-        if (_this3.state.ampm === 'am') {
+        if (_this6.state.ampm === 'am') {
           if (hh === 12) hh = 0;
-        } else if (_this3.state.ampm === 'pm') {
+        } else if (_this6.state.ampm === 'pm') {
           if (hh !== 12) hh = hh + 12;
         }
 
         hh = hh.toString().padStart(2, '0');
 
-        var mm = _this3.state.mm.padStart(2, '0');
+        var mm = _this6.state.mm.padStart(2, '0');
 
-        var ss = _this3.state.ss.padStart(2, '0');
+        var ss = _this6.state.ss.padStart(2, '0');
 
         try {
-          var date = new Date(_this3.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + _this3.state.ms);
+          var date = new Date(_this6.state.date + 'T' + hh + ':' + mm + ':' + ss + '.' + _this6.state.ms);
           event['target']['value'] = date.toISOString().replace('Z', '+00:00'); // make compatible to python
         } catch (err) {
           // invalid date
-          return _this3.props.onChange(event);
+          return _this6.props.onChange(event);
         }
 
-        _this3.props.onChange(event);
+        _this6.props.onChange(event);
       };
 
-      _this3.handleDateChange = function (e) {
-        _this3.setState({
+      _this6.handleDateChange = function (e) {
+        _this6.setState({
           date: e.target.value
-        }, _this3.sendValue);
+        }, _this6.sendValue);
       };
 
-      _this3.handleTimeChange = function (value) {
-        _this3.setState(_extends({}, value), _this3.sendValue);
+      _this6.handleTimeChange = function (value) {
+        _this6.setState(_extends({}, value), _this6.sendValue);
       };
 
-      _this3.showTimePicker = function () {
-        _this3.setState({
+      _this6.showTimePicker = function () {
+        _this6.setState({
           showTimePicker: true
         });
       };
 
-      _this3.state = _extends({}, _this3.getStateFromProps(), {
+      _this6.state = _extends({}, _this6.getStateFromProps(), {
         showTimePicker: false
       });
-      _this3.timeInput = React.createRef();
-      _this3.timePickerContainer = React.createRef();
-      return _this3;
+      _this6.timeInput = React.createRef();
+      _this6.timePickerContainer = React.createRef();
+      return _this6;
     }
 
-    var _proto3 = FormDateTimeInput.prototype;
+    var _proto5 = FormDateTimeInput.prototype;
 
-    _proto3.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
+    _proto5.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
       if (prevProps.value !== this.props.value) {
         if (this.state.hh !== '' && this.state.hh !== '0' && this.state.hh !== '00') {
           var changed = false;
@@ -954,15 +1120,15 @@
       }
     };
 
-    _proto3.componentDidMount = function componentDidMount() {
+    _proto5.componentDidMount = function componentDidMount() {
       document.addEventListener('mousedown', this.handleClickOutside);
     };
 
-    _proto3.componentWillUnmount = function componentWillUnmount() {
+    _proto5.componentWillUnmount = function componentWillUnmount() {
       document.removeEventListener('mousedown', this.handleClickOutside);
     };
 
-    _proto3.render = function render() {
+    _proto5.render = function render() {
       return /*#__PURE__*/React.createElement("div", {
         className: "rjf-datetime-field"
       }, this.props.label && /*#__PURE__*/React.createElement("label", null, this.props.label), /*#__PURE__*/React.createElement("div", {
@@ -1103,6 +1269,8 @@
     }, hasChildren ? 'Add more' : 'Add')));
   }
 
+  var _excluded = ["data", "schema", "name", "onChange", "onRemove", "removable", "onEdit", "editable", "onMoveUp", "onMoveDown", "parentType"];
+
   function handleChange(e, fieldType, callback) {
     var type = e.target.type;
     var value;
@@ -1136,7 +1304,12 @@
       type = 'select';
     }
 
-    if (props.schema.widget) type = props.schema.widget;
+    if (props.schema.widget) {
+      if (props.schema.widget === 'multiselect' && props.parentType !== 'array') ; else {
+        type = props.schema.widget;
+      }
+    }
+
     var InputField;
 
     switch (type) {
@@ -1187,6 +1360,10 @@
         InputField = FormSelectInput;
         break;
 
+      case 'multiselect':
+        InputField = FormMultiSelectInput;
+        break;
+
       case 'textarea':
         InputField = FormTextareaInput;
         break;
@@ -1218,7 +1395,10 @@
         onEdit = args.onEdit,
         editable = args.editable,
         onMoveUp = args.onMoveUp,
-        onMoveDown = args.onMoveDown;
+        onMoveDown = args.onMoveDown,
+        parentType = args.parentType,
+        fieldProps = _objectWithoutPropertiesLoose(args, _excluded);
+
     return /*#__PURE__*/React.createElement(FormRow, {
       key: name,
       onRemove: removable ? function (e) {
@@ -1226,14 +1406,15 @@
       } : null,
       onMoveUp: onMoveUp,
       onMoveDown: onMoveDown
-    }, /*#__PURE__*/React.createElement(FormField, {
+    }, /*#__PURE__*/React.createElement(FormField, _extends({
       data: data,
       schema: schema,
       name: name,
       onChange: onChange,
       onEdit: onEdit,
-      editable: editable
-    }));
+      editable: editable,
+      parentType: parentType
+    }, fieldProps)));
   }
   function getArrayFormRow(args) {
     var data = args.data,
@@ -1261,30 +1442,41 @@
       onRemove: onRemove,
       level: level + 1,
       removable: removable,
-      onMove: onMove
+      onMove: onMove,
+      parentType: 'array'
     };
 
-    var _loop = function _loop(i) {
-      nextArgs.data = data[i];
-      nextArgs.name = name + '-' + i;
-      if (i === 0) nextArgs.onMoveUp = null;else nextArgs.onMoveUp = function (e) {
-        return onMove(name + '-' + i, name + '-' + (i - 1));
-      };
-      if (i === data.length - 1) nextArgs.onMoveDown = null;else nextArgs.onMoveDown = function (e) {
-        return onMove(name + '-' + i, name + '-' + (i + 1));
+    if (nextArgs.schema.widget === 'multiselect') {
+      nextArgs.data = data;
+      nextArgs.name = name;
+      nextArgs.removable = false;
+      nextArgs.onMoveUp = null;
+      nextArgs.onMoveDown = null;
+      addable = false;
+      rows.push(getStringFormRow(nextArgs));
+    } else {
+      var _loop = function _loop(i) {
+        nextArgs.data = data[i];
+        nextArgs.name = name + '-' + i;
+        if (i === 0) nextArgs.onMoveUp = null;else nextArgs.onMoveUp = function (e) {
+          return onMove(name + '-' + i, name + '-' + (i - 1));
+        };
+        if (i === data.length - 1) nextArgs.onMoveDown = null;else nextArgs.onMoveDown = function (e) {
+          return onMove(name + '-' + i, name + '-' + (i + 1));
+        };
+
+        if (type === 'array') {
+          groups.push(getArrayFormRow(nextArgs));
+        } else if (type === 'object') {
+          groups.push(getObjectFormRow(nextArgs));
+        } else {
+          rows.push(getStringFormRow(nextArgs));
+        }
       };
 
-      if (type === 'array') {
-        groups.push(getArrayFormRow(nextArgs));
-      } else if (type === 'object') {
-        groups.push(getObjectFormRow(nextArgs));
-      } else {
-        rows.push(getStringFormRow(nextArgs));
+      for (var i = 0; i < data.length; i++) {
+        _loop(i);
       }
-    };
-
-    for (var i = 0; i < data.length; i++) {
-      _loop(i);
     }
 
     var coords = name; // coordinates for insertion and deletion
@@ -1370,7 +1562,8 @@
         onRemove: onRemove,
         level: level + 1,
         removable: removable,
-        onMove: onMove
+        onMove: onMove,
+        parentType: 'object'
       };
 
       if (type === 'array') {
@@ -1423,7 +1616,11 @@
     if (newKey === key) // same keys
       return;
     if (!newKey) return alert("(!) Key name can't be empty.\r\n\r\n‎");else if (data.hasOwnProperty(newKey)) return alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
-    onAdd(value, name + '-' + newKey);
+    var newCoords = coords.split('-');
+    newCoords.pop();
+    newCoords.push(newKey);
+    newCoords = newCoords.join('-');
+    onAdd(value, newCoords);
     onRemove(coords);
   }
 
