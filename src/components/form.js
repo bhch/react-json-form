@@ -411,15 +411,17 @@ export class FormFileInput extends React.Component {
     }
 
     clearFile = () => {
-        let event = {
-            target: {
-                type: 'text',
-                value: '',
-                name: this.props.name
-            }
-        };
+        if (window.confirm('Do you want to remove this file?')) {
+            let event = {
+                target: {
+                    type: 'text',
+                    value: '',
+                    name: this.props.name
+                }
+            };
 
-        this.props.onChange(event);
+            this.props.onChange(event);
+        }
     }
 
     render() {
