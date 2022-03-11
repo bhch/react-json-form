@@ -872,15 +872,17 @@
       };
 
       _this4.clearFile = function () {
-        var event = {
-          target: {
-            type: 'text',
-            value: '',
-            name: _this4.props.name
-          }
-        };
+        if (window.confirm('Do you want to remove this file?')) {
+          var event = {
+            target: {
+              type: 'text',
+              value: '',
+              name: _this4.props.name
+            }
+          };
 
-        _this4.props.onChange(event);
+          _this4.props.onChange(event);
+        }
       };
 
       _this4.state = {
