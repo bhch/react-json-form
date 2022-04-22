@@ -421,6 +421,9 @@ export class FormFileInput extends React.Component {
             };
 
             this.props.onChange(event);
+            
+            if (this.inputRef.current)
+                this.inputRef.current.value = '';
         }
     }
 
