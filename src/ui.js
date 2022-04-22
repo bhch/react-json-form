@@ -37,6 +37,7 @@ function FormField(props) {
         name: props.name,
         value: props.data,
         readOnly: props.schema.readOnly || props.schema.readonly,
+        help_text: props.schema.help_text || props.schema.helpText,
     };
 
     let type = props.schema.type;

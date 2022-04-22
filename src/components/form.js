@@ -18,7 +18,10 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
     return (
         <div>
             {label && <label>{label}</label>}
-            <input {...props} />
+            <div className="rjf-input-group">
+                <input {...props} />
+                {help_text && <span class="rjf-help-text">{help_text}</span>}
+            </div>
         </div>
     );
 }
@@ -42,8 +45,9 @@ export function FormCheckInput({label, help_text, error, value, ...props}) {
         props.disabled = true;
 
     return (
-        <div>
+        <div className="rjf-check-input">
             <label><input {...props} /> {label}</label>
+            {help_text && <span class="rjf-help-text">{help_text}</span>}
         </div>
     );
 }
@@ -54,7 +58,7 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
         props.disabled = true;
 
     return (
-        <div>
+        <div className="rjf-check-input">
             <label>{label}</label>
             {options.map((option, i) => {
                 let label, inputValue;
@@ -74,6 +78,7 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
                     </label>
                 );
             })}
+            {help_text && <span class="rjf-help-text">{help_text}</span>}
         </div>
     );
 }
@@ -86,27 +91,30 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
     return (
         <div>
             {label && <label>{label}</label>}
-            <select value={value || ''} {...props}>
-                <option disabled value="" key={'__placehlder'}>Select...</option>
-                {options.map((option, i) => {
-                    let label, inputValue;
-                    if (typeof option === 'object') {
-                        label = option.label;
-                        inputValue = option.value;
-                    } else {
-                        label = option;
-                        if (typeof label === 'boolean')
-                            label = capitalize(label.toString());
-                        inputValue = option;
-                    }
+            <div class="rjf-input-group">
+                <select value={value || ''} {...props}>
+                    <option disabled value="" key={'__placehlder'}>Select...</option>
+                    {options.map((option, i) => {
+                        let label, inputValue;
+                        if (typeof option === 'object') {
+                            label = option.label;
+                            inputValue = option.value;
+                        } else {
+                            label = option;
+                            if (typeof label === 'boolean')
+                                label = capitalize(label.toString());
+                            inputValue = option;
+                        }
 
-                    return (
-                        <option value={inputValue} key={label + '_' + inputValue + '_' + i}>
-                            {label}
-                        </option>
-                    );
-                })}
-            </select>
+                        return (
+                            <option value={inputValue} key={label + '_' + inputValue + '_' + i}>
+                                {label}
+                            </option>
+                        );
+                    })}
+                </select>
+                {help_text && <span class="rjf-help-text">{help_text}</span>}
+            </div>
         </div>
     );
 }
@@ -179,6 +187,7 @@ export class FormMultiSelectInput extends React.Component {
                         containerRef={this.optionsContainer}
                         inputRef={this.input}
                         disabled={this.props.readOnly}
+                        hasHelpText={this.props.help_text && 1}
                     />
                 }
             </div>
@@ -206,7 +215,10 @@ class FormMultiSelectInputOptions extends React.Component {
     render() {
         return (
             <div ref={this.props.containerRef}>
-                <div className="rjf-multiselect-field-options-container">
+                <div
+                    className="rjf-multiselect-field-options-container"
+                    style={this.props.hasHelpText ? {marginTop: '-15px'} : {}}
+                >
                     {this.props.options.map((option, i) => {
                         let label, inputValue;
                         if (typeof option === 'object') {
@@ -499,7 +511,10 @@ export class FormTextareaInput extends React.Component {
         return (
             <div>
                 {label && <label>{label}</label>}
-                <textarea {...props} />
+                <div className="rjf-input-group">
+                    <textarea {...props} />
+                    {help_text && <span class="rjf-help-text">{help_text}</span>}
+                </div>
             </div>
         );
     }
@@ -659,35 +674,38 @@ export class FormDateTimeInput extends React.Component {
             <div className="rjf-datetime-field">
                 {this.props.label && <label>{this.props.label}</label>}
                 <div className="rjf-datetime-field-inner">
-                    <div className="rjf-datetime-field-date">
-                        <FormInput
-                            label='Date'
-                            type='date'
-                            value={this.state.date}
-                            onChange={this.handleDateChange}
-                        />
-                    </div>
-                    <div className="rjf-datetime-field-time">
-                        <FormInput
-                            label='Time'
-                            type='text'
-                            value={this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm}
-                            onFocus={this.showTimePicker}
-                            readOnly={true}
-                            inputRef={this.timeInput}
-                        />
-                        <div ref={this.timePickerContainer}>
-                            {this.state.showTimePicker &&
-                                <TimePicker
-                                    onChange={this.handleTimeChange}
-                                    hh={this.state.hh}
-                                    mm={this.state.mm}
-                                    ss={this.state.ss}
-                                    ampm={this.state.ampm}
-                                />
-                            }
+                    <div className="rjf-datetime-field-inputs">
+                        <div className="rjf-datetime-field-date">
+                            <FormInput
+                                label='Date'
+                                type='date'
+                                value={this.state.date}
+                                onChange={this.handleDateChange}
+                            />
+                        </div>
+                        <div className="rjf-datetime-field-time">
+                            <FormInput
+                                label='Time'
+                                type='text'
+                                value={this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm}
+                                onFocus={this.showTimePicker}
+                                readOnly={true}
+                                inputRef={this.timeInput}
+                            />
+                            <div ref={this.timePickerContainer}>
+                                {this.state.showTimePicker &&
+                                    <TimePicker
+                                        onChange={this.handleTimeChange}
+                                        hh={this.state.hh}
+                                        mm={this.state.mm}
+                                        ss={this.state.ss}
+                                        ampm={this.state.ampm}
+                                    />
+                                }
+                            </div>
                         </div>
                     </div>
+                    {this.props.help_text && <span class="rjf-help-text">{this.props.help_text}</span>}
                 </div>
             </div>
         );
