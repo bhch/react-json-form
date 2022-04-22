@@ -486,16 +486,22 @@
       _excluded6 = ["label", "help_text", "error", "inputRef"];
   function FormInput(_ref) {
     var label = _ref.label,
+        help_text = _ref.help_text,
         inputRef = _ref.inputRef,
         props = _objectWithoutPropertiesLoose(_ref, _excluded$1);
 
     if (props.type === 'string') props.type = 'text';
     if (inputRef) props.ref = inputRef;
     if (props.value === null) props.value = '';
-    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("input", props));
+    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
+      className: "rjf-input-group"
+    }, /*#__PURE__*/React.createElement("input", props), help_text && /*#__PURE__*/React.createElement("span", {
+      "class": "rjf-help-text"
+    }, help_text)));
   }
   function FormCheckInput(_ref2) {
     var label = _ref2.label,
+        help_text = _ref2.help_text,
         value = _ref2.value,
         props = _objectWithoutPropertiesLoose(_ref2, _excluded2);
 
@@ -504,16 +510,23 @@
     if (props.checked === undefined) props.checked = value;
     if (props.checked === '' || props.checked === null || props.checked === undefined) props.checked = false;
     if (props.readOnly) props.disabled = true;
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", props), " ", label));
+    return /*#__PURE__*/React.createElement("div", {
+      className: "rjf-check-input"
+    }, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", props), " ", label), help_text && /*#__PURE__*/React.createElement("span", {
+      "class": "rjf-help-text"
+    }, help_text));
   }
   function FormRadioInput(_ref3) {
     var label = _ref3.label,
+        help_text = _ref3.help_text,
         value = _ref3.value,
         options = _ref3.options,
         props = _objectWithoutPropertiesLoose(_ref3, _excluded3);
 
     if (props.readOnly) props.disabled = true;
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, label), options.map(function (option, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "rjf-check-input"
+    }, /*#__PURE__*/React.createElement("label", null, label), options.map(function (option, i) {
       var label, inputValue;
 
       if (typeof option === 'object') {
@@ -531,16 +544,21 @@
         value: inputValue,
         checked: inputValue === value
       })), " ", label);
-    }));
+    }), help_text && /*#__PURE__*/React.createElement("span", {
+      "class": "rjf-help-text"
+    }, help_text));
   }
   function FormSelectInput(_ref4) {
     var label = _ref4.label,
+        help_text = _ref4.help_text,
         value = _ref4.value,
         options = _ref4.options,
         props = _objectWithoutPropertiesLoose(_ref4, _excluded4);
 
     if (props.readOnly) props.disabled = true;
-    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("select", _extends({
+    return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
+      "class": "rjf-input-group"
+    }, /*#__PURE__*/React.createElement("select", _extends({
       value: value || ''
     }, props), /*#__PURE__*/React.createElement("option", {
       disabled: true,
@@ -562,7 +580,9 @@
         value: inputValue,
         key: label + '_' + inputValue + '_' + i
       }, label);
-    })));
+    })), help_text && /*#__PURE__*/React.createElement("span", {
+      "class": "rjf-help-text"
+    }, help_text)));
   }
   var FormMultiSelectInput = /*#__PURE__*/function (_React$Component) {
     _inheritsLoose(FormMultiSelectInput, _React$Component);
@@ -644,7 +664,8 @@
         onChange: this.handleChange,
         containerRef: this.optionsContainer,
         inputRef: this.input,
-        disabled: this.props.readOnly
+        disabled: this.props.readOnly,
+        hasHelpText: this.props.help_text && 1
       }));
     };
 
@@ -686,7 +707,10 @@
       return /*#__PURE__*/React.createElement("div", {
         ref: this.props.containerRef
       }, /*#__PURE__*/React.createElement("div", {
-        className: "rjf-multiselect-field-options-container"
+        className: "rjf-multiselect-field-options-container",
+        style: this.props.hasHelpText ? {
+          marginTop: '-15px'
+        } : {}
       }, this.props.options.map(function (option, i) {
         var label, inputValue;
 
@@ -882,6 +906,8 @@
           };
 
           _this4.props.onChange(event);
+
+          if (_this4.inputRef.current) _this4.inputRef.current.value = '';
         }
       };
 
@@ -968,13 +994,18 @@
     _proto4.render = function render() {
       var _this$props = this.props,
           label = _this$props.label,
+          help_text = _this$props.help_text,
           inputRef = _this$props.inputRef,
           props = _objectWithoutPropertiesLoose(_this$props, _excluded6);
 
       delete props.type;
       props.ref = inputRef || this.inputRef;
       props.onChange = this.handleChange;
-      return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("textarea", props));
+      return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-input-group"
+      }, /*#__PURE__*/React.createElement("textarea", props), help_text && /*#__PURE__*/React.createElement("span", {
+        "class": "rjf-help-text"
+      }, help_text)));
     };
 
     return FormTextareaInput;
@@ -1136,6 +1167,8 @@
       }, this.props.label && /*#__PURE__*/React.createElement("label", null, this.props.label), /*#__PURE__*/React.createElement("div", {
         className: "rjf-datetime-field-inner"
       }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-datetime-field-inputs"
+      }, /*#__PURE__*/React.createElement("div", {
         className: "rjf-datetime-field-date"
       }, /*#__PURE__*/React.createElement(FormInput, {
         label: "Date",
@@ -1159,7 +1192,9 @@
         mm: this.state.mm,
         ss: this.state.ss,
         ampm: this.state.ampm
-      })))));
+      })))), this.props.help_text && /*#__PURE__*/React.createElement("span", {
+        "class": "rjf-help-text"
+      }, this.props.help_text)));
     };
 
     return FormDateTimeInput;
@@ -1297,7 +1332,8 @@
     var inputProps = {
       name: props.name,
       value: props.data,
-      readOnly: props.schema.readOnly || props.schema.readonly
+      readOnly: props.schema.readOnly || props.schema.readonly,
+      help_text: props.schema.help_text || props.schema.helpText
     };
     var type = props.schema.type;
 
