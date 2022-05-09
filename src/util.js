@@ -19,8 +19,16 @@ export function getVerboseName(name) {
 
 
 export function getCsrfCookie() {
-    if ((document.cookie.split(';').filter((item) => item.trim().indexOf('csrftoken=') === 0)).length) {
-        return document.cookie.split(';').filter((item) => item.trim().indexOf('csrftoken=') === 0)[0].split('=')[1];
+    let csrfCookies = document.cookie.split(';').filter((item) => item.trim().indexOf('csrftoken=') === 0);
+
+    if (csrfCookies.length) {
+        return csrfCookies[0].split('=')[1];
+    } else {
+        // if no cookie found, get the value from the csrf form input
+        let input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (input)
+            return input.value;
     }
+
     return null;
 }
