@@ -467,12 +467,16 @@
     return capitalize(name);
   }
   function getCsrfCookie() {
-    if (document.cookie.split(';').filter(function (item) {
+    var csrfCookies = document.cookie.split(';').filter(function (item) {
       return item.trim().indexOf('csrftoken=') === 0;
-    }).length) {
-      return document.cookie.split(';').filter(function (item) {
-        return item.trim().indexOf('csrftoken=') === 0;
-      })[0].split('=')[1];
+    });
+
+    if (csrfCookies.length) {
+      return csrfCookies[0].split('=')[1];
+    } else {
+      // if no cookie found, get the value from the csrf form input
+      var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+      if (input) return input.value;
     }
 
     return null;
