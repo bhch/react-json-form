@@ -15,8 +15,9 @@ the library while developing it.
 
  1. Open a new terminal
  2. Go into `dev/` directory: `cd dev`.
- 3. Run `python3 -m http.server` This will start a server at `localhost:8888`.  
-    This will serve the `dev/index.html` file.
+ 3. Run `python3 -m http.server` This will start a server at `localhost:8000`
+ which will serve the `dev/index.html` file.
+ 4. Open `localhost:8000` in your browser and you're set for testing.
 
 Currently, there's no hot-reloading set up, so when you make changes you'll 
 have to reload the page manually to view changes.
