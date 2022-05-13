@@ -20,7 +20,7 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
             {label && <label>{label}</label>}
             <div className="rjf-input-group">
                 <input {...props} />
-                {help_text && <span class="rjf-help-text">{help_text}</span>}
+                {help_text && <span className="rjf-help-text">{help_text}</span>}
             </div>
         </div>
     );
@@ -47,7 +47,7 @@ export function FormCheckInput({label, help_text, error, value, ...props}) {
     return (
         <div className="rjf-check-input">
             <label><input {...props} /> {label}</label>
-            {help_text && <span class="rjf-help-text">{help_text}</span>}
+            {help_text && <span className="rjf-help-text">{help_text}</span>}
         </div>
     );
 }
@@ -78,7 +78,7 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
                     </label>
                 );
             })}
-            {help_text && <span class="rjf-help-text">{help_text}</span>}
+            {help_text && <span className="rjf-help-text">{help_text}</span>}
         </div>
     );
 }
@@ -91,7 +91,7 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
     return (
         <div>
             {label && <label>{label}</label>}
-            <div class="rjf-input-group">
+            <div className="rjf-input-group">
                 <select value={value || ''} {...props}>
                     <option disabled value="" key={'__placehlder'}>Select...</option>
                     {options.map((option, i) => {
@@ -113,7 +113,7 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
                         );
                     })}
                 </select>
-                {help_text && <span class="rjf-help-text">{help_text}</span>}
+                {help_text && <span className="rjf-help-text">{help_text}</span>}
             </div>
         </div>
     );
@@ -513,7 +513,7 @@ export class FormTextareaInput extends React.Component {
                 {label && <label>{label}</label>}
                 <div className="rjf-input-group">
                     <textarea {...props} />
-                    {help_text && <span class="rjf-help-text">{help_text}</span>}
+                    {help_text && <span className="rjf-help-text">{help_text}</span>}
                 </div>
             </div>
         );
@@ -705,7 +705,7 @@ export class FormDateTimeInput extends React.Component {
                             </div>
                         </div>
                     </div>
-                    {this.props.help_text && <span class="rjf-help-text">{this.props.help_text}</span>}
+                    {this.props.help_text && <span className="rjf-help-text">{this.props.help_text}</span>}
                 </div>
             </div>
         );
