@@ -6,7 +6,13 @@ export function GroupTitle(props) {
         return null;
 
     return (
-        <div className="rjf-form-group-title">{props.children}</div>
+        <div className="rjf-form-group-title">
+            {props.editable ?
+                <span>{props.children} <Button className="edit" onClick={props.onEdit} title="Edit">Edit</Button></span>
+                :
+                props.children
+            }
+        </div>
     );
 }
 
@@ -119,11 +125,12 @@ export function FormGroup(props) {
         ? "" 
         : "rjf-form-group-inner";
 
+
     return (
         <div className="rjf-form-group">
-            {props.level === 0 && <GroupTitle>{props.schema.title}</GroupTitle>}
+            {props.level === 0 && <GroupTitle editable={props.editable} onEdit={props.onEdit}>{props.schema.title}</GroupTitle>}
             <div className={innerClassName}>
-                {props.level > 0 && <GroupTitle>{props.schema.title}</GroupTitle>}
+                {props.level > 0 && <GroupTitle editable={props.editable} onEdit={props.onEdit}>{props.schema.title}</GroupTitle>}
                 {props.children}
                 {props.addable && 
                 <Button

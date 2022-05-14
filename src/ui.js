@@ -225,11 +225,24 @@ export function getArrayFormRow(args) {
                 schema={schema}
                 addable={addable}
                 onAdd={() => onAdd(getBlankData(schema.items), coords)}
+                editable={args.editable}
+                onEdit={args.onEdit}
                 key={'row_group_' + name}
             >
                 {rows}
             </FormGroup>
         );
+
+        if (args.parentType === 'object' && args.removable) {
+            rows = (
+                <div className="rjf-form-group-wrapper" key={'row_group_wrapper_' + name}>
+                    <FormRowControls
+                        onRemove={(e) => onRemove(name)}
+                    />
+                    {rows}
+                </div>
+            );
+        }
     }
 
     if (groups.length) {
@@ -282,7 +295,15 @@ export function getObjectFormRow(args) {
         let key = keys[i];
         let value = data[key];
         let childName = name + '-' + key;
-        let schemaValue = schema_keys[key] || {type: 'string'};
+        let schemaValue = schema_keys[key]; // || {type: 'string'};
+
+        if (typeof schemaValue === 'undefined') {
+            // for keys added through additionalProperties
+            if (typeof schema.additionalProperties === 'boolean')
+                schemaValue = {type: 'string'};
+            else
+                schemaValue = {...schema.additionalProperties};
+        }
 
         let type = schemaValue.type;
     
@@ -311,13 +332,14 @@ export function getObjectFormRow(args) {
             parentType: 'object',
         };
 
+        nextArgs.onEdit = () => handleKeyEdit(data, key, value, childName, onAdd, onRemove);
+        nextArgs.editable = removable;
+
          if (type === 'array') {
             rows.push(getArrayFormRow(nextArgs));
         } else if (type === 'object') {
             rows.push(getObjectFormRow(nextArgs));
         } else {
-            nextArgs.onEdit = () => handleKeyEdit(data, key, value, childName, onAdd, onRemove);
-            nextArgs.editable = removable;
             rows.push(getStringFormRow(nextArgs));
         }
     }
@@ -334,22 +356,38 @@ export function getObjectFormRow(args) {
                 level={level}
                 schema={schema}
                 addable={schema.additionalProperties}
-                onAdd={() => handleKeyValueAdd(data, coords, onAdd)}
+                onAdd={() => handleKeyValueAdd(data, coords, onAdd, schema.additionalProperties)}
+                editable={args.editable}
+                onEdit={args.onEdit}
                 key={'row_group_' + name}
             >
                 {rows}
             </FormGroup>
         );
+        if (args.parentType === 'object' && args.removable) {
+            rows = (
+                <div className="rjf-form-group-wrapper" key={'row_group_wrapper_' + name}>
+                    <FormRowControls
+                        onRemove={(e) => onRemove(name)}
+                    />
+                    {rows}
+                </div>
+            );
+        }
+
     }
 
     return rows;
 }
 
 
-function handleKeyValueAdd(data, coords, onAdd) {
+function handleKeyValueAdd(data, coords, onAdd, newSchema) {
     let key = prompt("Add new key");
     if (key === null) // clicked cancel
         return;
+
+    if (newSchema === true)
+        newSchema = {type: 'string'};
 
     key = key.trim();
     if (!key)
@@ -357,7 +395,7 @@ function handleKeyValueAdd(data, coords, onAdd) {
     else if (data.hasOwnProperty(key))
         alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
     else
-        onAdd("", coords + '-' + key);   
+        onAdd(getBlankData(newSchema), coords + '-' + key);   
 }
 
 
