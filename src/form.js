@@ -14,11 +14,11 @@ export default class Form extends React.Component {
 
         if (!data) {
             // create empty data from schema
-            data = getBlankData(this.schema);
+            data = getBlankData(this.schema, this.getRef);
         } else {
             // data might be stale if schema has new keys, so add them to data
             try {
-                data = getSyncedData(data, this.schema);
+                data = getSyncedData(data, this.schema, this.getRef);
             } catch (error) {
                 console.error("Error: Schema and data structure don't match");
                 console.error(error);
@@ -76,6 +76,25 @@ export default class Form extends React.Component {
         this.setState({data: _data});
     }
 
+    getRef = (ref) => {
+        /* Returns schema reference. Nothing to do with React's refs.*/
+
+        let refSchema;
+        let tokens = ref.split('/');
+
+        for (let i = 0; i < tokens.length; i++) {
+            let token = tokens[i];
+
+            if (token === '#')
+                refSchema = this.schema;
+            else
+                refSchema = refSchema[token];
+        }
+
+
+        return {...refSchema};
+    }
+
     getFields = () => {
         let data = this.state.data;
         let formGroups = [];
@@ -96,7 +115,8 @@ export default class Form extends React.Component {
                 onAdd: this.addFieldset,
                 onRemove: this.removeFieldset,
                 onMove: this.moveFieldset,
-                level: 0
+                level: 0,
+                getRef: this.getRef,
             };
 
             if (type === 'array') {
