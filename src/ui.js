@@ -274,7 +274,7 @@ export function getArrayFormRow(args) {
                             <Button
                                 className="add"
                                 onClick={(e) => onAdd(getBlankData(schema.items, args.getRef), coords)}
-                                title="Add new"
+                                title="Add new item"
                             >
                                 Add item
                             </Button>

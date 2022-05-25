@@ -136,9 +136,9 @@ export function FormGroup(props) {
                 <Button
                     className="add"
                     onClick={(e) => props.onAdd()}
-                    title="Add new"
+                    title="Add new key"
                 >
-                    {hasChildren ? 'Add more' : 'Add'}
+                    Add key
                 </Button>
                 }
             </div>
