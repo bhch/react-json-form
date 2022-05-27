@@ -125,7 +125,6 @@ export function FormGroup(props) {
         ? "" 
         : "rjf-form-group-inner";
 
-
     return (
         <div className="rjf-form-group">
             {props.level === 0 && <GroupTitle editable={props.editable} onEdit={props.onEdit}>{props.schema.title}</GroupTitle>}
@@ -136,9 +135,9 @@ export function FormGroup(props) {
                 <Button
                     className="add"
                     onClick={(e) => props.onAdd()}
-                    title="Add new key"
+                    title={props.schema.type === 'object' ? 'Add new key' : 'Add new item'}
                 >
-                    Add key
+                    {props.schema.type === 'object' ? 'Add key' : 'Add item'}
                 </Button>
                 }
             </div>
