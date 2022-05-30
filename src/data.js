@@ -39,6 +39,12 @@ export function getBlankArray(schema, getRef) {
         return schema.default;
 
     let items = [];
+
+    let minItems = schema.minItems || schema.min_items || 0;
+
+    if (minItems === 0)
+        return items;
+
     if (schema.items.hasOwnProperty('$ref')) {
         // :TODO: this will most probably mutate the original schema
         // but i'll fix it later
