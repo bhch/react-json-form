@@ -21,7 +21,7 @@ export function getBlankObject(schema, getRef) {
         if (type === 'array')
             keys[key] = isRef ? [] : getBlankArray(value, getRef);
         else if (type === 'object')
-            keys[key] = isRef ? {} : getBlankObject(value, getRef);
+            keys[key] = getBlankObject(value, getRef);
         else if (type === 'boolean')
             keys[key] = value.default || false;
         else if (type === 'integer' || type === 'number')
