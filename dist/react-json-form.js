@@ -52,31 +52,42 @@
     return target;
   }
 
-  function getBlankObject(schema) {
+  function getBlankObject(schema, getRef) {
     var keys = {};
     var schema_keys = schema.keys || schema.properties;
 
     for (var key in schema_keys) {
       var value = schema_keys[key];
+      var isRef = value.hasOwnProperty('$ref');
+      if (isRef) value = getRef(value['$ref']);
       var type = value.type;
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-      if (type === 'array') keys[key] = getBlankArray(value);else if (type === 'object') keys[key] = getBlankObject(value);else if (type === 'boolean') keys[key] = value["default"] || false;else if (type === 'integer' || type === 'number') keys[key] = value["default"] || null;else // string etc.
+      if (type === 'array') keys[key] = isRef ? [] : getBlankArray(value, getRef);else if (type === 'object') keys[key] = getBlankObject(value, getRef);else if (type === 'boolean') keys[key] = value["default"] || false;else if (type === 'integer' || type === 'number') keys[key] = value["default"] || null;else // string etc.
         keys[key] = value["default"] || '';
     }
 
     return keys;
   }
-  function getBlankArray(schema) {
+  function getBlankArray(schema, getRef) {
     if (schema["default"]) return schema["default"];
     var items = [];
+    var minItems = schema.minItems || schema.min_items || 0;
+    if (minItems === 0) return items;
+
+    if (schema.items.hasOwnProperty('$ref')) {
+      // :TODO: this will most probably mutate the original schema
+      // but i'll fix it later
+      schema.items = getRef(schema.items['$ref']);
+    }
+
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
     if (type === 'array') {
-      items.push(getBlankArray(schema.items));
+      items.push(getBlankArray(schema.items, getRef));
       return items;
     } else if (type === 'object') {
-      items.push(getBlankObject(schema.items));
+      items.push(getBlankObject(schema.items, getRef));
       return items;
     }
 
@@ -85,15 +96,23 @@
       items.push(schema.items["default"] || '');
     return items;
   }
-  function getBlankData(schema) {
+  function getBlankData(schema, getRef) {
+    if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
     var type = schema.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-    if (type === 'array') return getBlankArray(schema);else if (type === 'object') return getBlankObject(schema);else if (type === 'boolean') return schema["default"] || false;else if (type === 'integer' || type === 'number') return schema["default"] || null;else // string, etc.
+    if (type === 'array') return getBlankArray(schema, getRef);else if (type === 'object') return getBlankObject(schema, getRef);else if (type === 'boolean') return schema["default"] || false;else if (type === 'integer' || type === 'number') return schema["default"] || null;else // string, etc.
       return schema["default"] || '';
   }
 
-  function getSyncedArray(data, schema) {
+  function getSyncedArray(data, schema, getRef) {
     var newData = JSON.parse(JSON.stringify(data));
+
+    if (schema.items.hasOwnProperty('$ref')) {
+      // :TODO: this will most probably mutate the original schema
+      // but i'll fix it later
+      schema.items = getRef(schema.items['$ref']);
+    }
+
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
@@ -101,9 +120,9 @@
       var item = data[i];
 
       if (type === 'array') {
-        newData[i] = getSyncedArray(item, schema.items);
+        newData[i] = getSyncedArray(item, schema.items, getRef);
       } else if (type === 'object') {
-        newData[i] = getSyncedObject(item, schema.items);
+        newData[i] = getSyncedObject(item, schema.items, getRef);
       } else {
         if ((type === 'integer' || type === 'number') && item === '') newData[i] = null;
       }
@@ -112,7 +131,7 @@
     return newData;
   }
 
-  function getSyncedObject(data, schema) {
+  function getSyncedObject(data, schema, getRef) {
     var newData = JSON.parse(JSON.stringify(data));
     var schema_keys = schema.keys || schema.properties;
     var keys = [].concat(Object.keys(schema_keys));
@@ -120,13 +139,15 @@
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       var schemaValue = schema_keys[key];
+      var isRef = schemaValue.hasOwnProperty('$ref');
+      if (isRef) schemaValue = getRef(schemaValue['$ref']);
       var type = schemaValue.type;
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
       if (!data.hasOwnProperty(key)) {
-        if (type === 'array') newData[key] = getSyncedArray([], schemaValue);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue);else if (type === 'boolean') newData[key] = false;else if (type === 'integer' || type === 'number') newData[key] = null;else newData[key] = '';
+        if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'boolean') newData[key] = false;else if (type === 'integer' || type === 'number') newData[key] = null;else newData[key] = '';
       } else {
-        if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue);else {
+        if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue, getRef);else {
           if ((type === 'integer' || type === 'number') && data[key] === '') newData[key] = null;else newData[key] = data[key];
         }
       }
@@ -135,15 +156,16 @@
     return newData;
   }
 
-  function getSyncedData(data, schema) {
+  function getSyncedData(data, schema, getRef) {
     // adds those keys to data which are in schema but not in data
+    if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
     var type = schema.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
 
     if (type === 'array') {
-      return getSyncedArray(data, schema);
+      return getSyncedArray(data, schema, getRef);
     } else if (type === 'object') {
-      return getSyncedObject(data, schema);
+      return getSyncedObject(data, schema, getRef);
     }
 
     return data;
@@ -500,7 +522,7 @@
     return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
       className: "rjf-input-group"
     }, /*#__PURE__*/React.createElement("input", props), help_text && /*#__PURE__*/React.createElement("span", {
-      "class": "rjf-help-text"
+      className: "rjf-help-text"
     }, help_text)));
   }
   function FormCheckInput(_ref2) {
@@ -517,7 +539,7 @@
     return /*#__PURE__*/React.createElement("div", {
       className: "rjf-check-input"
     }, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", props), " ", label), help_text && /*#__PURE__*/React.createElement("span", {
-      "class": "rjf-help-text"
+      className: "rjf-help-text"
     }, help_text));
   }
   function FormRadioInput(_ref3) {
@@ -549,7 +571,7 @@
         checked: inputValue === value
       })), " ", label);
     }), help_text && /*#__PURE__*/React.createElement("span", {
-      "class": "rjf-help-text"
+      className: "rjf-help-text"
     }, help_text));
   }
   function FormSelectInput(_ref4) {
@@ -561,7 +583,7 @@
 
     if (props.readOnly) props.disabled = true;
     return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
-      "class": "rjf-input-group"
+      className: "rjf-input-group"
     }, /*#__PURE__*/React.createElement("select", _extends({
       value: value || ''
     }, props), /*#__PURE__*/React.createElement("option", {
@@ -585,7 +607,7 @@
         key: label + '_' + inputValue + '_' + i
       }, label);
     })), help_text && /*#__PURE__*/React.createElement("span", {
-      "class": "rjf-help-text"
+      className: "rjf-help-text"
     }, help_text)));
   }
   var FormMultiSelectInput = /*#__PURE__*/function (_React$Component) {
@@ -1008,7 +1030,7 @@
       return /*#__PURE__*/React.createElement("div", null, label && /*#__PURE__*/React.createElement("label", null, label), /*#__PURE__*/React.createElement("div", {
         className: "rjf-input-group"
       }, /*#__PURE__*/React.createElement("textarea", props), help_text && /*#__PURE__*/React.createElement("span", {
-        "class": "rjf-help-text"
+        className: "rjf-help-text"
       }, help_text)));
     };
 
@@ -1197,7 +1219,7 @@
         ss: this.state.ss,
         ampm: this.state.ampm
       })))), this.props.help_text && /*#__PURE__*/React.createElement("span", {
-        "class": "rjf-help-text"
+        className: "rjf-help-text"
       }, this.props.help_text)));
     };
 
@@ -1208,7 +1230,11 @@
     if (!props.children) return null;
     return /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-group-title"
-    }, props.children);
+    }, props.editable ? /*#__PURE__*/React.createElement("span", null, props.children, " ", /*#__PURE__*/React.createElement(Button, {
+      className: "edit",
+      onClick: props.onEdit,
+      title: "Edit"
+    }, "Edit")) : props.children);
   }
 
   function animate(e, animation, callback) {
@@ -1299,15 +1325,21 @@
     var innerClassName = props.level === 0 && !hasChildren ? "" : "rjf-form-group-inner";
     return /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-group"
-    }, props.level === 0 && /*#__PURE__*/React.createElement(GroupTitle, null, props.schema.title), /*#__PURE__*/React.createElement("div", {
+    }, props.level === 0 && /*#__PURE__*/React.createElement(GroupTitle, {
+      editable: props.editable,
+      onEdit: props.onEdit
+    }, props.schema.title), /*#__PURE__*/React.createElement("div", {
       className: innerClassName
-    }, props.level > 0 && /*#__PURE__*/React.createElement(GroupTitle, null, props.schema.title), props.children, props.addable && /*#__PURE__*/React.createElement(Button, {
+    }, props.level > 0 && /*#__PURE__*/React.createElement(GroupTitle, {
+      editable: props.editable,
+      onEdit: props.onEdit
+    }, props.schema.title), props.children, props.addable && /*#__PURE__*/React.createElement(Button, {
       className: "add",
       onClick: function onClick(e) {
         return props.onAdd();
       },
-      title: "Add new"
-    }, hasChildren ? 'Add more' : 'Add')));
+      title: props.schema.type === 'object' ? 'Add new key' : 'Add new item'
+    }, props.schema.type === 'object' ? 'Add key' : 'Add item')));
   }
 
   var _excluded = ["data", "schema", "name", "onChange", "onRemove", "removable", "onEdit", "editable", "onMoveUp", "onMoveDown", "parentType"];
@@ -1464,7 +1496,7 @@
         name = args.name,
         onChange = args.onChange,
         _onAdd = args.onAdd,
-        onRemove = args.onRemove,
+        _onRemove = args.onRemove,
         onMove = args.onMove,
         level = args.level;
     var rows = [];
@@ -1481,11 +1513,12 @@
       schema: schema.items,
       onChange: onChange,
       onAdd: _onAdd,
-      onRemove: onRemove,
+      onRemove: _onRemove,
       level: level + 1,
       removable: removable,
       onMove: onMove,
-      parentType: 'array'
+      parentType: 'array',
+      getRef: args.getRef
     };
 
     if (nextArgs.schema.widget === 'multiselect') {
@@ -1529,25 +1562,48 @@
         schema: schema,
         addable: addable,
         onAdd: function onAdd() {
-          return _onAdd(getBlankData(schema.items), coords);
+          return _onAdd(getBlankData(schema.items, args.getRef), coords);
         },
+        editable: args.editable,
+        onEdit: args.onEdit,
         key: 'row_group_' + name
       }, rows);
+
+      if (args.parentType === 'object' && args.removable) {
+        rows = /*#__PURE__*/React.createElement("div", {
+          className: "rjf-form-group-wrapper",
+          key: 'row_group_wrapper_' + name
+        }, /*#__PURE__*/React.createElement(FormRowControls, {
+          onRemove: function onRemove(e) {
+            return _onRemove(name);
+          }
+        }), rows);
+      }
     }
 
     if (groups.length) {
-      var groupTitle = schema.title ? /*#__PURE__*/React.createElement("div", {
-        className: "rjf-form-group-title"
+      var groupTitle = schema.title ? /*#__PURE__*/React.createElement(GroupTitle, {
+        editable: args.editable,
+        onEdit: args.onEdit
       }, schema.title) : null;
       groups = /*#__PURE__*/React.createElement("div", {
-        key: 'group_' + name
+        key: 'group_' + name,
+        className: "rjf-form-group-wrapper"
+      }, args.parentType === 'object' && args.removable && /*#__PURE__*/React.createElement(FormRowControls, {
+        onRemove: function onRemove(e) {
+          return _onRemove(name);
+        }
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-form-group"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: level > 0 ? "rjf-form-group-inner" : ""
       }, groupTitle, groups.map(function (i, index) {
         return /*#__PURE__*/React.createElement("div", {
           className: "rjf-form-group-wrapper",
           key: 'group_wrapper_' + name + '_' + index
         }, /*#__PURE__*/React.createElement(FormRowControls, {
           onRemove: removable ? function (e) {
-            return onRemove(name + '-' + index);
+            return _onRemove(name + '-' + index);
           } : null,
           onMoveUp: index > 0 ? function (e) {
             return onMove(name + '-' + index, name + '-' + (index - 1));
@@ -1559,10 +1615,10 @@
       }), addable && /*#__PURE__*/React.createElement(Button, {
         className: "add",
         onClick: function onClick(e) {
-          return _onAdd(getBlankData(schema.items), coords);
+          return _onAdd(getBlankData(schema.items, args.getRef), coords);
         },
-        title: "Add new"
-      }, "Add item"));
+        title: "Add new item"
+      }, "Add item"))));
     }
 
     return [].concat(rows, groups);
@@ -1573,7 +1629,7 @@
         name = args.name,
         onChange = args.onChange,
         _onAdd2 = args.onAdd,
-        onRemove = args.onRemove,
+        _onRemove2 = args.onRemove,
         level = args.level,
         onMove = args.onMove;
     var rows = [];
@@ -1587,12 +1643,21 @@
       var key = keys[i];
       var value = data[key];
       var childName = name + '-' + key;
-      var schemaValue = schema_keys[key] || {
-        type: 'string'
-      };
+      var schemaValue = schema_keys[key];
+
+      if (typeof schemaValue === 'undefined') {
+        // for keys added through additionalProperties
+        if (typeof schema.additionalProperties === 'boolean') schemaValue = {
+          type: 'string'
+        };else schemaValue = _extends({}, schema.additionalProperties);
+      }
+
+      var isRef = schemaValue.hasOwnProperty('$ref');
+      if (isRef) schemaValue = args.getRef(schemaValue['$ref']);
       var type = schemaValue.type;
       if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-      if (!schemaValue.title) schemaValue.title = getVerboseName(key);
+      if (!schemaValue.title || isRef && schema.additionalProperties) // for additionalProperty refs, use the key as the title
+        schemaValue.title = getVerboseName(key);
       var removable = false;
       if (schema_keys[key] === undefined) removable = true;
       var nextArgs = {
@@ -1601,23 +1666,25 @@
         name: childName,
         onChange: onChange,
         onAdd: _onAdd2,
-        onRemove: onRemove,
+        onRemove: _onRemove2,
         level: level + 1,
         removable: removable,
         onMove: onMove,
-        parentType: 'object'
+        parentType: 'object',
+        getRef: args.getRef
       };
+
+      nextArgs.onEdit = function () {
+        return handleKeyEdit(data, key, value, childName, _onAdd2, _onRemove2);
+      };
+
+      nextArgs.editable = removable;
 
       if (type === 'array') {
         rows.push(getArrayFormRow(nextArgs));
       } else if (type === 'object') {
         rows.push(getObjectFormRow(nextArgs));
       } else {
-        nextArgs.onEdit = function () {
-          return handleKeyEdit(data, key, value, childName, _onAdd2, onRemove);
-        };
-
-        nextArgs.editable = removable;
         rows.push(getStringFormRow(nextArgs));
       }
     };
@@ -1633,21 +1700,37 @@
         schema: schema,
         addable: schema.additionalProperties,
         onAdd: function onAdd() {
-          return handleKeyValueAdd(data, coords, _onAdd2);
+          return handleKeyValueAdd(data, coords, _onAdd2, schema.additionalProperties, args.getRef);
         },
+        editable: args.editable,
+        onEdit: args.onEdit,
         key: 'row_group_' + name
       }, rows);
+
+      if (args.parentType === 'object' && args.removable) {
+        rows = /*#__PURE__*/React.createElement("div", {
+          className: "rjf-form-group-wrapper",
+          key: 'row_group_wrapper_' + name
+        }, /*#__PURE__*/React.createElement(FormRowControls, {
+          onRemove: function onRemove(e) {
+            return _onRemove2(name);
+          }
+        }), rows);
+      }
     }
 
     return rows;
   }
 
-  function handleKeyValueAdd(data, coords, onAdd) {
+  function handleKeyValueAdd(data, coords, onAdd, newSchema, getRef) {
     var key = prompt("Add new key");
     if (key === null) // clicked cancel
       return;
+    if (newSchema === true) newSchema = {
+      type: 'string'
+    };
     key = key.trim();
-    if (!key) alert("(!) Can't add empty key.\r\n\r\n‎");else if (data.hasOwnProperty(key)) alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");else onAdd("", coords + '-' + key);
+    if (!key) alert("(!) Can't add empty key.\r\n\r\n‎");else if (data.hasOwnProperty(key)) alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");else onAdd(getBlankData(newSchema, getRef), coords + '-' + key);
   }
 
   function handleKeyEdit(data, key, value, coords, onAdd, onRemove) {
@@ -1709,6 +1792,19 @@
         });
       };
 
+      _this.getRef = function (ref) {
+        /* Returns schema reference. Nothing to do with React's refs.*/
+        var refSchema;
+        var tokens = ref.split('/');
+
+        for (var i = 0; i < tokens.length; i++) {
+          var token = tokens[i];
+          if (token === '#') refSchema = _this.schema;else refSchema = refSchema[token];
+        }
+
+        return _extends({}, refSchema);
+      };
+
       _this.getFields = function () {
         var data = _this.state.data;
         var formGroups = [];
@@ -1724,7 +1820,8 @@
             onAdd: _this.addFieldset,
             onRemove: _this.removeFieldset,
             onMove: _this.moveFieldset,
-            level: 0
+            level: 0,
+            getRef: _this.getRef
           };
 
           if (type === 'array') {
@@ -1793,11 +1890,11 @@
 
       if (!_data2) {
         // create empty data from schema
-        _data2 = getBlankData(_this.schema);
+        _data2 = getBlankData(_this.schema, _this.getRef);
       } else {
         // data might be stale if schema has new keys, so add them to data
         try {
-          _data2 = getSyncedData(_data2, _this.schema);
+          _data2 = getSyncedData(_data2, _this.schema, _this.getRef);
         } catch (error) {
           console.error("Error: Schema and data structure don't match");
           console.error(error);
