@@ -48,7 +48,7 @@ export function getBlankArray(schema, getRef) {
     if (schema.items.hasOwnProperty('$ref')) {
         // :TODO: this will most probably mutate the original schema
         // but i'll fix it later
-        schema.items = getRef(schema.items['$ref'])
+        schema.items = getRef(schema.items['$ref']);
     }
 
     let type = schema.items.type;

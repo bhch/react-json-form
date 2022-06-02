@@ -164,6 +164,11 @@ export function getArrayFormRow(args) {
     if (data.length >= max_items)
         addable = false;
 
+    let isRef = schema.items.hasOwnProperty('$ref');
+
+    if (isRef)
+        schema.items = args.getRef(schema.items['$ref']);
+
     let type = schema.items.type;
     
     if (type === 'list')
