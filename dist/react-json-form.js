@@ -1507,6 +1507,8 @@
     var addable = true;
     var max_items = schema.max_items || schema.maxItems || 100;
     if (data.length >= max_items) addable = false;
+    var isRef = schema.items.hasOwnProperty('$ref');
+    if (isRef) schema.items = args.getRef(schema.items['$ref']);
     var type = schema.items.type;
     if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
     var nextArgs = {
