@@ -41,10 +41,13 @@ function FormField(props) {
     };
 
     let type = props.schema.type;
-    if (props.schema.choices) {
-        inputProps.options = props.schema.choices;
+    let choices = props.schema.choices || props.schema.enum;
+
+    if (choices) {
+        inputProps.options = choices;
         type = 'select';
     }
+
     if (props.schema.widget) {
          if (props.schema.widget === 'multiselect' && props.parentType !== 'array') {
             // pass
