@@ -465,7 +465,7 @@ export class FormFileInput extends React.Component {
                         <FormInput {...props} inputRef={this.inputRef} />
                     </div>
                     }
-                    </div>
+                </div>
             </div>
         );
     }

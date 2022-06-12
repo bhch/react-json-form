@@ -1,3 +1,7 @@
 export default function Loader (props) {
-    return <div className="rjf-loader"></div>;
+    let className = 'rjf-loader';
+    if (props.className)
+        className = className + ' ' + props.className;
+
+    return <div className={className}></div>;
 }

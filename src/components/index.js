@@ -4,6 +4,7 @@ import {FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FormFileInpu
 import {FormRow, FormGroup, FormRowControls, GroupTitle} from './containers';
 import Loader from './loaders';
 import Icon from './icons';
+import FileUploader from './uploader';
 
 export {
     Button,
@@ -12,4 +13,5 @@ export {
     FormRow, FormGroup, FormRowControls, GroupTitle,
     Loader,
     Icon,
+    FileUploader,
 };

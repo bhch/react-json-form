@@ -7,6 +7,7 @@ export default function JSONForm(config) {
     this.schema = config.schema;
     this.data = config.data;
     this.fileUploadEndpoint = config.fileUploadEndpoint;
+    this.fileListEndpoint = config.fileListEndpoint;
     this.fieldName = config.fieldName;
     this.modelName = config.modelName;
 
@@ -17,6 +18,7 @@ export default function JSONForm(config) {
                 dataInputId={this.dataInputId}
                 data={this.data}
                 fileUploadEndpoint={this.fileUploadEndpoint}
+                fileListEndpoint={this.fileListEndpoint}
                 fieldName={this.fieldName}
                 modelName={this.modelName}
             />,

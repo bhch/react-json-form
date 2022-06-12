@@ -184,6 +184,7 @@ export default class Form extends React.Component {
                     <EditorContext.Provider 
                         value={{
                             fileUploadEndpoint: this.props.fileUploadEndpoint,
+                            fileListEndpoint: this.props.fileListEndpoint,
                             fieldName: this.props.fieldName,
                             modelName: this.props.modelName,
                         }}

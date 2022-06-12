@@ -8,6 +8,12 @@ export default function Icon(props) {
         case 'chevron-down':
             icon = <ChevronDown />;
             break;
+        case 'arrow-down':
+            icon = <ArrowDown />;
+            break;
+        case 'x-lg':
+            icon = <XLg />;
+            break;
     }
 
     return (
@@ -26,5 +32,17 @@ function ChevronUp(props) {
 function ChevronDown(props) {
     return (
         <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+    );
+}
+
+function ArrowDown(props) {
+    return (
+        <path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
+    );
+}
+
+function XLg(props) {
+    return (
+        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
     );
 }
