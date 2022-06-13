@@ -259,14 +259,16 @@ const DEFAULT_THUBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200
 
 
 function MediaTile(props) {
+    let metadata = props.metadata || {};
+
     return (
         <div className="rjf-upload-modal__media-tile">
             <div className="rjf-upload-modal__media-tile-inner" tabIndex="0" onClick={() => props.onClick(props.value)}>
                 <img src={props.thumbnail ? props.thumbnail : DEFAULT_THUBNAIL} />
-                <div className="rjf-upload-modal__media-tile-info">
-                    <span>{props.name}</span>
-                    <span>{props.date_created}</span>
-                    <span>{props.size}</span>
+                <div className="rjf-upload-modal__media-tile-metadata">
+                    {Object.getOwnPropertyNames(metadata).map((key) => {
+                        return <span>{metadata[key]}</span>;
+                    })}
                 </div>
             </div>
         </div>
