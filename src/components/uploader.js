@@ -95,6 +95,8 @@ export default class FileUploader extends React.Component {
                     overlayClassName="rjf-modal__overlay"
                     className="rjf-modal__dialog"
                     bodyOpenClassName="rjf-modal__main-body--open"
+                    closeTimeoutMS={150}
+                    ariaHideApp={false}
                 >
                     <div className="rjf-modal__content">
                         <div className="rjf-modal__header">
