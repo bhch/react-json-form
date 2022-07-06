@@ -384,6 +384,7 @@ export class FormFileInput extends React.Component {
             let formData = new FormData();
             formData.append('field_name', this.context.fieldName);
             formData.append('model_name', this.context.modelName);
+            formData.append('uid', this.context.uid);
             formData.append('coordinates', JSON.stringify(this.props.name.split('-').slice(1)));
             formData.append('file', e.target.files[0]);
 
