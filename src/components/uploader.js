@@ -133,6 +133,12 @@ export default class FileUploader extends React.Component {
                             {this.state.pane === 'library' &&
                                 <LibraryPane
                                     fileListEndpoint={this.context.fileListEndpoint}
+                                    endpointArgs={{
+                                        field_name: this.context.fieldName,
+                                        model_name: this.context.modelName,
+                                        coordinates: JSON.stringify(this.props.name.split('-').slice(1)),
+                                        uid: this.context.uid
+                                    }}
                                     onFileSelect={this.handleFileSelect}
                                 />
                             }
@@ -204,9 +210,17 @@ class LibraryPane extends React.Component {
             return;
         }
 
-        fetch(endpoint + '?page=' + (this.state.page + 1), {method: 'GET'})
+        let url = endpoint + '?' + new URLSearchParams({
+            ...this.props.endpointArgs,
+            page: this.state.page + 1
+        });
+
+        fetch(url, {method: 'GET'})
         .then((response) => response.json())
         .then((result) => {
+            if (!Array.isArray(result.file_list))
+                result.file_list = [];
+
             this.setState((state) => ({
                 loading: false,
                 files: [...state.files, ...result.file_list],
@@ -216,7 +230,7 @@ class LibraryPane extends React.Component {
             );
         })
         .catch((error) => {
-            alert('Something went wrong while uploading file');
+            alert('Something went wrong while retrieving media files');
             console.error('Error:', error);
             this.setState({loading: false});
         });
@@ -267,11 +281,13 @@ function MediaTile(props) {
         <div className="rjf-upload-modal__media-tile">
             <div className="rjf-upload-modal__media-tile-inner" tabIndex="0" onClick={() => props.onClick(props.value)}>
                 <img src={props.thumbnail ? props.thumbnail : DEFAULT_THUBNAIL} />
-                <div className="rjf-upload-modal__media-tile-metadata">
-                    {Object.getOwnPropertyNames(metadata).map((key) => {
-                        return <span>{metadata[key]}</span>;
-                    })}
-                </div>
+                {props.metadata &&
+                    <div className="rjf-upload-modal__media-tile-metadata">
+                        {Object.getOwnPropertyNames(metadata).map((key) => {
+                            return <span>{metadata[key]}</span>;
+                        })}
+                    </div>
+                }
             </div>
         </div>
     );
