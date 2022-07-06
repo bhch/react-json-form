@@ -40,6 +40,9 @@ function FormField(props) {
         help_text: props.schema.help_text || props.schema.helpText,
     };
 
+    if (props.schema.placeholder)
+        inputProps.placeholder = props.schema.placeholder; 
+
     let type = props.schema.type;
     let choices = props.schema.choices || props.schema.enum;
 
