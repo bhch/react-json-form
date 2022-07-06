@@ -187,6 +187,7 @@ export default class Form extends React.Component {
                             fileListEndpoint: this.props.fileListEndpoint,
                             fieldName: this.props.fieldName,
                             modelName: this.props.modelName,
+                            uid: this.props.uid,
                         }}
                     >
                     {this.getFields()}

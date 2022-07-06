@@ -10,6 +10,7 @@ export default function JSONForm(config) {
     this.fileListEndpoint = config.fileListEndpoint;
     this.fieldName = config.fieldName;
     this.modelName = config.modelName;
+    this.uid = config.uid;
 
     this.render = function() {
         ReactDOM.render(
@@ -21,6 +22,7 @@ export default function JSONForm(config) {
                 fileListEndpoint={this.fileListEndpoint}
                 fieldName={this.fieldName}
                 modelName={this.modelName}
+                uid={this.uid}
             />,
             document.getElementById(this.containerId)
         );
