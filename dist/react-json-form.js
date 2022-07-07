@@ -191,8 +191,10 @@
   }
 
   function Loader(props) {
+    var className = 'rjf-loader';
+    if (props.className) className = className + ' ' + props.className;
     return /*#__PURE__*/React.createElement("div", {
-      className: "rjf-loader"
+      className: className
     });
   }
 
@@ -206,6 +208,14 @@
 
       case 'chevron-down':
         icon = /*#__PURE__*/React.createElement(ChevronDown, null);
+        break;
+
+      case 'arrow-down':
+        icon = /*#__PURE__*/React.createElement(ArrowDown, null);
+        break;
+
+      case 'x-lg':
+        icon = /*#__PURE__*/React.createElement(XLg, null);
         break;
     }
 
@@ -230,6 +240,19 @@
     return /*#__PURE__*/React.createElement("path", {
       fillRule: "evenodd",
       d: "M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"
+    });
+  }
+
+  function ArrowDown(props) {
+    return /*#__PURE__*/React.createElement("path", {
+      "fill-rule": "evenodd",
+      d: "M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"
+    });
+  }
+
+  function XLg(props) {
+    return /*#__PURE__*/React.createElement("path", {
+      d: "M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"
     });
   }
 
@@ -881,6 +904,7 @@
           var formData = new FormData();
           formData.append('field_name', _this4.context.fieldName);
           formData.append('model_name', _this4.context.modelName);
+          formData.append('uid', _this4.context.uid);
           formData.append('coordinates', JSON.stringify(_this4.props.name.split('-').slice(1)));
           formData.append('file', e.target.files[0]);
           fetch(endpoint, {
@@ -1342,6 +1366,290 @@
     }, props.schema.type === 'object' ? 'Add key' : 'Add item')));
   }
 
+  var FileUploader = /*#__PURE__*/function (_React$Component) {
+    _inheritsLoose(FileUploader, _React$Component);
+
+    function FileUploader(props) {
+      var _this;
+
+      _this = _React$Component.call(this, props) || this;
+
+      _this.openModal = function (e) {
+        _this.setState({
+          open: true
+        });
+      };
+
+      _this.closeModal = function (e) {
+        _this.setState({
+          open: false,
+          pane: 'upload'
+        });
+      };
+
+      _this.togglePane = function (name) {
+        _this.setState({
+          pane: name
+        });
+      };
+
+      _this.handleFileSelect = function (value) {
+        // we create a fake event
+        var event = {
+          target: {
+            type: 'text',
+            value: value,
+            name: _this.props.name
+          }
+        };
+
+        _this.props.onChange(event);
+
+        _this.closeModal();
+      };
+
+      _this.handleFileUpload = function (e) {
+        _this.props.onChange(e);
+
+        _this.closeModal();
+      };
+
+      _this.clearFile = function () {
+        if (window.confirm('Do you want to remove this file?')) {
+          var event = {
+            target: {
+              type: 'text',
+              value: '',
+              name: _this.props.name
+            }
+          };
+
+          _this.props.onChange(event);
+        }
+      };
+
+      _this.state = {
+        value: props.value,
+        //fileName: this.getFileName(),
+        loading: false,
+        open: false,
+        pane: 'upload'
+      };
+      _this.inputRef = React.createRef();
+      return _this;
+    }
+
+    var _proto = FileUploader.prototype;
+
+    _proto.render = function render() {
+      if (!this.context.fileListEndpoint) {
+        return /*#__PURE__*/React.createElement(FormFileInput, this.props);
+      }
+
+      return /*#__PURE__*/React.createElement("div", null, this.props.label && /*#__PURE__*/React.createElement("label", null, this.props.label), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-file-field"
+      }, this.props.value && /*#__PURE__*/React.createElement("div", {
+        className: "rjf-current-file-name"
+      }, "Current file: ", /*#__PURE__*/React.createElement("span", null, this.props.value), " ", ' ', /*#__PURE__*/React.createElement(Button, {
+        className: "remove-file",
+        onClick: this.clearFile
+      }, "Clear")), /*#__PURE__*/React.createElement(Button, {
+        onClick: this.openModal,
+        className: "upload-modal__open"
+      }, this.props.value ? 'Change file' : 'Select file')), /*#__PURE__*/React.createElement(ReactModal, {
+        isOpen: this.state.open,
+        onRequestClose: this.closeModal,
+        contentLabel: "Select file",
+        portalClassName: "rjf-modal-portal",
+        overlayClassName: "rjf-modal__overlay",
+        className: "rjf-modal__dialog",
+        bodyOpenClassName: "rjf-modal__main-body--open",
+        closeTimeoutMS: 150,
+        ariaHideApp: false
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-modal__content"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "rjf-modal__header"
+      }, /*#__PURE__*/React.createElement(TabButton, {
+        onClick: this.togglePane,
+        tabName: "upload",
+        active: this.state.pane === "upload"
+      }, "Upload new"), ' ', /*#__PURE__*/React.createElement(TabButton, {
+        onClick: this.togglePane,
+        tabName: "library",
+        active: this.state.pane === "library"
+      }, "Choose from library"), /*#__PURE__*/React.createElement(Button, {
+        className: "modal__close",
+        onClick: this.closeModal,
+        title: "Close (Esc)"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "x-lg"
+      }))), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-modal__body"
+      }, this.state.pane === 'upload' && /*#__PURE__*/React.createElement(UploadPane, _extends({}, this.props, {
+        onChange: this.handleFileUpload,
+        label: "",
+        value: "",
+        help_text: ""
+      })), this.state.pane === 'library' && /*#__PURE__*/React.createElement(LibraryPane, {
+        fileListEndpoint: this.context.fileListEndpoint,
+        endpointArgs: {
+          field_name: this.context.fieldName,
+          model_name: this.context.modelName,
+          coordinates: JSON.stringify(this.props.name.split('-').slice(1)),
+          uid: this.context.uid
+        },
+        onFileSelect: this.handleFileSelect
+      })), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-modal__footer"
+      }, /*#__PURE__*/React.createElement(Button, {
+        className: "modal__footer-close",
+        onClick: this.closeModal
+      }, "Cancel")))));
+    };
+
+    return FileUploader;
+  }(React.Component);
+
+  FileUploader.contextType = EditorContext;
+
+  function TabButton(props) {
+    var className = 'rjf-upload-modal__tab-button';
+    if (props.active) className += ' rjf-upload-modal__tab-button--active';
+    return /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return props.onClick(props.tabName);
+      },
+      className: className
+    }, props.children);
+  }
+
+  function UploadPane(props) {
+    return /*#__PURE__*/React.createElement("div", {
+      "class": "rjf-upload-modal__pane"
+    }, /*#__PURE__*/React.createElement("h3", null, "Upload new"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement(FormFileInput, props));
+  }
+
+  var LibraryPane = /*#__PURE__*/function (_React$Component2) {
+    _inheritsLoose(LibraryPane, _React$Component2);
+
+    function LibraryPane(props) {
+      var _this2;
+
+      _this2 = _React$Component2.call(this, props) || this;
+
+      _this2.fetchList = function () {
+        var endpoint = _this2.props.fileListEndpoint;
+
+        if (!endpoint) {
+          console.error("Error: fileListEndpoint option need to be passed " + "while initializing editor for enabling file listing.");
+
+          _this2.setState({
+            loading: false,
+            hasMore: false
+          });
+
+          return;
+        }
+
+        var url = endpoint + '?' + new URLSearchParams(_extends({}, _this2.props.endpointArgs, {
+          page: _this2.state.page + 1
+        }));
+        fetch(url, {
+          method: 'GET'
+        }).then(function (response) {
+          return response.json();
+        }).then(function (result) {
+          if (!Array.isArray(result.file_list)) result.file_list = [];
+
+          _this2.setState(function (state) {
+            return {
+              loading: false,
+              files: [].concat(state.files, result.file_list),
+              page: result.file_list.length > 0 ? state.page + 1 : state.page,
+              hasMore: result.file_list.length > 0
+            };
+          });
+        })["catch"](function (error) {
+          alert('Something went wrong while retrieving media files');
+          console.error('Error:', error);
+
+          _this2.setState({
+            loading: false
+          });
+        });
+      };
+
+      _this2.onLoadMore = function (e) {
+        _this2.setState({
+          loading: true
+        }, _this2.fetchList);
+      };
+
+      _this2.state = {
+        loading: true,
+        files: [],
+        page: 0,
+        // current page
+        hasMore: true
+      };
+      return _this2;
+    }
+
+    var _proto2 = LibraryPane.prototype;
+
+    _proto2.componentDidMount = function componentDidMount() {
+      //setTimeout(() => this.setState({loading: false}), 1000);
+      this.fetchList();
+    };
+
+    _proto2.render = function render() {
+      var _this3 = this;
+
+      return /*#__PURE__*/React.createElement("div", {
+        className: "rjf-upload-modal__pane"
+      }, /*#__PURE__*/React.createElement("h3", null, "Media library"), /*#__PURE__*/React.createElement("div", {
+        className: "rjf-upload-modal__media-container"
+      }, this.state.files.map(function (i) {
+        return /*#__PURE__*/React.createElement(MediaTile, _extends({}, i, {
+          onClick: _this3.props.onFileSelect
+        }));
+      })), this.state.loading && /*#__PURE__*/React.createElement(Loader, {
+        className: "rjf-upload-modal__media-loader"
+      }), !this.state.loading && this.state.hasMore && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Button, {
+        onClick: this.onLoadMore,
+        className: "upload-modal__media-load"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "arrow-down"
+      }), " View more")), !this.state.hasMore && /*#__PURE__*/React.createElement("div", {
+        className: "rjf-upload-modal__media-end-message"
+      }, this.state.files.length ? 'End of list' : 'No files found'));
+    };
+
+    return LibraryPane;
+  }(React.Component);
+
+  var DEFAULT_THUBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23999999' class='bi bi-file-earmark' viewBox='0 0 16 16'%3E%3Cpath d='M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z'/%3E%3C/svg%3E";
+
+  function MediaTile(props) {
+    var metadata = props.metadata || {};
+    return /*#__PURE__*/React.createElement("div", {
+      className: "rjf-upload-modal__media-tile"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "rjf-upload-modal__media-tile-inner",
+      tabIndex: "0",
+      onClick: function onClick() {
+        return props.onClick(props.value);
+      }
+    }, /*#__PURE__*/React.createElement("img", {
+      src: props.thumbnail ? props.thumbnail : DEFAULT_THUBNAIL
+    }), props.metadata && /*#__PURE__*/React.createElement("div", {
+      className: "rjf-upload-modal__media-tile-metadata"
+    }, Object.getOwnPropertyNames(metadata).map(function (key) {
+      return /*#__PURE__*/React.createElement("span", null, metadata[key]);
+    }))));
+  }
+
   var _excluded = ["data", "schema", "name", "onChange", "onRemove", "removable", "onEdit", "editable", "onMoveUp", "onMoveDown", "parentType"];
 
   function handleChange(e, fieldType, callback) {
@@ -1371,10 +1679,12 @@
       readOnly: props.schema.readOnly || props.schema.readonly,
       help_text: props.schema.help_text || props.schema.helpText
     };
+    if (props.schema.placeholder) inputProps.placeholder = props.schema.placeholder;
     var type = props.schema.type;
+    var choices = props.schema.choices || props.schema["enum"];
 
-    if (props.schema.choices) {
-      inputProps.options = props.schema.choices;
+    if (choices) {
+      inputProps.options = choices;
       type = 'select';
     }
 
@@ -1391,8 +1701,10 @@
         InputField = FormInput;
 
         if (props.schema.format) {
-          if (props.schema.format === 'data-url' || props.schema.format === 'file-url') {
+          if (props.schema.format === 'data-url') {
             InputField = FormFileInput;
+          } else if (props.schema.format === 'file-url') {
+            InputField = FileUploader;
           } else if (props.schema.format === 'datetime') {
             InputField = FormDateTimeInput;
           }
@@ -1929,8 +2241,10 @@
       }, /*#__PURE__*/React.createElement(EditorContext.Provider, {
         value: {
           fileUploadEndpoint: this.props.fileUploadEndpoint,
+          fileListEndpoint: this.props.fileListEndpoint,
           fieldName: this.props.fieldName,
-          modelName: this.props.modelName
+          modelName: this.props.modelName,
+          uid: this.props.uid
         }
       }, this.getFields())));
     };
@@ -1996,8 +2310,10 @@
     this.schema = config.schema;
     this.data = config.data;
     this.fileUploadEndpoint = config.fileUploadEndpoint;
+    this.fileListEndpoint = config.fileListEndpoint;
     this.fieldName = config.fieldName;
     this.modelName = config.modelName;
+    this.uid = config.uid;
 
     this.render = function () {
       ReactDOM.render( /*#__PURE__*/React.createElement(Form, {
@@ -2005,8 +2321,10 @@
         dataInputId: this.dataInputId,
         data: this.data,
         fileUploadEndpoint: this.fileUploadEndpoint,
+        fileListEndpoint: this.fileListEndpoint,
         fieldName: this.fieldName,
-        modelName: this.modelName
+        modelName: this.modelName,
+        uid: this.uid
       }), document.getElementById(this.containerId));
     };
   }
