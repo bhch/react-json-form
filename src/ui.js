@@ -41,7 +41,10 @@ function FormField(props) {
     };
 
     if (props.schema.placeholder)
-        inputProps.placeholder = props.schema.placeholder; 
+        inputProps.placeholder = props.schema.placeholder;
+
+    if (props.schema.handler)
+        inputProps.handler = props.schema.handler;
 
     let type = props.schema.type;
     let choices = props.schema.choices || props.schema.enum;

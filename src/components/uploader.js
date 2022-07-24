@@ -68,7 +68,7 @@ export default class FileUploader extends React.Component {
     }
 
     render() {
-        if (!this.context.fileListEndpoint) {
+        if (!this.props.handler && !this.context.fileHandler) {
             return <FormFileInput {...this.props} />;
         }
 
@@ -132,12 +132,11 @@ export default class FileUploader extends React.Component {
                             }
                             {this.state.pane === 'library' &&
                                 <LibraryPane
-                                    fileListEndpoint={this.context.fileListEndpoint}
-                                    endpointArgs={{
+                                    fileHandler={this.props.handler || this.context.fileHandler}
+                                    fileHandlerArgs={{
                                         field_name: this.context.fieldName,
                                         model_name: this.context.modelName,
                                         coordinates: JSON.stringify(this.props.name.split('-').slice(1)),
-                                        uid: this.context.uid
                                     }}
                                     onFileSelect={this.handleFileSelect}
                                 />
@@ -200,32 +199,32 @@ class LibraryPane extends React.Component {
     }
 
     fetchList = () => {
-        let endpoint = this.props.fileListEndpoint;
+        let endpoint = this.props.fileHandler;
 
         if (!endpoint) {
             console.error(
-                "Error: fileListEndpoint option need to be passed "
+                "Error: fileHandler option need to be passed "
                 + "while initializing editor for enabling file listing.");
             this.setState({loading: false, hasMore: false});
             return;
         }
 
         let url = endpoint + '?' + new URLSearchParams({
-            ...this.props.endpointArgs,
+            ...this.props.fileHandlerArgs,
             page: this.state.page + 1
         });
 
         fetch(url, {method: 'GET'})
         .then((response) => response.json())
         .then((result) => {
-            if (!Array.isArray(result.file_list))
-                result.file_list = [];
+            if (!Array.isArray(result.results))
+                result.results = [];
 
             this.setState((state) => ({
                 loading: false,
-                files: [...state.files, ...result.file_list],
-                page: result.file_list.length > 0 ? state.page + 1 : state.page,
-                hasMore: result.file_list.length > 0,
+                files: [...state.files, ...result.results],
+                page: result.results.length > 0 ? state.page + 1 : state.page,
+                hasMore: result.results.length > 0,
             })
             );
         })

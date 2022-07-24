@@ -370,12 +370,12 @@ export class FormFileInput extends React.Component {
             }
             reader.readAsDataURL(file);
         } else if (this.props.type === 'file-url') {
-            let endpoint = this.context.fileUploadEndpoint;
+            let endpoint = this.props.handler || this.context.fileHandler;
             if (!endpoint) {
                 console.error(
-                    "Error: fileUploadEndpoint option need to be passed "
+                    "Error: fileHandler option need to be passed "
                     + "while initializing editor for enabling file uploads.");
-                alert("Files can't be uploaded.");
+                alert("Files couldn't be uploaded.");
                 return;
             }
 
@@ -384,7 +384,6 @@ export class FormFileInput extends React.Component {
             let formData = new FormData();
             formData.append('field_name', this.context.fieldName);
             formData.append('model_name', this.context.modelName);
-            formData.append('uid', this.context.uid);
             formData.append('coordinates', JSON.stringify(this.props.name.split('-').slice(1)));
             formData.append('file', e.target.files[0]);
 
@@ -401,7 +400,7 @@ export class FormFileInput extends React.Component {
                 let event = {
                     target: {
                         type: 'text',
-                        value: result.file_path,
+                        value: result.value,
                         name: this.props.name
                     }
                 };
