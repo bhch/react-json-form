@@ -25,7 +25,7 @@ export function getBlankObject(schema, getRef) {
         else if (type === 'boolean')
             keys[key] = value.default || false;
         else if (type === 'integer' || type === 'number')
-            keys[key] = value.default || null;
+            keys[key] = value.default === 0 ? 0 : (value.default || null);
         else // string etc.
             keys[key] = value.default || '';
     }
@@ -73,7 +73,7 @@ export function getBlankArray(schema, getRef) {
     if (type === 'boolean')
         items.push(schema.items.default || false);
     else if (type === 'integer' || type === 'number')
-        items.push(schema.items.default || null);
+        items.push(schema.items.default === 0 ? 0 : (schema.items.default || null));
     else // string, etc.
         items.push(schema.items.default || '');
 
@@ -99,7 +99,7 @@ export function getBlankData(schema, getRef) {
     else if (type === 'boolean')
         return schema.default || false;
     else if (type === 'integer' || type === 'number')
-        return schema.default || null;
+        return schema.default === 0 ? 0 : (schema.default || null);
     else // string, etc.
         return schema.default || '';
 }
@@ -132,7 +132,7 @@ function getSyncedArray(data, schema, getRef) {
         }
         else {
             if ((type === 'integer' || type === 'number') && item === '')
-                newData[i] = null;
+                newData[i] = schema.items.default === 0 ? 0 : (schema.items.default || null);
         }
     }
 
@@ -169,11 +169,11 @@ function getSyncedObject(data, schema, getRef) {
             else if (type === 'object')
                 newData[key] = getSyncedObject({}, schemaValue, getRef);
             else if (type === 'boolean')
-                newData[key] = false;
+                newData[key] = schemaValue.default || false;
             else if (type === 'integer' || type === 'number')
-                newData[key] = null;
+                newData[key] = schemaValue.default === 0 ? 0 : (schemaValue.default || null);
             else
-                newData[key] = '';
+                newData[key] = schemaValue.default || '';
         } else {
             if (type === 'array')
                 newData[key] = getSyncedArray(data[key], schemaValue, getRef);
@@ -181,7 +181,7 @@ function getSyncedObject(data, schema, getRef) {
                 newData[key] = getSyncedObject(data[key], schemaValue, getRef);
             else {
                 if ((type === 'integer' || type === 'number') && data[key] === '')
-                    newData[key] = null;
+                    newData[key] = schemaValue.default === 0 ? 0 : (schemaValue.default || null);
                 else
                     newData[key] = data[key];
             }
