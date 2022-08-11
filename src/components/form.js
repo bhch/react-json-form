@@ -1,3 +1,4 @@
+import React from 'react';
 import Button from './buttons';
 import Loader from './loaders';
 import {TimePicker} from './widgets';
@@ -88,11 +89,14 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
     if (props.readOnly)
         props.disabled = true;
 
+    if (!value && (value !== false) && (value !== 0))
+        value = '';
+
     return (
         <div>
             {label && <label>{label}</label>}
             <div className="rjf-input-group">
-                <select value={value || ''} {...props}>
+                <select value={value} {...props}>
                     <option disabled value="" key={'__placehlder'}>Select...</option>
                     {options.map((option, i) => {
                         let label, inputValue;
