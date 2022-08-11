@@ -321,7 +321,7 @@ export function getObjectFormRow(args) {
         let key = keys[i];
         let value = data[key];
         let childName = name + '-' + key;
-        let schemaValue = {...schema_keys[key]};
+        let schemaValue = schema_keys.hasOwnProperty(key) ? {...schema_keys[key]} : undefined;
 
         if (typeof schemaValue === 'undefined') {
             // for keys added through additionalProperties
