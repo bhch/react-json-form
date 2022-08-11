@@ -23,7 +23,7 @@ export function getBlankObject(schema, getRef) {
         else if (type === 'object')
             keys[key] = getBlankObject(value, getRef);
         else if (type === 'boolean')
-            keys[key] = value.default || false;
+            keys[key] = value.default === false ? false : (value.default || null);
         else if (type === 'integer' || type === 'number')
             keys[key] = value.default === 0 ? 0 : (value.default || null);
         else // string etc.
@@ -71,7 +71,7 @@ export function getBlankArray(schema, getRef) {
         return items;
 
     if (type === 'boolean')
-        items.push(schema.items.default || false);
+        items.push(schema.items.default === false ? false : (schema.items.default || null));
     else if (type === 'integer' || type === 'number')
         items.push(schema.items.default === 0 ? 0 : (schema.items.default || null));
     else // string, etc.
@@ -97,7 +97,7 @@ export function getBlankData(schema, getRef) {
     else if (type === 'object')
         return getBlankObject(schema, getRef);
     else if (type === 'boolean')
-        return schema.default || false;
+        return schema.default === false ? false : (schema.default || null);
     else if (type === 'integer' || type === 'number')
         return schema.default === 0 ? 0 : (schema.default || null);
     else // string, etc.
@@ -169,7 +169,7 @@ function getSyncedObject(data, schema, getRef) {
             else if (type === 'object')
                 newData[key] = getSyncedObject({}, schemaValue, getRef);
             else if (type === 'boolean')
-                newData[key] = schemaValue.default || false;
+                newData[key] = schemaValue.default === false ? false : (schemaValue.default || null);
             else if (type === 'integer' || type === 'number')
                 newData[key] = schemaValue.default === 0 ? 0 : (schemaValue.default || null);
             else
