@@ -1,3 +1,5 @@
+import React from 'react';
+import ReactModal from 'react-modal';
 import Button from './buttons';
 import Loader from './loaders';
 import {EditorContext, capitalize} from '../util';
@@ -172,7 +174,7 @@ function TabButton(props) {
 
 function UploadPane(props) {
     return (
-        <div class="rjf-upload-modal__pane">
+        <div className="rjf-upload-modal__pane">
             <h3>Upload new</h3>
             <br/>
             <FormFileInput {...props} />
@@ -270,7 +272,7 @@ class LibraryPane extends React.Component {
 }
 
 
-const DEFAULT_THUBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23999999' class='bi bi-file-earmark' viewBox='0 0 16 16'%3E%3Cpath d='M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z'/%3E%3C/svg%3E";
+const DEFAULT_THUBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23999999' viewBox='0 0 16 16'%3E%3Cpath d='M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z'/%3E%3C/svg%3E";
 
 
 function MediaTile(props) {
