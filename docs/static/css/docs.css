@@ -235,6 +235,7 @@ input[type="checkbox"],
 input[type="radio"] {
     display: inline-block;
     width: auto;
+    min-width: 0;
     vertical-align: middle;
 }
 fieldset {
@@ -627,6 +628,7 @@ button.rjf-add-button:hover {
 }
 .rjf-multiselect-field-option label > input[type="checkbox"] {
     width: auto;
+    min-width: 0;
     display: inline-block;
     vertical-align: middle;
     margin-right: 3px;
