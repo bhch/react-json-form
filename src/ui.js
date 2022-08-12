@@ -74,7 +74,7 @@ function FormField(props) {
                     InputField = FormFileInput;
                 } else if (props.schema.format === 'file-url') {
                     InputField = FileUploader;
-                } else if (props.schema.format === 'datetime') {
+                } else if (props.schema.format === 'datetime' || props.schema.format === 'date-time') {
                     InputField = FormDateTimeInput;
                 }
                 inputProps.type = props.schema.format;
