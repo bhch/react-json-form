@@ -1,0 +1,44 @@
+{
+  "name": "react-json-form-docs",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "source": "./src/index.js",
+  "exports": {
+    "require": "./static/js/docs.cjs",
+    "default": "./static/js/docs.modern.js"
+  },
+  "main": "./static/js/docs.cjs",
+  "module": "./static/js/docs.module.js",
+  "unpkg": "./static/js/docs.js",
+  "scripts": {
+    "build": "npm run build:web",
+    "build:web": "microbundle --format umd --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
+    "build:web:standalone": "microbundle --format umd --jsx React.createElement --sourcemap false --define process.env.NODE_ENV=production --external None",
+    "dev": "microbundle watch --format umd --no-compress --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
+    "lint": "eslint src"
+  },
+  "keywords": [],
+  "author": "Bharat Chauhan",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.18.9",
+    "@codemirror/commands": "^6.0.1",
+    "@codemirror/lang-json": "^6.0.0",
+    "@codemirror/state": "^6.1.0",
+    "@codemirror/view": "^6.1.1",
+    "codemirror": "^6.0.1",
+    "eslint": "^8.20.0",
+    "eslint-plugin-react": "^7.30.1",
+    "microbundle": "^0.15.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-modal": "^3.15.1",
+    "react-json-form": "file:.."
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-modal": "^3.15.1"
+  }
+}
