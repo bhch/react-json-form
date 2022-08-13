@@ -38,18 +38,25 @@ export function FormInstance(config) {
     this.onChange = this.onChange.bind(this);
 
     this.render = function() {
-        ReactDOM.render(
-            <FormContainer
-                schema={this.schema}
-                dataInputId={this.dataInputId}
-                data={this.data}
-                fileHandler={this.fileHandler}
-                fieldName={this.fieldName}
-                modelName={this.modelName}
-                onChange={this.onChange}
-            />,
-            document.getElementById(this.containerId)
-        );
+        try {
+            ReactDOM.render(
+                <FormContainer
+                    schema={this.schema}
+                    dataInputId={this.dataInputId}
+                    data={this.data}
+                    fileHandler={this.fileHandler}
+                    fieldName={this.fieldName}
+                    modelName={this.modelName}
+                    onChange={this.onChange}
+                />,
+                document.getElementById(this.containerId)
+            );
+        } catch (error) {
+            ReactDOM.render(
+                <ErrorReporter error={error} />,
+                document.getElementById(this.containerId)
+            );
+        }
     };
 
     this.update = function(config) {
@@ -146,4 +153,16 @@ export class FormContainer extends React.Component {
             />
         );
     }
+}
+
+
+function ErrorReporter(props) {
+    /* Component for displaying errors to the user related for schema */
+
+    return (
+        <div style={{color: '#f00'}}>
+            <p>(!) {props.error.toString()}</p>
+            <p>Check browser console for more details about the error.</p>
+        </div>
+    );
 }
