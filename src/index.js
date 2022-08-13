@@ -1,6 +1,11 @@
-import JSONForm from './renderer';
+import ReactJSONForm from './form.js';
+import EditorState from './editorState.js';
+import {createForm, getFormInstance} from './renderer.js';
 
 
-export default {
-  JSONForm,
+export {
+  ReactJSONForm,
+  EditorState,
+  createForm,
+  getFormInstance,
 };

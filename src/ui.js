@@ -134,7 +134,7 @@ function FormField(props) {
 
 export function getStringFormRow(args) {
     let {
-        data, schema, name, onChange, onRemove, removable, onEdit, editable, 
+        data, schema, name, onChange, onRemove, removable, onEdit, onKeyEdit, editable, 
         onMoveUp, onMoveDown, parentType, ...fieldProps
     } = args;
 
@@ -150,7 +150,7 @@ export function getStringFormRow(args) {
                 schema={schema}
                 name={name}
                 onChange={onChange}
-                onEdit={onEdit}
+                onEdit={onKeyEdit}
                 editable={editable}
                 parentType={parentType}
                 {...fieldProps}
@@ -160,7 +160,7 @@ export function getStringFormRow(args) {
 }
 
 export function getArrayFormRow(args) {
-    let {data, schema, name, onChange, onAdd, onRemove, onMove, level} = args;
+    let {data, schema, name, onChange, onAdd, onRemove, onMove, onEdit, level} = args;
 
     let rows = [];
     let groups = [];
@@ -195,6 +195,8 @@ export function getArrayFormRow(args) {
         level: level + 1,
         removable: removable,
         onMove: onMove,
+        onEdit: onEdit,
+        onKeyEdit: args.onKeyEdit,
         parentType: 'array',
         getRef: args.getRef
     };
@@ -243,7 +245,7 @@ export function getArrayFormRow(args) {
                 addable={addable}
                 onAdd={() => onAdd(getBlankData(schema.items, args.getRef), coords)}
                 editable={args.editable}
-                onEdit={args.onEdit}
+                onEdit={args.onKeyEdit}
                 key={'row_group_' + name}
             >
                 {rows}
@@ -263,7 +265,7 @@ export function getArrayFormRow(args) {
     }
 
     if (groups.length) {
-        let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onEdit}>{schema.title}</GroupTitle> : null;
+        let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onKeyEdit}>{schema.title}</GroupTitle> : null;
 
         groups = (
             <div key={'group_' + name} className="rjf-form-group-wrapper">
@@ -306,7 +308,7 @@ export function getArrayFormRow(args) {
 
 
 export function getObjectFormRow(args) {
-    let {data, schema, name, onChange, onAdd, onRemove, level, onMove} = args;
+    let {data, schema, name, onChange, onAdd, onRemove, onMove, onEdit, level} = args;
 
     let rows = [];
 
@@ -360,11 +362,12 @@ export function getObjectFormRow(args) {
             level: level + 1,
             removable: removable,
             onMove: onMove,
+            onEdit: onEdit,
             parentType: 'object',
             getRef: args.getRef,
         };
 
-        nextArgs.onEdit = () => handleKeyEdit(data, key, value, childName, onAdd, onRemove);
+        nextArgs.onKeyEdit = () => handleKeyEdit(data, key, value, childName, onEdit);
         nextArgs.editable = removable;
 
          if (type === 'array') {
@@ -386,7 +389,7 @@ export function getObjectFormRow(args) {
                 addable={schema.additionalProperties}
                 onAdd={() => handleKeyValueAdd(data, coords, onAdd, schema.additionalProperties, args.getRef)}
                 editable={args.editable}
-                onEdit={args.onEdit}
+                onEdit={args.onKeyEdit}
                 key={'row_group_' + name}
             >
                 {rows}
@@ -427,7 +430,7 @@ function handleKeyValueAdd(data, coords, onAdd, newSchema, getRef) {
 }
 
 
-function handleKeyEdit(data, key, value, coords, onAdd, onRemove) {
+function handleKeyEdit(data, key, value, coords, onEdit) {
     let newKey = prompt("Rename key", key);
     if (newKey === null) // clicked cancel
         return;
@@ -447,6 +450,6 @@ function handleKeyEdit(data, key, value, coords, onAdd, onRemove) {
     newCoords.push(newKey);
     newCoords = newCoords.join('-');
 
-    onAdd(value, newCoords);
-    onRemove(coords);
+
+    onEdit(value, newCoords, coords);
 }

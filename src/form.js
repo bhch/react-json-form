@@ -1,49 +1,10 @@
-import {getBlankData, getSyncedData} from './data';
+import React from 'react';
 import {getArrayFormRow, getObjectFormRow} from './ui';
 import {EditorContext} from './util';
+import EditorState from './editorState';
 
 
-export default class Form extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.dataInput = document.getElementById(this.props.dataInputId);
-        this.schema = props.schema;
-
-        let data = props.data;
-
-        if (!data) {
-            // create empty data from schema
-            data = getBlankData(this.schema, this.getRef);
-        } else {
-            // data might be stale if schema has new keys, so add them to data
-            try {
-                data = getSyncedData(data, this.schema, this.getRef);
-            } catch (error) {
-                console.error("Error: Schema and data structure don't match");
-                console.error(error);
-            }
-        }
-
-        this.state = {
-            value: '',
-            data: data
-        };
-        
-        // update data in the input
-        this.populateDataInput();
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        if (this.state.data !== prevState.data) {
-            this.populateDataInput();
-        }
-    }
-
-    populateDataInput = () => {
-        this.dataInput.value = JSON.stringify(this.state.data);
-    }
-
+export default class ReactJSONForm extends React.Component {
     handleChange = (coords, value) => {
         /*
             e.target.name is a chain of indices and keys:
@@ -57,50 +18,25 @@ export default class Form extends React.Component {
 
         coords.shift(); // remove first coord
 
-        function setDataUsingCoords(coords, data, value) {
-            let coord = coords.shift();
-            if (!isNaN(Number(coord)))
-                coord = Number(coord);
+        // :TODO: use immutable JS instead of JSON-ising the data
+        let data = setDataUsingCoords(coords, JSON.parse(JSON.stringify(this.props.editorState.getData())), value);
 
-            if (coords.length) {
-                setDataUsingCoords(coords, data[coord], value);
-            } else {
-                data[coord] = value;
-            }
-        }
-
-        let _data = JSON.parse(JSON.stringify(this.state.data));
-
-        setDataUsingCoords(coords, _data, value);
-
-        this.setState({data: _data});
+        this.props.onChange(EditorState.update(this.props.editorState, data));
     }
 
     getRef = (ref) => {
         /* Returns schema reference. Nothing to do with React's refs.*/
 
-        let refSchema;
-        let tokens = ref.split('/');
-
-        for (let i = 0; i < tokens.length; i++) {
-            let token = tokens[i];
-
-            if (token === '#')
-                refSchema = this.schema;
-            else
-                refSchema = refSchema[token];
-        }
-
-
-        return {...refSchema};
+        return EditorState.getRef(ref, this.props.editorState.getSchema());
     }
 
     getFields = () => {
-        let data = this.state.data;
+        let data = this.props.editorState.getData();
+        let schema = this.props.editorState.getSchema();
         let formGroups = [];
 
         try {
-            let type = this.schema.type;
+            let type = schema.type;
     
             if (type === 'list')
                 type = 'array';
@@ -109,11 +45,12 @@ export default class Form extends React.Component {
 
             let args = {
                 data: data,
-                schema: this.schema,
+                schema: schema,
                 name: 'rjf',
                 onChange: this.handleChange,
                 onAdd: this.addFieldset,
                 onRemove: this.removeFieldset,
+                onEdit: this.editFieldset,
                 onMove: this.moveFieldset,
                 level: 0,
                 getRef: this.getRef,
@@ -125,6 +62,8 @@ export default class Form extends React.Component {
                 return getObjectFormRow(args);
             }
         } catch (error) {
+            console.log(error);
+
             formGroups = (
                 <p style={{color: '#f00'}}>
                     <strong>(!) Error:</strong> Schema and data structure do not match.
@@ -139,26 +78,40 @@ export default class Form extends React.Component {
         coords = coords.split('-');
         coords.shift();
 
-        this.setState((state) => {
-            let _data = JSON.parse(JSON.stringify(state.data));
+        // :TODO: use immutable JS instead of JSON-ising the data
+        let data = addDataUsingCoords(coords, JSON.parse(JSON.stringify(this.props.editorState.getData())), blankData);
 
-            addDataUsingCoords(coords, _data, blankData);
-
-            return {data: _data};
-        });
+        this.props.onChange(EditorState.update(this.props.editorState, data));
     }
 
     removeFieldset = (coords) => {
         coords = coords.split('-');
         coords.shift();
+ 
+        // :TODO: use immutable JS instead of JSON-ising the data
+        let data = removeDataUsingCoords(coords, JSON.parse(JSON.stringify(this.props.editorState.getData())));
 
-        this.setState((state) => {
-            let _data = JSON.parse(JSON.stringify(state.data));
+        this.props.onChange(EditorState.update(this.props.editorState, data));
+    }
 
-            removeDataUsingCoords(coords, _data);
+    editFieldset = (value, newCoords, oldCoords) => {
+        /* Add and remove in a single state update
 
-            return {data: _data};
-        });
+            newCoords will be added
+            oldCoords willbe removed
+        */
+
+        newCoords = newCoords.split('-');
+        newCoords.shift();
+
+        oldCoords = oldCoords.split('-');
+        oldCoords.shift();
+
+        let data = addDataUsingCoords(newCoords, JSON.parse(JSON.stringify(this.props.editorState.getData())), value);
+
+        data = removeDataUsingCoords(oldCoords, data);
+
+        this.props.onChange(EditorState.update(this.props.editorState, data));
     }
 
     moveFieldset = (oldCoords, newCoords) => {
@@ -168,13 +121,10 @@ export default class Form extends React.Component {
         newCoords = newCoords.split("-");
         newCoords.shift();
 
-        this.setState((state) => {
-            let _data = JSON.parse(JSON.stringify(state.data));
+        // :TODO: use immutable JS instead of JSON-ising the data
+        let data = moveDataUsingCoords(oldCoords, newCoords, JSON.parse(JSON.stringify(this.props.editorState.getData())));
 
-            moveDataUsingCoords(oldCoords, newCoords, _data);
-
-            return {data: _data};
-        });
+        this.props.onChange(EditorState.update(this.props.editorState, data));
     }
 
     render() {
@@ -196,6 +146,23 @@ export default class Form extends React.Component {
     }
 }
 
+function setDataUsingCoords(coords, data, value) {
+    let coord = coords.shift();
+
+    if (!isNaN(Number(coord)))
+        coord = Number(coord);
+
+    if (coords.length) {
+        data[coord] = setDataUsingCoords(coords, data[coord], value);
+    } else {
+        if (coord === undefined) // top level array with multiselect widget
+            data = value;
+        else
+            data[coord] = value;
+    }
+
+    return data;
+}
 
 function addDataUsingCoords(coords, data, value) {
     let coord = coords.shift();
@@ -203,12 +170,11 @@ function addDataUsingCoords(coords, data, value) {
         coord = Number(coord);
 
     if (coords.length) {
-        addDataUsingCoords(coords, data[coord], value);
+        data[coord] = addDataUsingCoords(coords, data[coord], value);
     } else {
         if (Array.isArray(data[coord])) {
             data[coord].push(value);
-        }
-        else {
+        } else {
             if (Array.isArray(data)) {
                 data.push(value);
             } else {
@@ -216,6 +182,8 @@ function addDataUsingCoords(coords, data, value) {
             }
         }
     }
+
+    return data;
 }
 
 function removeDataUsingCoords(coords, data) {
@@ -231,6 +199,8 @@ function removeDataUsingCoords(coords, data) {
         else
             delete data[coord];
     }
+
+    return data;
 }
 
 
@@ -257,4 +227,6 @@ function moveDataUsingCoords(oldCoords, newCoords, data) {
             data.splice(newCoord, 0, item);
         }
     }
+
+    return data;
 }
