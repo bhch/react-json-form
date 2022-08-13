@@ -4,15 +4,19 @@
   "description": "",
   "type": "module",
   "source": "./src/index.js",
-  "exports": "./dist/react-json-form.modern.js",
-  "main": "./dist/react-json-form.js",
+  "exports": {
+    "require": "./dist/react-json-form.cjs",
+    "default": "./dist/react-json-form.modern.js"
+  },
+  "main": "./dist/react-json-form.cjs",
   "module": "./dist/react-json-form.module.js",
   "unpkg": "./dist/react-json-form.js",
   "scripts": {
-    "build": "npm run build:uncompressed && npm run build:compressed",
-    "build:uncompressed": "microbundle --format umd --no-compress --jsx React.createElement",
-    "build:compressed": "microbundle --format umd --jsx React.createElement -o ./dist/react-json-form.min.js",
-    "dev": "microbundle watch --format umd --no-compress --jsx React.createElement --output ./dev/dist/ --sourcemap false",
+    "build": "npm run build:web && npm run build:node",
+    "build:web": "microbundle --format umd --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
+    "build:node": "microbundle --format cjs,esm,modern --jsx React.createElement  --sourcemap false --target node",
+    "dev:web": "microbundle watch --format umd --no-compress --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
+    "dev:node": "microbundle watch --format modern --no-compress --jsx React.createElement --sourcemap false --taget node",
     "lint": "eslint src"
   },
   "keywords": [],
@@ -23,5 +27,10 @@
     "eslint": "^8.20.0",
     "eslint-plugin-react": "^7.30.1",
     "microbundle": "^0.15.0"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-modal": "^3.15.1"
   }
 }
