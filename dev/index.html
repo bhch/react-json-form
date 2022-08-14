@@ -58,8 +58,7 @@
             margin-bottom: 15px;
             position: relative;
             transition: background-color 0.12s ease-in-out;
-        }
-        .rjf-form-group-inner {
+
             border: 1px solid #ddd;
             padding: 15px;
             border-radius: 3px;
@@ -123,6 +122,9 @@
             color: #ff4444;
             border-color: #ff4444;
         }
+        .rjf-form-row-controls button span {
+            pointer-events: none;
+        }
         .rjf-form-text {
             display: block;
             font-size: 0.88em;
@@ -178,11 +180,225 @@
                 transform: rotate(359deg);
             }
         }
+
+        .rjf-animate {
+            transition: all 0.2s ease-in-out;
+        }
+        .rjf-remove {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+
+        .rjf-icon {
+            width: 1.3em;
+            height: 1.3em;
+            display: inline-block;
+        }
+
+        .rjf-datetime-field {
+            position: relative;
+        }
+        .rjf-time-picker {
+            width: 300px;
+            position: absolute;
+            background-color: #fff;
+            z-index: 10;
+            border-radius: 4px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+        }
+        .rjf-time-picker input {
+            max-width: 100%;
+            width: 100%;
+            text-align: center;
+            font-size: 1em;
+            padding: 2px 2px;
+            border: 1px solid #ccc;
+            outline: 0;
+        }
+        .rjf-time-picker-row {
+            margin-left: -5px;
+            margin-right: -5px;
+        }
+        .rjf-time-picker-row::before,
+        .rjf-time-picker-row::after {
+            clear: both;
+            content: " ";
+            display: table;
+        }
+        .rjf-time-picker-col {
+            display: block;
+            float: left;
+            padding: 0 5px;
+            width: 20%;
+            min-height: 1px;
+        }
+        .rjf-time-picker-col-sm {
+            width: 6.666667%;
+            padding: 0;
+        }
+        .rjf-time-picker button {
+            display: block;
+            width: 100%;
+            background-color: #fff;
+            color: #666;
+            border: 1px solid transparent;
+            line-height: 1;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .rjf-time-picker button:hover {
+            color: #000;
+            background-color: #eee;
+            border-color: #ccc;
+        }
+        .rjf-time-picker-labels {
+            text-align: center;
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        .rjf-time-picker-values {
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .rjf-multiselect-field {
+            position: relative;
+        }
+        .rjf-multiselect-field-input {
+            background-color: #fff;
+            border: 1px solid #999;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .rjf-multiselect-field-options-container {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            width: 300px;
+            padding: 5px 0;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.12);
+            height: 150px;
+            overflow: auto;
+            z-index: 100;
+        }
+        .rjf-multiselect-field-option.disabled {
+            color: #999;
+        }
+        .rjf-multiselect-field-option label {
+            padding: 3px 8px;
+            cursor: pointer;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+             -khtml-user-select: none; /* Konqueror HTML */
+               -moz-user-select: none; /* Old versions of Firefox */
+                -ms-user-select: none; /* Internet Explorer/Edge */
+                    user-select: none;
+        }
+        .rjf-multiselect-field-option label:hover {
+            background-color: #f3f3f3;
+        }
+        .rjf-multiselect-field-option.selected label {
+            background-color: #fff8e2;
+        }
+        .rjf-multiselect-field-option.selected label:hover {
+            background-color: #f5eed9;
+        }
+        .rjf-multiselect-field-option.disabled label {
+            cursor: not-allowed;
+            background-color: #fff;
+        }
+        .rjf-multiselect-field-option label > input[type="checkbox"] {
+            vertical-align: middle;
+            margin-right: 3px;
+        }
+
+        .rjf-modal__main-body--open {
+            overflow: hidden;
+        }
+        .rjf-modal__overlay {
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            background-color: rgba(0,0,0,.25);
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 2000;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .rjf-modal__dialog {
+            max-width: 700px;
+            top: 5%;
+            left: 0;
+            right: 0;
+            margin: auto;
+            margin-top: .5rem;
+            padding-left: 10px;
+            padding-right: 10px;
+            padding-bottom: 5rem;
+            position: relative;
+            width: auto;
+            pointer-events: none;
+            outline: none;
+            border: none;
+        }
+        .rjf-modal__content {
+            background-color: #fff;
+            overflow: auto;
+            border-radius: 4px;
+            width: 100%;
+            box-shadow: 0 0 16px rgba(0,0,0,.25);
+            pointer-events: auto;
+        }
+        .rjf-modal__header {
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background-color: #f3f2f1;
+        }
+        .rjf-modal__close-button {
+            float: right;
+            border: 0;
+            color: #ff4444;
+            background-color: #ffeeee;
+            border-color: #ffcccc;
+            position: relative;
+            padding: 0.3rem 0.58rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.12s ease-in-out, border-color 0.12s ease-in-out, color 0.12s ease-in-out;
+        }
+        .rjf-modal__close-button:hover {
+            color: #ff4444;
+            border-color: #ff4444;
+            background-color: #fff;
+        }
+        .rjf-modal__close-button span {
+            pointer-events: none;
+        }
+        .rjf-modal__body {
+            padding: 15px;
+        }
+        .rjf-modal__footer {
+            padding: 15px;
+            display: table;
+            width: 100%;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
 
 <h1>JSON Editor</h1>
+
 <div class="container">
     <div class="split">
         <div id="editor_container"></div>
@@ -192,174 +408,91 @@
     </div>
 </div>
 
-<div class="container">
-    <div class="split">
-        <div id="editor_container_2"></div>
-    </div>
-    <div class="split">
-        <textarea id="id_editor_data_2" cols="40" rows="10"></textarea>
-    </div>
-</div>
-
-<div class="container">
-    <div class="split">
-        <div id="editor_container_3"></div>
-    </div>
-    <div class="split">
-        <textarea id="id_editor_data_3" cols="40" rows="10"></textarea>
-    </div>
-</div>
-
-<div class="container">
-    <div class="split">
-        <div id="editor_container_4"></div>
-    </div>
-    <div class="split">
-        <textarea id="id_editor_data_4" cols="40" rows="10"></textarea>
-    </div>
-</div>
 
 <script type="text/javascript" src="vendor/react.development-17.0.2.js"></script>
 <script type="text/javascript" src="vendor/react-dom.development-17.0.2.js"></script>
-<script type="text/javascript" src="dist/react-json-form.js"></script>
+<script type="text/javascript" src="vendor/react-modal.min.js"></script>
+<script type="text/javascript" src="../dist/react-json-form.js"></script>
 <script type="text/javascript">
 
-    let editor = new reactJsonForm.JSONForm({
+    var form = reactJsonForm.createForm({
         containerId: 'editor_container',
         dataInputId: 'id_editor_data',
-        data: [
-            "python",
-            "javascript",
-            "html"
-        ],
-        schema: {
-            type: 'array',
-            title: "Menu items",
-            max_items: 5,
-            min_items: 0,
-            items: {
-                type: 'string',
-                title: 'Tag',
-                format: 'file-url'
-            }
-        },
-    });
-
-    editor.render();
-
-
-    let editor2 = new reactJsonForm.JSONForm({
-        containerId: 'editor_container_2',
-        dataInputId: 'id_editor_data_2',
-        _data: [
-            {
-                url: '/asf/',
-                new_tab: true,
-                label: 'Home',
-                tags: ["asf", "Asf"]
-            },
-            {
-                url: '/asf/',
-                new_tab: true,
-                label: 'Home',
-                tags: ["asf", "Asf"]
-            }
-        ],
-        data: [
-            {
-                label: 'Hello 1',
-                tags: ['1', '2'],
-            },
-            {
-                label: 'Hello 2',
-                tags: ['3', '4'],
-            },
-        ],
-        schema: {
-            type: 'array',
-            title: "Menu items",
-            max_items: 5,
-            min_items: 0,
-            items: {
-                type: 'object',
-                keys: {
-                    label: {
-                      type: 'string',
-                    },
-                    tags: {
-                        type: 'array',
-                        items: {
-                            type: 'string',
-                        }
-                    }
-                }
-            }
-        },
-    });
-
-    editor2.render();
-
-
-    let editor3 = new reactJsonForm.JSONForm({
-        containerId: 'editor_container_3',
-        dataInputId: 'id_editor_data_3',
-        _data: {
-            site_name: 'hllo',
-            twitter: '@twetsf',
-        },
+        fileListEndpoint: '/',
         schema: {
             type: 'object',
-            title: 'Settings',
-            order: ['site_name', 'site_title', 'logo', 'twitter'],
-            additionalProperties: true,
+            title: 'Address',
             keys: {
-                name: {
-                    type: 'string'
+                state: {
+                    type: 'string',
+                    choices: ['California', 'Texas', 'Florida', 'Washington']
                 },
-                age: {
-                    type: 'string'
-                }
-            }
-        },
-    });
-
-    editor3.render();
-
-    let editor4 = new reactJsonForm.JSONForm({
-        containerId: 'editor_container_4',
-        dataInputId: 'id_editor_data_4',
-        _data: {
-            site_name: 'hllo',
-            twitter: '@twetsf',
-        },
-        schema: {
-            type: 'object',
-            title: 'Settings',
-            extandable: true,
-            field_order: ['site_name', 'site_title', 'logo', 'twitter'],
-            keys: {
-                logo: {
-                    type: "string"
+                city: {
+                    type: 'string',
+                    choices: [],
+                    readonly: true
                 },
-                site_name: {
-                  type: 'object',
-                  keys: {
-                    name1: {
-                        type: 'string'
-                    }
-                  } 
-                },
-                site_title: {
+                names: {
                     type: 'array',
-                    items: {
-                        type: 'string'
-                    }
-                },
+                    items: {type: 'string'},
+                    minItems: 10,
+                    default: ['a', 'b']
+                }
+            },
+
+            additionalProperties: {
+                type: 'string',
             }
         },
+        schema: {
+            type: 'array',
+            title: 'Shopping list',
+            items: {
+                type: 'integer',
+                default: 0
+            },
+            default: ['111', "", "Asdf"],
+            minItems: 5,
+        }
     });
 
-    editor4.render();
+    form.render();
+
+</script>
+
+<script type="text/javascript">
+
+    var stateCitiesMap = {
+        'California': ['Los Angeles', 'San Fracisco', 'San Diego', 'Oakland'],
+        'Texas': ['Austin', 'Dallas', 'Houston', 'San Antonio'],
+        'Florida': ['Miami', 'Orlando', 'Tampa', 'Jacksonville'],
+        'Washington': ['Seattle', 'Olympia', 'Spokane', 'Vancouver']
+    };
+
+    var formInstance = reactJsonForm.getFormInstance('editor_container');
+
+
+    formInstance.addEventListener('change', function(e) {
+        var schema = e.schema;
+        var prevSchema = e.prevSchema;
+
+        var data = e.data;
+        var prevData = e.prevData;
+
+        if (e.data.state === e.prevData.state)
+            return;
+
+        schema.keys.city.choices = stateCitiesMap[data.state];
+        schema.keys.city.readonly = false;
+
+        data.city = '';
+
+        form.update({
+            schema: schema,
+            data: data
+        });
+
+    });
 </script>
 </body>
 </html>
