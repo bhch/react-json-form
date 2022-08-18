@@ -1,7 +1,10 @@
 {
-  "name": "react-json-form",
+  "name": "@bhch/react-json-form",
   "version": "2.0.0",
-  "description": "",
+  "description": "Create forms using JSON Schema",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "source": "./src/index.js",
   "exports": {
@@ -19,9 +22,29 @@
     "dev:node": "microbundle watch --format modern --no-compress --jsx React.createElement --sourcemap false --taget node",
     "lint": "eslint src"
   },
-  "keywords": [],
+  "files": [
+    "./src",
+    "./dist"
+  ],
+  "keywords": [
+    "json-form",
+    "jsonform",
+    "json-schema-form",
+    "jsonschemaform",
+    "react",
+    "react-component",
+    "react-jsons-form",
+    "react-jsonschema-form"
+  ],
   "author": "Bharat Chauhan",
   "license": "BSD-3-Clause",
+  "homepage": "https://github.com/bhch/react-json-form",
+  "bugs": "https://github.com/bhch/react-json-form/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bhch/react-json-form.git"
+  },
+  "funding": "https://github.com/sponsors/bhch/",
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.9",
     "eslint": "^8.20.0",
