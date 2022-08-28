@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Using in Browser - React JSON Form</title>
+    <meta name="description" content="react-json-form docs, live demos and playground">
+    <link rel="icon" type="image/x-icon" href="/react-json-form/favicon.ico">
+    <link rel="apple-touch-icon" href="/react-json-form/apple-touch-icon.png" sizes="180x180">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/react-json-form/static/css/docs.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"> 
+    
+</head>
+
+<body class="d-flex flex-column h-100">
+<div class="flex-grow-1 flex-shrink-0">
+    <div class="top-nav">
+        <div class="container-xl">
+            <div class="row">
+                <div class="col-12 col-sm-3">
+                    <a href="/react-json-form/" class="d-inline-block">
+                        <img src="/react-json-form/static/img/logo.svg" alt="React JSON Form" class="logo">
+                    </a>
+                    <button id="topNavToggler" class="hamburger d-sm-none float-right" type="button">
+                        <span class="hamburger-box">
+                            <span class="hamburger-inner"></span>
+                        </span>
+                    </button>
+                </div>
+                <div class="col-12 col-sm-9 d-none d-sm-block top-nav-menu" id="topNavMenu">
+                    <nav class="nav nav-pills justify-content-end">
+                        <a href="/react-json-form/" class="nav-link">
+                            Home
+                        </a>
+                        <a href="/react-json-form/docs/" class="nav-link active">
+                            Docs
+                        </a>
+                        <a href="/react-json-form/docs/install/" class="nav-link d-sm-none">
+                            Install
+                        </a>
+                        <a href="/react-json-form/docs/usage/node/" class="nav-link d-sm-none">
+                            Using in Node
+                        </a>
+                        <a href="/react-json-form/docs/usage/browser/" class="nav-link active d-sm-none">
+                            Using in Browser
+                        </a>
+                        <a href="/react-json-form/docs/schema/" class="nav-link d-sm-none">
+                            Schema
+                        </a>
+                        <a href="/react-json-form/docs/developing/" class="nav-link d-sm-none">
+                            Developing
+                        </a>
+                        <a href="/react-json-form/playground/" class="nav-link">
+                            Playground
+                        </a>
+                        <a href="https://github.com/bhch/react-json-form" class="nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                            Github
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-heading text-center">
+        <h1>USING IN BROWSER</h1>
+    </div>
+
+    <div class="container-xl">
+       
+<div class="row mt-4">
+    <div class="sidebar-container col-12 col-sm-3 d-none d-sm-block">
+        <div class="sidebar sticky-top">
+            <div class="toc">
+                <ul class="nav nav-pills flex-column pt-2">
+                    
+                        <li class="nav-item">
+                            <a href="/react-json-form/docs/install/" class="nav-link">Install</a>
+                        </li>
+                    
+                        <li class="nav-item">
+                            <a href="/react-json-form/docs/usage/node/" class="nav-link">Using in Node</a>
+                        </li>
+                    
+                        <li class="nav-item">
+                            <a href="/react-json-form/docs/usage/browser/" class="nav-link active">Using in Browser</a>
+                        </li>
+                    
+                        <li class="nav-item">
+                            <a href="/react-json-form/docs/schema/" class="nav-link">Schema</a>
+                        </li>
+                    
+                        <li class="nav-item">
+                            <a href="/react-json-form/docs/developing/" class="nav-link">Developing</a>
+                        </li>
+                    
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="content col-12 col-sm-9 col-lg-7">
+        <p>In the browser, the library will be available under <code>reactJsonForm</code> variable.</p>
+<h2 id="creating-the-form" tabindex="-1">Creating the form <a class="header-anchor" href="#creating-the-form">#</a></h2>
+<p>Use the <a href="#reactjsonform.createform(config)"><code>reactJsonForm.createForm()</code></a> function to
+create the from from your schema.</p>
+<p>You'll also need to have a <code>textarea</code> where the form will save the data.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>formContainer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token comment">&lt;!-- The form will be displayed here --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>textarea</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>formData<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token comment">&lt;!-- The form data will be kept in this textarea --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>textarea</span><span class="token punctuation">></span></span><br><br><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text/javascript<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"><br><span class="token keyword">var</span> form <span class="token operator">=</span> reactJsonForm<span class="token punctuation">.</span><span class="token function">createForm</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>    <span class="token literal-property property">containerId</span><span class="token operator">:</span> <span class="token string">'formContainer'</span><span class="token punctuation">,</span><br>    <span class="token literal-property property">containerId</span><span class="token operator">:</span> <span class="token string">'formData'</span><span class="token punctuation">,</span><br>    <span class="token literal-property property">schema</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>        <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'object'</span><span class="token punctuation">,</span><br>        <span class="token literal-property property">keys</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>            <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'string'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>            <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'integer'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>        <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>form<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+<h2 id="handling-events" tabindex="-1">Handling events <a class="header-anchor" href="#handling-events">#</a></h2>
+<pre class="language-js"><code class="language-js">form<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'change'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// ... </span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<p>See <a href="#forminstance.addeventlistener(event%2C-callback)"><code>addEventListener()</code></a> section for
+further details about handling events.</p>
+<h2 id="api-reference" tabindex="-1">API reference <a class="header-anchor" href="#api-reference">#</a></h2>
+<h3 id="library-functions" tabindex="-1">Library functions <a class="header-anchor" href="#library-functions">#</a></h3>
+<h5 id="reactjsonform.createform(config)" tabindex="-1"><code>reactJsonForm.createForm(config)</code> <a class="header-anchor" href="#reactjsonform.createform(config)">#</a></h5>
+<p>Function used for creating the form UI. The <code>config</code> parameter is an object
+which may contain these keys:</p>
+<ul>
+<li><code>containerId</code>: The HTML ID of the element in which the form should be rendered.</li>
+<li><code>dataInputId</code>: The HTML ID of the textarea element in which the form data should be kept.</li>
+<li><code>schema</code>: The schema of the form.</li>
+<li><code>data</code> <em>(Optional)</em>: The initial data of the form.</li>
+<li><code>fileHandler</code> <em>(Optional)</em>: URL for the common file handler endpoint for all file fields.</li>
+</ul>
+<h5 id="reactjsonform.getforminstance(containerid)" tabindex="-1"><code>reactJsonForm.getFormInstance(containerId)</code> <a class="header-anchor" href="#reactjsonform.getforminstance(containerid)">#</a></h5>
+<p>Call this function to get a previously created form instance.</p>
+<p>If you've earlier created an instance in a scoped function, then to get
+the form instance in another scope, this function can be helpful.</p>
+<p>This helps you avoid keeping track of the form instances yourself.</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> form <span class="token operator">=</span> reactJsonForm<span class="token punctuation">.</span><span class="token function">getFormInstance</span><span class="token punctuation">(</span><span class="token string">'formContainer'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<h3 id="form-instance" tabindex="-1">Form instance <a class="header-anchor" href="#form-instance">#</a></h3>
+<p>The following methods, attributes &amp; events are available on a form instance.</p>
+<h4 id="methods" tabindex="-1">Methods <a class="header-anchor" href="#methods">#</a></h4>
+<h5 id="forminstance.addeventlistener(event%2C-callback)" tabindex="-1"><code>formInstance.addEventListener(event, callback)</code> <a class="header-anchor" href="#forminstance.addeventlistener(event%2C-callback)">#</a></h5>
+<p>Register a callback for a given event (<a href="#events">see available events</a>).</p>
+<p>The callback function will be passed an <code>Object</code> with the following keys:</p>
+<ul>
+<li><code>data</code>: Current data of the form.</li>
+<li><code>prevData</code>: Previous data of the form (before the event).</li>
+<li><code>schema</code>: Current schema of the form.</li>
+<li><code>prevSchema</code>: Previous schema of the form (before the event).</li>
+</ul>
+<div class="alert alert-info">
+    <p><strong>Attention!</strong></p>
+    <p>
+        If you want to call the <a href="#forminstance.update(config)"><code>update()</code></a>
+        method from within an event listener, <strong>you must call it conditionally</strong>
+        or else it might cause an infite loop.
+    </p>
+    <p>
+        For example, only call the <code>update()</code> after checking that the
+        current <code>data</code> and <code>prevData</code> are not same.
+    </p>
+</div>
+<p>Example:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> form <span class="token operator">=</span> reactjsonform<span class="token punctuation">.</span><span class="token function">createform</span><span class="token punctuation">(</span><span class="token operator">...</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>form<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'change'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">var</span> data <span class="token operator">=</span> e<span class="token punctuation">.</span>data<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">prevData</span><span class="token operator">:</span> e<span class="token punctuation">.</span>prevData<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">schema</span><span class="token operator">:</span> e<span class="token punctuation">.</span>schema<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">prevSchema</span><span class="token operator">:</span> e<span class="token punctuation">.</span>prevSchema<span class="token punctuation">;</span><br><br>    <span class="token comment">// do something ...</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<h5 id="forminstance.render()" tabindex="-1"><code>formInstance.render()</code> <a class="header-anchor" href="#forminstance.render()">#</a></h5>
+<p>Function to render the form.</p>
+<h5 id="forminstance.update(config)" tabindex="-1"><code>formInstance.update(config)</code> <a class="header-anchor" href="#forminstance.update(config)">#</a></h5>
+<p>Re-render the form with the given <code>config</code>.</p>
+<h4 id="events" tabindex="-1">Events <a class="header-anchor" href="#events">#</a></h4>
+<p>Following is the list of currently available events:</p>
+<ul>
+<li><code>change</code></li>
+</ul>
+
+    </div>
+</div>
+    </div>
+</div>
+
+<div class="flex-grow-0 flex-shrink-1" style="margin-top: 200px;">
+    <div class="footer">
+        <div class="container-xl">
+            <div class="row">
+                <div class="col-4">
+                    <img src="/react-json-form/static/img/logo.svg" alt="React JSON Form" class="logo">
+                </div>
+                <div class="col-8 text-right pt-3 footer-nav">
+                    
+                        <a href="https://github.com/bhch/react-json-form">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                            View on Github
+                        </a>
+                    
+                </div>
+            </div>             
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var topNavToggler = document.getElementById('topNavToggler');
+    var topNavMenu = document.getElementById('topNavMenu');
+    topNavToggler.addEventListener('click', function(e) {
+        if (this.classList.contains('active')) {
+            this.classList.remove('active');
+            topNavMenu.classList.add('d-none');
+        } else {
+            this.classList.add('active');
+            topNavMenu.classList.remove('d-none');
+        }
+
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Usage - React JSON Form</title>
+    <meta name="description" content="react-json-form docs, live demos and playground">
+    <link rel="icon" type="image/x-icon" href="/react-json-form/favicon.ico">
+    <link rel="apple-touch-icon" href="/react-json-form/apple-touch-icon.png" sizes="180x180">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/react-json-form/static/css/docs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"> 
+</head>
+
+<body class="d-flex flex-column h-100">
+<div class="flex-grow-1 flex-shrink-0">
+    <div class="top-nav">
+        <div class="container-xl">
+            <div class="row">
+                <div class="col-12 col-sm-3">
+                    <a href="/react-json-form/" class="d-inline-block">
+                        <img src="/react-json-form/static/img/logo.svg" alt="React JSON Form" class="logo">
+                    </a>
+                    <button id="topNavToggler" class="hamburger d-sm-none float-right" type="button">
+                        <span class="hamburger-box">
+                            <span class="hamburger-inner"></span>
+                        </span>
+                    </button>
+                </div>
+                <div class="col-12 col-sm-9 d-none d-sm-block top-nav-menu" id="topNavMenu">
+                    <nav class="nav nav-pills justify-content-end">
+                        <a href="/react-json-form/" class="nav-link">
+                            Home
+                        </a>
+                        <a href="/react-json-form/docs/" class="nav-link active">
+                            Docs
+                        </a>
+                        <a href="/react-json-form/docs/install/" class="nav-link d-sm-none">
+                            Install
+                        </a>
+                        <a href="/react-json-form/docs/usage/" class="nav-link active d-sm-none">
+                            Usage
+                        </a>
+                        <a href="/react-json-form/docs/develop/" class="nav-link d-sm-none">
+                            Develop
+                        </a>
+                        <a href="/react-json-form/playground/" class="nav-link">
+                            Playground
+                        </a>
+                        <a href="https://github.com/bhch/react-json-form" class="nav-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                            Github
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-heading text-center">
+        <h1>USAGE</h1>
+    </div>
+
+    <div class="container-xl">
+       
+<div class="row mt-4">
+    <div class="sidebar-container col-12 col-sm-3 d-none d-sm-block">
+        <div class="sidebar sticky-top">
+            <div class="toc">
+                <span class="d-block toc__header">Contents</span>
+                <ul>
+                    <li><a href="#">Node</a></li>
+                    <li><a href="#">Browser</a></li>
+                    <li><a href="#">CDN</a></li>
+                    <li><a href="#">Github</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="content col-12 col-sm-9 col-lg-7">
+        <p>react-json-form can be used directly in the browser or in a Node project.</p>
+<h2>Browser</h2>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text/javascript<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"><br><span class="token keyword">var</span> form <span class="token operator">=</span> reactJsonForm<span class="token punctuation">.</span><span class="token function">createForm</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>    <span class="token literal-property property">schema</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>        <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'object'</span><span class="token punctuation">,</span><br>        <span class="token literal-property property">keys</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>            <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'string'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>            <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'integer'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>        <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+<h2>Node</h2>
+<p>This shows the usage in a react project.</p>
+<pre class="language-jsx"><code class="language-jsx"><span class="token keyword">import</span> React <span class="token keyword">from</span> <span class="token string">'react'</span><span class="token punctuation">;</span><br><span class="token keyword">import</span> <span class="token punctuation">{</span>ReactJSONForm<span class="token punctuation">,</span> EditorState<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@bhch/react-json-form'</span><span class="token punctuation">;</span><br><br><br><span class="token keyword">class</span> <span class="token class-name">MyComponent</span> <span class="token keyword">extends</span> <span class="token class-name">React<span class="token punctuation">.</span>Component</span> <span class="token punctuation">{</span><br>    <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token parameter">props</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        <span class="token keyword">super</span><span class="token punctuation">(</span>props<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>        <span class="token keyword">this</span><span class="token punctuation">.</span>state <span class="token operator">=</span> <span class="token punctuation">{</span><br>            <span class="token literal-property property">editorState</span><span class="token operator">:</span> EditorState<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">schema</span><span class="token operator">:</span> <span class="token operator">...</span><span class="token punctuation">,</span> <span class="token literal-property property">data</span><span class="token operator">:</span> <span class="token string">'this is data'</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br><br>    <span class="token function-variable function">handleFormChange</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">editorState</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>        <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">setState</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">editorState</span><span class="token operator">:</span> editorState<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br><br>    <span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        <span class="token keyword">return</span> <span class="token punctuation">(</span><br>            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span><span class="token punctuation">></span></span><span class="token plain-text"><br>                </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">ReactJSONForm</span></span><br>                    <span class="token attr-name">editorState</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token keyword">this</span><span class="token punctuation">.</span>state<span class="token punctuation">.</span>editorState<span class="token punctuation">}</span></span><br>                <span class="token punctuation">/></span></span><span class="token plain-text"><br>            </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>        <span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
+
+    </div>
+</div>
+    </div>
+</div>
+
+<div class="flex-grow-0 flex-shrink-1" style="margin-top: 200px;">
+    <div class="footer">
+        <div class="container-xl">
+            <div class="row">
+                <div class="col-4">
+                    <img src="/react-json-form/static/img/logo.svg" alt="React JSON Form" class="logo">
+                </div>
+                <div class="col-8 text-right pt-3 footer-nav">
+                    
+                        <a href="https://github.com/bhch/react-json-form">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                            View on Github
+                        </a>
+                    
+                </div>
+            </div>             
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var topNavToggler = document.getElementById('topNavToggler');
+    var topNavMenu = document.getElementById('topNavMenu');
+    topNavToggler.addEventListener('click', function(e) {
+        if (this.classList.contains('active')) {
+            this.classList.remove('active');
+            topNavMenu.classList.add('d-none');
+        } else {
+            this.classList.add('active');
+            topNavMenu.classList.remove('d-none');
+        }
+
+    });
+</script>
+
+</body>
+</html>
