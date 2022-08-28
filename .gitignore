@@ -107,3 +107,9 @@ typings/
 
 # TernJS port file
 .tern-port
+
+# Docs dev build
+docs/_site
+
+# Zipped dist package
+*-dist.zip
