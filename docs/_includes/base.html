@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if title %}{{ title }} - {% endif %}{{ project.title }}</title>
+    <meta name="description" content="react-json-form docs, live demos and playground">
+    <link rel="icon" type="image/x-icon" href="{{ '/favicon.ico' | url }}">
+    <link rel="apple-touch-icon" href="{{ '/apple-touch-icon.png' | url }}" sizes="180x180">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ '/static/css/docs.css' | url }}">
+    {% if project.node_env == 'production' %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"> 
+    {% endif %}
+</head>
+
+<body class="d-flex flex-column h-100">
+<div class="flex-grow-1 flex-shrink-0">
+    <div class="top-nav">
+        <div class="container-xl">
+            <div class="row">
+                <div class="col-12 col-sm-3">
+                    <a href="{{ '/' | url }}" class="d-inline-block">
+                        <img src="{{ '/static/img/logo.svg' | url }}" alt="{{ project.title }}" class="logo">
+                    </a>
+                    <button id="topNavToggler" class="hamburger d-sm-none float-right" type="button">
+                        <span class="hamburger-box">
+                            <span class="hamburger-inner"></span>
+                        </span>
+                    </button>
+                </div>
+                <div class="col-12 col-sm-9 d-none d-sm-block top-nav-menu" id="topNavMenu">
+                    <nav class="nav nav-pills justify-content-end">
+                    {%- for item in project.topNav %}
+                        <a href="{{ item.url | url }}" class="nav-link{% if item | navLinkIsActive: page.url %} active{% endif %}{% if item.className %} {{ item.className }}{% endif %}">
+                            {% if item.icon -%}
+                                {% assign iconPath = 'icons/' | append: item.icon | append: '.svg' %}
+                                {%- include iconPath %}
+                            {% endif %}{{ item.title }}
+                        </a>
+                    {%- endfor %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-heading text-center">
+        <h1>{{ title | upcase }}</h1>
+    </div>
+
+    <div class="container-xl">
+       {{ content }}
+    </div>
+</div>
+
+<div class="flex-grow-0 flex-shrink-1" style="margin-top: 200px;">
+    <div class="footer">
+        <div class="container-xl">
+            <div class="row">
+                <div class="col-4">
+                    <img src="{{ '/static/img/logo.svg' | url }}" alt="{{ project.title }}" class="logo">
+                </div>
+                <div class="col-8 text-right pt-3 footer-nav">
+                    {% for item in project.footerNav %}
+                        <a href="{{ item.url | url }}">
+                            {% if item.icon -%}
+                                {% assign iconPath = 'icons/' | append: item.icon | append: '.svg' %}
+                                {%- include iconPath %}
+                            {% endif %}{{ item.title }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>             
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var topNavToggler = document.getElementById('topNavToggler');
+    var topNavMenu = document.getElementById('topNavMenu');
+    topNavToggler.addEventListener('click', function(e) {
+        if (this.classList.contains('active')) {
+            this.classList.remove('active');
+            topNavMenu.classList.add('d-none');
+        } else {
+            this.classList.add('active');
+            topNavMenu.classList.remove('d-none');
+        }
+
+    });
+</script>
+
+{% for link in scripts -%}
+    <script type="text/javascript" src="{{ link | url }}"></script>
+{% endfor -%}
+
+</body>
+</html>

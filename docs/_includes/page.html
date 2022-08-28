@@ -1,0 +1,22 @@
+---
+layout: base.html
+---
+
+<div class="row mt-4">
+    <div class="sidebar-container col-12 col-sm-3 d-none d-sm-block">
+        <div class="sidebar sticky-top">
+            <div class="toc">
+                <ul class="nav nav-pills flex-column pt-2">
+                    {% for item in docToc.items %}
+                        <li class="nav-item">
+                            <a href="{{ item.url | url }}" class="nav-link{% if item.url == page.url %} active{% endif %}">{{ item.title }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="content col-12 col-sm-9 col-lg-7">
+        {{ content }}
+    </div>
+</div>
