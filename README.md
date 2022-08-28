@@ -6,7 +6,7 @@ React Component for editing JSON data using form inputs.
 
 ### Live demo
 
-https://bhch.github.io/react-json-form/
+https://bhch.github.io/react-json-form/playground/
 
 ### Documentation
 
