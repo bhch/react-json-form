@@ -28,7 +28,7 @@ This library is available via Unpkg CDN.
 <script src="https://unpkg.com/react-modal@3.15.1/dist/react-modal.min.js"></script>
 
 <!-- library -->
-<script src="https://unpkg.com/@bhch/react-json-form@2.0.0/dist/react-json-form.js"></script>
+<script src="https://unpkg.com/@bhch/react-json-form@{{ project.version }}/dist/react-json-form.js"></script>
 ```
 
 ### Self hosting
