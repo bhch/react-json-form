@@ -12,10 +12,10 @@
   "module": "./static/js/playground.module.js",
   "unpkg": "./static/js/playground.js",
   "scripts": {
-    "build": "npm run build:web",
-    "build:web": "microbundle --format umd --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
-    "build:web:standalone": "microbundle --format umd --jsx React.createElement --sourcemap false --define process.env.NODE_ENV=production --external None",
-    "dev": "microbundle watch --format umd --no-compress --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
+    "build": "npm run build:playground",
+    "build:playground": "microbundle --format umd --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
+    "build:playground:standalone": "microbundle --format umd --jsx React.createElement --sourcemap false --define process.env.NODE_ENV=production --external None",
+    "dev:playground": "microbundle watch --format umd --no-compress --jsx React.createElement --sourcemap false --globals react=React,react-dom=ReactDOM,react-modal=ReactModal",
     "dev:docs": "npx @11ty/eleventy --serve --port=8000 --config=.eleventy.cjs",
     "build:docs": "NODE_ENV=production npx @11ty/eleventy --config=.eleventy.cjs",
     "lint": "eslint src"
