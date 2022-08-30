@@ -480,6 +480,22 @@ function capitalize(string) {
   if (!string) return '';
   return string.charAt(0).toUpperCase() + string.substr(1).toLowerCase();
 }
+function convertType(value, to) {
+  if (typeof value === to) return value;
+
+  if (to === 'number' || to === 'integer') {
+    if (typeof value === 'string') {
+      value = value.trim();
+      if (value === '') value = null;else if (!isNaN(Number(value))) value = Number(value);
+    } else if (typeof value === 'boolean') {
+      value = value === true ? 1 : 0;
+    }
+  } else if (to === 'boolean') {
+    if (value === 'false' || value === false) value = false;else value = true;
+  }
+
+  return value;
+}
 function getVerboseName(name) {
   if (name === undefined || name === null) return '';
   name = name.replace(/_/g, ' ');
@@ -624,7 +640,10 @@ class FormMultiSelectInput extends React$1.Component {
       if (e.target.checked) {
         value.push(e.target.value);
       } else {
-        value = value.filter(item => item !== e.target.value);
+        value = value.filter(item => {
+          if (typeof item !== this.props.valueType) convertType(item, this.props.valueType);
+          return item !== e.target.value;
+        });
       }
 
       let event = {
@@ -1542,11 +1561,11 @@ function handleChange(e, fieldType, callback) {
     value = e.target.value;
   }
 
-  if (fieldType === 'number' || fieldType === 'integer') {
-    value = value.trim();
-    if (value === '') value = null;else if (!isNaN(Number(value))) value = Number(value);
-  } else if (fieldType === 'boolean') {
-    if (value === 'false' || value === false) value = false;else value = true;
+  if (Array.isArray(value)) {
+    /* multiselect widget values are arrays */
+    value = value.map(item => convertType(item, fieldType));
+  } else {
+    value = convertType(value, fieldType);
   }
 
   callback(e.target.name, value);
@@ -1628,6 +1647,7 @@ function FormField(props) {
       break;
 
     case 'multiselect':
+      inputProps.valueType = props.schema.type;
       InputField = FormMultiSelectInput;
       break;
 
