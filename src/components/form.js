@@ -2,7 +2,7 @@ import React from 'react';
 import Button from './buttons';
 import Loader from './loaders';
 import {TimePicker} from './widgets';
-import {EditorContext, getCsrfCookie, capitalize} from '../util';
+import {EditorContext, getCsrfCookie, capitalize, convertType} from '../util';
 
 
 export function FormInput({label, help_text, error, inputRef, ...props}) {
@@ -141,7 +141,11 @@ export class FormMultiSelectInput extends React.Component {
         if (e.target.checked) {
             value.push(e.target.value);
         } else {
-            value = value.filter((item) => item !== e.target.value);
+            value = value.filter((item) => {
+                if (typeof item !== this.props.valueType)
+                    convertType(item, this.props.valueType);
+                return item !== e.target.value;
+            });
         }
 
         let event = {

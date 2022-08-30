@@ -12,6 +12,31 @@ export function capitalize(string) {
 }
 
 
+export function convertType(value, to) {
+    if (typeof value === to)
+        return value;
+
+    if (to === 'number' || to === 'integer') {
+        if (typeof value === 'string') {
+            value = value.trim();
+            if (value === '')
+                value = null;
+            else if (!isNaN(Number(value)))
+                value = Number(value);
+        } else if (typeof value === 'boolean') {
+            value = value === true ? 1 : 0;
+        }
+    } else if (to === 'boolean') {
+        if (value === 'false' || value === false)
+            value = false;
+        else
+            value = true;
+    }
+
+    return value;
+}
+
+
 export function getVerboseName(name) {
     if (name === undefined || name === null)
         return '';

@@ -2,7 +2,7 @@ import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
     FormFileInput, FormRow, FormGroup, GroupTitle, FormRowControls, FormTextareaInput,
     FormDateTimeInput, FormMultiSelectInput, FileUploader} from './components';
-import {getVerboseName} from './util';
+import {getVerboseName, convertType} from './util';
 
 
 function handleChange(e, fieldType, callback) {
@@ -15,17 +15,10 @@ function handleChange(e, fieldType, callback) {
         value = e.target.value;
     }
 
-    if (fieldType === 'number' || fieldType === 'integer') {
-        value = value.trim();
-        if (value === '')
-            value = null;
-        else if (!isNaN(Number(value)))
-            value = Number(value);
-    } else if (fieldType === 'boolean') {
-        if (value === 'false' || value === false)
-            value = false;
-        else
-            value = true;
+    if (Array.isArray(value)) { /* multiselect widget values are arrays */
+        value = value.map((item) => convertType(item, fieldType));
+    } else {
+        value = convertType(value, fieldType);
     }
 
     callback(e.target.name, value);
@@ -108,6 +101,7 @@ function FormField(props) {
             InputField = FormSelectInput;
             break;
         case 'multiselect':
+            inputProps.valueType = props.schema.type;
             InputField = FormMultiSelectInput;
             break;
         case 'textarea':
