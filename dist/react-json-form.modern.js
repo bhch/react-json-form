@@ -636,13 +636,14 @@ class FormMultiSelectInput extends React$1.Component {
 
     this.handleChange = e => {
       let value = [...this.props.value];
+      let val = e.target.value;
+      if (typeof val !== this.props.valueType) val = convertType(val, this.props.valueType);
 
       if (e.target.checked) {
-        value.push(e.target.value);
+        value.push(val);
       } else {
         value = value.filter(item => {
-          if (typeof item !== this.props.valueType) convertType(item, this.props.valueType);
-          return item !== e.target.value;
+          return item !== val;
         });
       }
 
