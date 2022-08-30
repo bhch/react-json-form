@@ -7,11 +7,28 @@ export default class App extends React.Component {
         super(props);
 
         this.state = {
-            activeTabIndex: 0,
+            activeTabIndex: this.getActiveTabIndexFromHash() || 0,
         };
     }
 
-    onTabClick = (index) => {
+    getActiveTabIndexFromHash() {
+        if (!window.location.hash)
+            return 0;
+
+        try {
+            let index = window.location.hash.split('-')[0].split('#')[1];
+            if (isNaN(index))
+                index = 0;
+            else
+                index = Number(index);
+            return index;
+        } catch (error) {
+            return 0;
+        }
+    }
+
+    onTabClick = (index, slug) => {
+        window.location.hash = index + '-' + slug;
         this.setState({activeTabIndex: index});
     }
 

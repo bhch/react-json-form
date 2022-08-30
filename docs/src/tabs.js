@@ -27,7 +27,7 @@ export function Tabs(props) {
                                         key={index}
                                         type="button"
                                         className={props.activeTabIndex === index ? "nav-link active" : "nav-link"}
-                                        onClick={(e) => props.onClick(index)}
+                                        onClick={(e) => props.onClick(index, item.slug)}
                                     >
                                         {item.name}
                                     </button>

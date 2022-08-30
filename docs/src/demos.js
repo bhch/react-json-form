@@ -1,6 +1,7 @@
 const DEMOS = [
     {
         name: 'Array/List',
+        slug: 'array-list',
         schema: {
             type: 'array',
             title: 'Shopping list',
@@ -15,6 +16,7 @@ const DEMOS = [
 
     {
         name: 'Object/Dict',
+        slug: 'object-dict',
         schema: {
             type: 'object',
             keys: {
@@ -27,6 +29,7 @@ const DEMOS = [
 
     {
         name: 'Additional properties',
+        slug: 'additional-properties',
         schema: {
             type: 'object',
             title: 'Product attributes',
@@ -45,6 +48,7 @@ const DEMOS = [
 
     {
         name: 'Enum (Choices)',
+        slug: 'enum-choices',
         schema: {
             type: 'object',
             keys: {
@@ -58,6 +62,7 @@ const DEMOS = [
 
     {
         name: 'Choices with custom labels',
+        slug: 'choices-with-custom-labels',
         schema: {
             type: 'object',
             keys: {
@@ -76,6 +81,7 @@ const DEMOS = [
 
     {
         name: 'Multi select choices',
+        slug: 'multi-select-choices',
         schema: {
             type: 'array',
             title: 'Cities',
@@ -95,6 +101,7 @@ const DEMOS = [
 
     {
         name: 'Boolean',
+        slug: 'boolean',
         schema: {
             type: 'object',
             keys: {
@@ -130,6 +137,7 @@ const DEMOS = [
 
     {
         name: 'Referencing ($ref & $defs)',
+        slug: 'referencing',
         schema: {
             type: 'object',
             keys: {
@@ -153,6 +161,7 @@ const DEMOS = [
 
     {
         name: 'Recursion',
+        slug: 'recursion',
         schema: {
             type: 'array',
             items: { 
@@ -175,6 +184,7 @@ const DEMOS = [
 
     {
         name: 'File inputs',
+        slug: 'file-inputs',
         schema: {
             'type': 'object',
             'properties': {
@@ -194,6 +204,7 @@ const DEMOS = [
 
     {
         name: 'Date & Time',
+        slug: 'data-time',
         schema: {
             type: 'object',
             keys: {
@@ -216,6 +227,7 @@ const DEMOS = [
 
     {
         name: 'Textarea',
+        slug: 'textarea',
         schema: {
             type: 'object',
             keys: {
@@ -227,6 +239,7 @@ const DEMOS = [
 
     {
         name: 'Placeholder & Help text',
+        slug: 'placehlder-help-text',
         schema: {
             type: 'object',
             keys: {
@@ -241,6 +254,7 @@ const DEMOS = [
 
     {
         name: 'Readonly inputs',
+        slug: 'readonly-inputs',
         schema: {
             type: 'object',
             keys: {
@@ -255,6 +269,7 @@ const DEMOS = [
 
     {
         name: 'Formats',
+        slug: 'formats',
         schema: {
             type: 'object',
             title: 'Available input formats',
