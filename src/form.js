@@ -54,6 +54,7 @@ export default class ReactJSONForm extends React.Component {
                 onMove: this.moveFieldset,
                 level: 0,
                 getRef: this.getRef,
+                errorMap: this.props.errorMap || {}
             };
 
             if (type === 'array') {

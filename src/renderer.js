@@ -10,6 +10,7 @@ export function FormInstance(config) {
 
     this.schema = config.schema;
     this.data = config.data;
+    this.errorMap = config.errorMap;
     this.fileHandler = config.fileHandler;
     this.fieldName = config.fieldName;
     this.modelName = config.modelName;
@@ -44,6 +45,7 @@ export function FormInstance(config) {
                     schema={this.schema}
                     dataInputId={this.dataInputId}
                     data={this.data}
+                    errorMap={this.errorMap}
                     fileHandler={this.fileHandler}
                     fieldName={this.fieldName}
                     modelName={this.modelName}
@@ -150,6 +152,7 @@ export class FormContainer extends React.Component {
                 fileHandler={this.props.fileHandler}
                 fieldName={this.props.fieldName}
                 modelName={this.props.modelName}
+                errorMap={this.props.errorMap}
             />
         );
     }

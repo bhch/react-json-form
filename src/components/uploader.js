@@ -87,6 +87,7 @@ export default class FileUploader extends React.Component {
                 <Button onClick={this.openModal} className="upload-modal__open">
                     {this.props.value ? 'Change file' : 'Select file'}
                 </Button>
+                {this.props.error && this.props.error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
                 {this.props.help_text && <span className="rjf-help-text">{this.props.help_text}</span>}
                 </div>
 

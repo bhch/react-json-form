@@ -24,6 +24,11 @@ function handleChange(e, fieldType, callback) {
     callback(e.target.name, value);
 }
 
+function getErrorKey(name) {
+    /* names / coords have rjf- prefix but the error keys don't */
+    return name.slice('4');
+}
+
 
 function FormField(props) {
     let inputProps = {
@@ -31,6 +36,7 @@ function FormField(props) {
         value: props.data,
         readOnly: props.schema.readOnly || props.schema.readonly,
         help_text: props.schema.help_text || props.schema.helpText,
+        error: props.errorMap[getErrorKey(props.name)]
     };
 
     if (props.schema.placeholder)
@@ -129,7 +135,7 @@ function FormField(props) {
 export function getStringFormRow(args) {
     let {
         data, schema, name, onChange, onRemove, removable, onEdit, onKeyEdit, editable, 
-        onMoveUp, onMoveDown, parentType, ...fieldProps
+        onMoveUp, onMoveDown, parentType, errorMap, ...fieldProps
     } = args;
 
     return (
@@ -147,6 +153,7 @@ export function getStringFormRow(args) {
                 onEdit={onKeyEdit}
                 editable={editable}
                 parentType={parentType}
+                errorMap={errorMap}
                 {...fieldProps}
             />
         </FormRow>
@@ -192,7 +199,8 @@ export function getArrayFormRow(args) {
         onEdit: onEdit,
         onKeyEdit: args.onKeyEdit,
         parentType: 'array',
-        getRef: args.getRef
+        getRef: args.getRef,
+        errorMap: args.errorMap,
     };
 
     if (nextArgs.schema.widget === 'multiselect') {
@@ -258,6 +266,8 @@ export function getArrayFormRow(args) {
         }
     }
 
+    let groupError = args.errorMap[getErrorKey(coords)];
+
     if (groups.length) {
         let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onKeyEdit}>{schema.title}</GroupTitle> : null;
 
@@ -271,6 +281,7 @@ export function getArrayFormRow(args) {
                 <div className="rjf-form-group">
                     <div className={level > 0 ? "rjf-form-group-inner" : ""}>
                         {groupTitle}
+                        {groupError && groupError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
                         {groups.map((i, index) => (
                             <div className="rjf-form-group-wrapper" key={'group_wrapper_' + name + '_' + index}>
                                 <FormRowControls
@@ -359,6 +370,7 @@ export function getObjectFormRow(args) {
             onEdit: onEdit,
             parentType: 'object',
             getRef: args.getRef,
+            errorMap: args.errorMap,
         };
 
         nextArgs.onKeyEdit = () => handleKeyEdit(data, key, value, childName, onEdit);
@@ -375,6 +387,7 @@ export function getObjectFormRow(args) {
 
     if (rows.length || schema.additionalProperties) {
         let coords = name;
+        let groupError = args.errorMap[getErrorKey(coords)];
 
         rows = (
             <FormGroup
@@ -386,6 +399,7 @@ export function getObjectFormRow(args) {
                 onEdit={args.onKeyEdit}
                 key={'row_group_' + name}
             >
+                {groupError && groupError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
                 {rows}
             </FormGroup>
         );

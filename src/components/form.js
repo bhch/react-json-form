@@ -19,8 +19,9 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
     return (
         <div>
             {label && <label>{label}</label>}
-            <div className="rjf-input-group">
+            <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                 <input {...props} />
+                {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
                 {help_text && <span className="rjf-help-text">{help_text}</span>}
             </div>
         </div>
@@ -46,8 +47,9 @@ export function FormCheckInput({label, help_text, error, value, ...props}) {
         props.disabled = true;
 
     return (
-        <div className="rjf-check-input">
+        <div className={error ? "rjf-check-input has-error" : "rjf-check-input"}>
             <label><input {...props} /> {label}</label>
+            {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
             {help_text && <span className="rjf-help-text">{help_text}</span>}
         </div>
     );
@@ -59,7 +61,7 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
         props.disabled = true;
 
     return (
-        <div className="rjf-check-input">
+        <div className={error ? "rjf-check-input has-error" : "rjf-check-input"}>
             <label>{label}</label>
             {options.map((option, i) => {
                 let label, inputValue;
@@ -79,6 +81,7 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
                     </label>
                 );
             })}
+            {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
             {help_text && <span className="rjf-help-text">{help_text}</span>}
         </div>
     );
@@ -95,7 +98,7 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
     return (
         <div>
             {label && <label>{label}</label>}
-            <div className="rjf-input-group">
+            <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                 <select value={value} {...props}>
                     <option disabled value="" key={'__placehlder'}>Select...</option>
                     {options.map((option, i) => {
@@ -117,6 +120,7 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
                         );
                     })}
                 </select>
+                {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
                 {help_text && <span className="rjf-help-text">{help_text}</span>}
             </div>
         </div>
@@ -521,8 +525,9 @@ export class FormTextareaInput extends React.Component {
         return (
             <div>
                 {label && <label>{label}</label>}
-                <div className="rjf-input-group">
+                <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                     <textarea {...props} />
+                    {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
                     {help_text && <span className="rjf-help-text">{help_text}</span>}
                 </div>
             </div>
@@ -681,7 +686,7 @@ export class FormDateTimeInput extends React.Component {
 
     render() {
         return (
-            <div className="rjf-datetime-field">
+            <div className={this.props.error ? "rjf-datetime-field has-error" : "rjf-datetime-field"}>
                 {this.props.label && <label>{this.props.label}</label>}
                 <div className="rjf-datetime-field-inner">
                     <div className="rjf-datetime-field-inputs">
@@ -715,6 +720,7 @@ export class FormDateTimeInput extends React.Component {
                             </div>
                         </div>
                     </div>
+                    {this.props.error && this.props.error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
                     {this.props.help_text && <span className="rjf-help-text">{this.props.help_text}</span>}
                 </div>
             </div>
