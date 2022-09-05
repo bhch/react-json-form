@@ -19,13 +19,13 @@ export class TimePicker extends React.Component {
 
     validateValue = (name, value) => {
         if (name === 'hh' && value < 1)
-            return 1;
-        else if (name !== 'hh' && value < 0)
-            return 0;
-        else if (name === 'hh' && value > 12)
             return 12;
-        else if (name !== 'hh' && value > 59)
+        else if (name !== 'hh' && value < 0)
             return 59;
+        else if (name === 'hh' && value > 12)
+            return 1;
+        else if (name !== 'hh' && value > 59)
+            return 0;
 
         return value;
     }
