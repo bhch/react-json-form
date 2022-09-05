@@ -64,20 +64,20 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
         <div className={error ? "rjf-check-input has-error" : "rjf-check-input"}>
             <label>{label}</label>
             {options.map((option, i) => {
-                let label, inputValue;
+                let title, inputValue;
                 if (typeof option === 'object') {
-                    label = option.label;
+                    title = option.title || option.label;
                     inputValue = option.value;
                 } else {
-                    label = option;
-                    if (typeof label === 'boolean')
-                        label = capitalize(label.toString());
+                    title = option;
+                    if (typeof title === 'boolean')
+                        title = capitalize(title.toString());
                     inputValue = option;
                 }
 
                 return (
-                    <label key={label + '_' + inputValue + '_' + i}>
-                        <input {...props} value={inputValue} checked={inputValue === value} /> {label}
+                    <label key={title + '_' + inputValue + '_' + i}>
+                        <input {...props} value={inputValue} checked={inputValue === value} /> {title}
                     </label>
                 );
             })}
@@ -102,20 +102,20 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
                 <select value={value} {...props}>
                     <option disabled value="" key={'__placehlder'}>Select...</option>
                     {options.map((option, i) => {
-                        let label, inputValue;
+                        let title, inputValue;
                         if (typeof option === 'object') {
-                            label = option.label;
+                            title = option.title || option.label;
                             inputValue = option.value;
                         } else {
-                            label = option;
-                            if (typeof label === 'boolean')
-                                label = capitalize(label.toString());
+                            title = option;
+                            if (typeof title === 'boolean')
+                                title = capitalize(title.toString());
                             inputValue = option;
                         }
 
                         return (
-                            <option value={inputValue} key={label + '_' + inputValue + '_' + i}>
-                                {label}
+                            <option value={inputValue} key={title + '_' + inputValue + '_' + i}>
+                                {title}
                             </option>
                         );
                     })}
@@ -234,14 +234,14 @@ class FormMultiSelectInputOptions extends React.Component {
                     style={this.props.hasHelpText ? {marginTop: '-15px'} : {}}
                 >
                     {this.props.options.map((option, i) => {
-                        let label, inputValue;
+                        let title, inputValue;
                         if (typeof option === 'object') {
-                            label = option.label;
+                            title = option.title || option.label;
                             inputValue = option.value;
                         } else {
-                            label = option;
-                            if (typeof label === 'boolean')
-                                label = capitalize(label.toString());
+                            title = option;
+                            if (typeof title === 'boolean')
+                                title = capitalize(title.toString());
                             inputValue = option;
                         }
 
@@ -254,7 +254,7 @@ class FormMultiSelectInputOptions extends React.Component {
                             optionClassName += ' disabled';
 
                         return (
-                            <div key={label + '_' + inputValue + '_' + i} className={optionClassName}>
+                            <div key={title + '_' + inputValue + '_' + i} className={optionClassName}>
                                 <label>
                                     <input
                                         type="checkbox"
@@ -262,7 +262,7 @@ class FormMultiSelectInputOptions extends React.Component {
                                         value={inputValue}
                                         checked={selected}
                                         disabled={this.props.disabled}
-                                    /> {label}
+                                    /> {title}
                                 </label>
                             </div>
                         );
