@@ -2,7 +2,7 @@ import React from 'react';
 import ReactModal from 'react-modal';
 import Button from './buttons';
 import Loader from './loaders';
-import {EditorContext, capitalize} from '../util';
+import {EditorContext, capitalize, getCsrfCookie} from '../util';
 import {FormFileInput} from './form.js';
 import Icon from './icons';
 
@@ -20,7 +20,11 @@ export default class FileUploader extends React.Component {
             pane: 'upload'
         };
 
-        this.inputRef = React.createRef();
+        this.hiddenInputRef = React.createRef();
+
+        this.newFiles = []; // track new uploaded files to send DELETE request
+                             // on page exit if unsaved
+        this.exitListenersAdded = false;
     }
 
     openModal = (e) => {
@@ -51,8 +55,58 @@ export default class FileUploader extends React.Component {
     }
 
     handleFileUpload = (e) => {
+        this.newFiles.push(e.target.value);
+        this.addExitEventListeners();
+
         this.props.onChange(e);
         this.closeModal();
+    }
+
+    addExitEventListeners = () => {
+        /* Sets page exit (unload) event listeners.
+         *
+         * The purpose of these listeners is to send a DELETE
+         * request uf user leaves page WITHOUT SAVING FORM.
+         *
+         * The event listeners are only added if there a <form> element
+         * parent of this react-jsonform component because if there's
+         * no form to save, then the user will always have to leave
+         * without saving. Hence, no point in sending unsaved DELETE requests.
+        */
+
+        if (this.exitListenersAdded)
+            return;
+
+        if (!this.hiddenInputRef.current)
+            return;
+
+        if (!this.hiddenInputRef.current.form)
+            return;
+
+        window.addEventListener('beforeunload', this.promptOnExit);
+        window.addEventListener('unload', this.sendDeleteRequestOnExit);
+
+        this.hiddenInputRef.current.form.addEventListener('submit', (e) => {
+            window.removeEventListener('beforeunload', this.promptOnExit);
+            window.removeEventListener('unload', this.sendDeleteRequestOnExit);
+        });
+
+        this.exitListenersAdded = true;
+    }
+
+    promptOnExit = (e) => {
+        if (!this.newFiles.length)
+            return;
+
+        e.preventDefault();
+        e.returnValue = '';
+    }
+
+    sendDeleteRequestOnExit = (e) => {
+        if (!this.newFiles.length)
+            return;
+
+        this.sendDeleteRequest([this.newFiles], 'unsaved_form_page_exit', true);
     }
 
     clearFile = () => {
@@ -65,8 +119,46 @@ export default class FileUploader extends React.Component {
                 }
             };
 
+            this.sendDeleteRequest([this.props.value], 'clear_button');
+
             this.props.onChange(event);
         }
+    }
+
+    sendDeleteRequest = (values, trigger, keepalive) => {
+        /* Sends DELETE request to file handler endpoint.
+         *
+         * Prams:
+         *   values: (array) names of files to delete
+         *   trigger: (string) the action which triggered the deletion
+         *   keepalive: (bool) whether to use keepalive flag or not
+        */
+
+        let endpoint = this.props.handler || this.context.fileHandler;
+
+        let querystring = new URLSearchParams({
+            field_name: this.context.fieldName,
+            model_name: this.context.modelName,
+            // coordinates: JSON.stringify(this.props.name.split('-').slice(1)),
+            trigger: trigger
+        });
+
+        for (let i = 0; i < values.length; i++) {
+            querystring.append('value', values[i]);
+        }
+
+        let url = endpoint + '?' + querystring;
+
+        let options = {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCsrfCookie(),
+            },
+        };
+        if (keepalive)
+            options['keepalive'] = true;
+
+        return fetch(url, options);
     }
 
     render() {
@@ -90,6 +182,8 @@ export default class FileUploader extends React.Component {
                 {this.props.error && this.props.error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
                 {this.props.help_text && <span className="rjf-help-text">{this.props.help_text}</span>}
                 </div>
+
+                <input type="hidden" ref={this.hiddenInputRef} />
 
                 <ReactModal
                     isOpen={this.state.open}
@@ -143,6 +237,7 @@ export default class FileUploader extends React.Component {
                                         coordinates: JSON.stringify(this.props.name.split('-').slice(1)),
                                     }}
                                     onFileSelect={this.handleFileSelect}
+                                    sendDeleteRequest={this.sendDeleteRequest}
                                 />
                             }
 
@@ -243,6 +338,10 @@ class LibraryPane extends React.Component {
         this.setState({loading: true}, this.fetchList);
     }
 
+    onFileDelete = () => {
+        this.setState({page: 0, files: []}, this.onLoadMore);
+    }
+
     render() {
         return (
             <div className="rjf-upload-modal__pane">
@@ -250,7 +349,14 @@ class LibraryPane extends React.Component {
 
                 <div className="rjf-upload-modal__media-container">
                 {this.state.files.map((i) => {
-                    return <MediaTile {...i} onClick={this.props.onFileSelect} />
+                    return (
+                        <MediaTile
+                            {...i}
+                            onClick={this.props.onFileSelect}
+                            sendDeleteRequest={this.props.sendDeleteRequest}
+                            onFileDelete={this.onFileDelete}
+                        />
+                    );
                 })}
                 </div>
 
@@ -282,6 +388,11 @@ function MediaTile(props) {
 
     return (
         <div className="rjf-upload-modal__media-tile">
+            <MediaTileMenu
+                value={props.value}
+                sendDeleteRequest={props.sendDeleteRequest}
+                onFileDelete={props.onFileDelete}
+            />
             <div className="rjf-upload-modal__media-tile-inner" tabIndex="0" onClick={() => props.onClick(props.value)}>
                 <img src={props.thumbnail ? props.thumbnail : DEFAULT_THUBNAIL} />
                 {props.metadata &&
@@ -294,4 +405,83 @@ function MediaTile(props) {
             </div>
         </div>
     );
+}
+
+
+class MediaTileMenu extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            open: false,
+            loading: false
+        };
+    }
+
+    toggleMenu = (e) => {
+        this.setState((state) => ({open: !state.open}));
+    }
+
+    handleDeleteClick = (e) => {
+        if (window.confirm('Do you want to delete this file?')) {
+            this.setState({loading: true});
+            this.props.sendDeleteRequest([this.props.value], 'delete_button')
+            .then((response) => {
+                let status = response.status;
+                let msg;
+
+                if (status === 200) {
+                    // success
+                } else if (status === 400)
+                    msg = 'Bad request';
+                else if (status === 401 || status === 403)
+                    msg = "You don't have permission to delete this file";
+                else if (status === 404)
+                    msg = 'This file does not exist on server';
+                else if (status === 405)
+                    msg = 'This operation is not permitted';
+                else if (status > 405)
+                    msg = 'Something went wrong while deleting file';
+
+                this.setState({loading: false, open: false});
+
+                if (msg)
+                    alert(msg);
+                else
+                    this.props.onFileDelete();
+            })
+            .catch((error) => {
+                alert('Something went wrong while deleting file');
+                console.error('Error:', error);
+                this.setState({loading: false});
+            });
+        }
+    }
+
+    render() {
+        return (
+            <div className={this.state.open ? 'rjf-dropdown open' : 'rjf-dropdown'}>
+                <Button
+                    className="rjf-dropdown-toggler"
+                    alterClassName={false}
+                    title={this.state.open ? 'Close menu' : 'Open menu'}
+                    onClick={this.toggleMenu}
+                >
+                    <Icon name={this.state.open ? 'x-lg' : 'three-dots-vertical'} />
+                </Button>
+                {this.state.open &&
+                <div className="rjf-dropdown-items">
+                    <Button
+                        className="rjf-dropdown-item rjf-text-danger"
+                        alterClassName={false}
+                        onClick={this.handleDeleteClick}
+                    >
+                        {this.state.loading && <Loader />}
+                        {this.state.loading ? ' Deleting...' : 'Delete'}
+                    </Button>
+                </div>
+                }
+            </div>
+        );
+    }
 }

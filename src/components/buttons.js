@@ -1,12 +1,14 @@
-export default function Button({className, ...props}) {
+export default function Button({className, alterClassName, ...props}) {
     if (!className)
         className = '';
 
     let classes = className.split(' ');
 
-    className = '';
-    for (let i = 0; i < classes.length; i++) {
-        className = className + 'rjf-' + classes[i] + '-button ';
+    if (alterClassName !== false) {
+        className = '';
+        for (let i = 0; i < classes.length; i++) {
+            className = className + 'rjf-' + classes[i] + '-button ';
+        }
     }
 
     return (
