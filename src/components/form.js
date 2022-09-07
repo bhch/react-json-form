@@ -201,7 +201,7 @@ export class FormMultiSelectInput extends React.Component {
                         containerRef={this.optionsContainer}
                         inputRef={this.input}
                         disabled={this.props.readOnly}
-                        hasHelpText={this.props.help_text && 1}
+                        hasHelpText={(this.props.help_text || this.props.error) && 1}
                     />
                 }
             </div>
