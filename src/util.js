@@ -60,3 +60,31 @@ export function getCsrfCookie() {
 
     return null;
 }
+
+
+export function getCoordsFromName(name) {
+    /* Returns coordinates of a field in the data from
+     * the given name of the input.
+     * Field names have rjf- prefix but the coordinates don't.
+     * e.g.:
+     * name: rjf-0-field
+     * coords: 0-field
+    */
+    return name.slice('4');
+}
+
+
+export function debounce(func, wait) {
+    let timeout;
+
+    return function() {
+        clearTimeout(timeout);
+
+        let args = arguments;
+        let context = this;
+
+        timeout = setTimeout(function() {
+            func.apply(context, args);
+        }, (wait || 1));
+    }
+}

@@ -1,8 +1,8 @@
 import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
     FormFileInput, FormRow, FormGroup, GroupTitle, FormRowControls, FormTextareaInput,
-    FormDateTimeInput, FormMultiSelectInput, FileUploader} from './components';
-import {getVerboseName, convertType} from './util';
+    FormDateTimeInput, FormMultiSelectInput, FileUploader, AutoCompleteInput} from './components';
+import {getVerboseName, convertType, getCoordsFromName} from './util';
 
 
 function handleChange(e, fieldType, callback) {
@@ -24,11 +24,6 @@ function handleChange(e, fieldType, callback) {
     callback(e.target.name, value);
 }
 
-function getErrorKey(name) {
-    /* names / coords have rjf- prefix but the error keys don't */
-    return name.slice('4');
-}
-
 
 function FormField(props) {
     let inputProps = {
@@ -36,7 +31,7 @@ function FormField(props) {
         value: props.data,
         readOnly: props.schema.readOnly || props.schema.readonly,
         help_text: props.schema.help_text || props.schema.helpText,
-        error: props.errorMap[getErrorKey(props.name)]
+        error: props.errorMap[getCoordsFromName(props.name)]
     };
 
     if (props.schema.placeholder)
@@ -109,6 +104,9 @@ function FormField(props) {
         case 'multiselect':
             inputProps.valueType = props.schema.type;
             InputField = FormMultiSelectInput;
+            break;
+        case 'autocomplete':
+            InputField = AutoCompleteInput;
             break;
         case 'textarea':
             InputField = FormTextareaInput;
@@ -266,7 +264,7 @@ export function getArrayFormRow(args) {
         }
     }
 
-    let groupError = args.errorMap[getErrorKey(coords)];
+    let groupError = args.errorMap[getCoordsFromName(coords)];
 
     if (groups.length) {
         let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onKeyEdit}>{schema.title}</GroupTitle> : null;
@@ -387,7 +385,7 @@ export function getObjectFormRow(args) {
 
     if (rows.length || schema.additionalProperties) {
         let coords = name;
-        let groupError = args.errorMap[getErrorKey(coords)];
+        let groupError = args.errorMap[getCoordsFromName(coords)];
 
         rows = (
             <FormGroup
