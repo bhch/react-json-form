@@ -2,7 +2,7 @@ import React from 'react';
 import ReactModal from 'react-modal';
 import Button from './buttons';
 import Loader from './loaders';
-import {EditorContext, capitalize, getCsrfCookie} from '../util';
+import {EditorContext, capitalize, getCsrfCookie, getCoordsFromName} from '../util';
 import {FormFileInput} from './form.js';
 import Icon from './icons';
 
@@ -139,7 +139,7 @@ export default class FileUploader extends React.Component {
         let querystring = new URLSearchParams({
             field_name: this.context.fieldName,
             model_name: this.context.modelName,
-            // coordinates: JSON.stringify(this.props.name.split('-').slice(1)),
+            coords: getCoordsFromName(this.props.name),
             trigger: trigger
         });
 
@@ -234,7 +234,7 @@ export default class FileUploader extends React.Component {
                                     fileHandlerArgs={{
                                         field_name: this.context.fieldName,
                                         model_name: this.context.modelName,
-                                        coordinates: JSON.stringify(this.props.name.split('-').slice(1)),
+                                        coords: getCoordsFromName(this.props.name),
                                     }}
                                     onFileSelect={this.handleFileSelect}
                                     sendDeleteRequest={this.sendDeleteRequest}

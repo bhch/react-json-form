@@ -2,7 +2,7 @@ import React from 'react';
 import Button from './buttons';
 import Loader from './loaders';
 import {TimePicker} from './widgets';
-import {EditorContext, getCsrfCookie, capitalize, convertType} from '../util';
+import {EditorContext, getCsrfCookie, capitalize, convertType, getCoordsFromName} from '../util';
 
 
 export function FormInput({label, help_text, error, inputRef, ...props}) {
@@ -398,7 +398,7 @@ export class FormFileInput extends React.Component {
             let formData = new FormData();
             formData.append('field_name', this.context.fieldName);
             formData.append('model_name', this.context.modelName);
-            formData.append('coordinates', JSON.stringify(this.props.name.split('-').slice(1)));
+            formData.append('coords', getCoordsFromName(this.props.name));
             formData.append('file', e.target.files[0]);
 
             fetch(endpoint, {
