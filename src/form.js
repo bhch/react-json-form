@@ -35,41 +35,31 @@ export default class ReactJSONForm extends React.Component {
         let schema = this.props.editorState.getSchema();
         let formGroups = [];
 
-        try {
-            let type = schema.type;
-    
-            if (type === 'list')
-                type = 'array';
-            else if (type === 'dict')
-                type = 'object';
+        let type = schema.type;
 
-            let args = {
-                data: data,
-                schema: schema,
-                name: 'rjf',
-                onChange: this.handleChange,
-                onAdd: this.addFieldset,
-                onRemove: this.removeFieldset,
-                onEdit: this.editFieldset,
-                onMove: this.moveFieldset,
-                level: 0,
-                getRef: this.getRef,
-                errorMap: this.props.errorMap || {}
-            };
+        if (type === 'list')
+            type = 'array';
+        else if (type === 'dict')
+            type = 'object';
 
-            if (type === 'array') {
-                return getArrayFormRow(args);
-            } else if (type === 'object') {
-                return getObjectFormRow(args);
-            }
-        } catch (error) {
-            console.log(error);
+        let args = {
+            data: data,
+            schema: schema,
+            name: 'rjf',
+            onChange: this.handleChange,
+            onAdd: this.addFieldset,
+            onRemove: this.removeFieldset,
+            onEdit: this.editFieldset,
+            onMove: this.moveFieldset,
+            level: 0,
+            getRef: this.getRef,
+            errorMap: this.props.errorMap || {}
+        };
 
-            formGroups = (
-                <p style={{color: '#f00'}}>
-                    <strong>(!) Error:</strong> Schema and data structure do not match.
-                </p>
-            );
+        if (type === 'array') {
+            return getArrayFormRow(args);
+        } else if (type === 'object') {
+            return getObjectFormRow(args);
         }
 
         return formGroups;
