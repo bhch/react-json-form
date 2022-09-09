@@ -1,8 +1,11 @@
+import {normalizeKeyword} from './util';
+
+
 export function validateSchema(schema) {
     if (!(schema instanceof Object))
         return {isValid: false, msg: "Schema must be an object"};
 
-    let type = normalize_keyword(schema.type);
+    let type = normalizeKeyword(schema.type);
 
     let validation = {isValid: true, msg: ""};
     if (type === 'object')
@@ -59,7 +62,7 @@ export function validateObject(schema) {
 
         let validation = {isValid: true};
 
-        let value_type = normalize_keyword(value.type);
+        let value_type = normalizeKeyword(value.type);
 
         if (value_type) {
             if (value_type === 'object')
@@ -89,7 +92,7 @@ export function validateObject(schema) {
                 if (!validation.isValid)
                     return validation;
             } else {
-                let type = normalize_keyword(schema.additionalProperties.type);
+                let type = normalizeKeyword(schema.additionalProperties.type);
 
                 if (type === 'object')
                     return validateObject(schema.additionalProperties);
@@ -118,7 +121,7 @@ export function validateArray(schema) {
             msg: "The 'items' key must be a valid JavaScript Object'"
         };
 
-    let items_type = normalize_keyword(schema.items.type);
+    let items_type = normalizeKeyword(schema.items.type);
 
     if (items_type) {
         if (items_type === 'object')
@@ -156,17 +159,4 @@ export function validateRef(schema) {
         }
 
     return {isValid: true, msg: ""};
-}
-
-
-function normalize_keyword(kw) {
-    /* Converts custom supported keywords to standard JSON schema keywords */
-
-    switch (kw) {
-        case 'list': return 'array';
-        case 'dict': return 'object';
-        case 'keys': return 'properties';
-        case 'choices': return 'enum';
-        default: return kw;
-    }
 }

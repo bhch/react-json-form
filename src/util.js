@@ -88,3 +88,17 @@ export function debounce(func, wait) {
         }, (wait || 1));
     }
 }
+
+
+export function normalizeKeyword(kw) {
+    /* Converts custom supported keywords to standard JSON schema keywords */
+
+    switch (kw) {
+        case 'list': return 'array';
+        case 'dict': return 'object';
+        case 'keys': return 'properties';
+        case 'choices': return 'enum';
+        case 'datetime': return 'date-time';
+        default: return kw;
+    }
+}
