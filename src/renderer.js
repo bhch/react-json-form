@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import EditorState from './editorState';
 import ReactJSONForm from './form';
+import DataValidator from './dataValidation';
 
 
 export function FormInstance(config) {
@@ -14,6 +15,7 @@ export function FormInstance(config) {
     this.fileHandler = config.fileHandler;
     this.fieldName = config.fieldName;
     this.modelName = config.modelName;
+    this.validateOnSubmit = config.validateOnSubmit;
 
     this.eventListeners = null;
 
@@ -38,6 +40,17 @@ export function FormInstance(config) {
     };
     this.onChange = this.onChange.bind(this);
 
+    this.onInvalid = function(e) {
+        if (!this.eventListeners)
+            return;
+
+        if (!this.eventListeners.hasOwnProperty('invalid') || !this.eventListeners.invalid.size)
+            return;
+
+        this.eventListeners.invalid.forEach((cb) => cb(e));
+    };
+    this.onInvalid = this.onInvalid.bind(this); 
+
     this.render = function() {
         try {
             ReactDOM.render(
@@ -50,6 +63,8 @@ export function FormInstance(config) {
                     fieldName={this.fieldName}
                     modelName={this.modelName}
                     onChange={this.onChange}
+                    onInvalid={this.onInvalid}
+                    validateOnSubmit={this.validateOnSubmit}
                 />,
                 document.getElementById(this.containerId)
             );
@@ -92,7 +107,8 @@ export class FormContainer extends React.Component {
         super(props);
 
         this.state = {
-            editorState: EditorState.create(props.schema, props.data)
+            editorState: EditorState.create(props.schema, props.data),
+            errorMap: props.errorMap
         };
 
         this.prevEditorState = this.state.editorState;
@@ -102,10 +118,12 @@ export class FormContainer extends React.Component {
 
     componentDidMount() {
         this.populateDataInput(this.state.editorState.getData());
+        
+        if (this.props.validateOnSubmit)
+            this.dataInput.form.addEventListener('submit', this.validateData);
     }
 
     componentDidUpdate(prevProps, prevState) {
-
         if (this.props.schema !== prevProps.schema) {
             let newSchema = this.props.schema;
             let newData = this.props.data !== prevProps.data ? this.props.data : this.state.editorState.getData();
@@ -140,19 +158,29 @@ export class FormContainer extends React.Component {
         this.dataInput.value = JSON.stringify(data);
     }
 
+    validateData = (e) => {
+        let validator = new DataValidator(this.state.editorState.getSchema());
+        let validation = validator.validate(this.state.editorState.getData());
+
+        if (!validation.isValid) {
+            this.props.onInvalid({errorMap: validation.errorMap, submitEvent: e});
+            this.setState({errorMap: validation.errorMap});
+        }
+    }
+
     handleChange = (editorState) => {
         this.setState({editorState: editorState});
     }
 
     render() {
         return (
-             <ReactJSONForm
+            <ReactJSONForm
                 editorState={this.state.editorState}
                 onChange={this.handleChange}
                 fileHandler={this.props.fileHandler}
                 fieldName={this.props.fieldName}
                 modelName={this.props.modelName}
-                errorMap={this.props.errorMap}
+                errorMap={this.state.errorMap}
             />
         );
     }
@@ -160,7 +188,7 @@ export class FormContainer extends React.Component {
 
 
 function ErrorReporter(props) {
-    /* Component for displaying errors to the user related for schema */
+    /* Component for displaying errors to the user related to schema */
 
     return (
         <div style={{color: '#f00'}}>
