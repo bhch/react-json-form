@@ -274,6 +274,9 @@ export default function DataValidator(schema) {
         
         if ((schema.exclusiveMaximum || schema.exclusiveMaximum === 0) && data >= schema.exclusiveMaximum)
             this.addError(coords, 'This value must be less than ' + schema.exclusiveMaximum);
+
+        if ((schema.multipleOf || schema.multipleOf === 0) && ((data * 100) % (schema.multipleOf * 100)) / 100)
+            this.addError(coords, 'This value must be a multiple of ' + schema.multipleOf);
     };
 
     this.validateEmail = function(schema, data, coords) {

@@ -492,6 +492,15 @@ test('validateInteger method', () => {
     expect(validator.validate(wrong_data_1).isValid).toBe(false);
     expect(validator.validate(wrong_data_2).isValid).toBe(false);
     expect(validator.validate(data).isValid).toBe(true);
+
+    // 10. multpleOf
+    delete schema['properties']['a']['exclusiveMaximum'];
+    schema['properties']['a']['multipleOf'] = 2
+    wrong_data = {'a': 1};
+    data = {'a': 4};
+    validator = new DataValidator(schema);
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    expect(validator.validate(data).isValid).toBe(true);
 });
 
 test('validateNumber method', () => {
@@ -602,5 +611,14 @@ test('validateNumber method', () => {
     validator = new DataValidator(schema);
     expect(validator.validate(wrong_data_1).isValid).toBe(false);
     expect(validator.validate(wrong_data_2).isValid).toBe(false);
+    expect(validator.validate(data).isValid).toBe(true);
+
+    // 9. multpleOf
+    delete schema['properties']['a']['exclusiveMaximum'];
+    schema['properties']['a']['multipleOf'] = 0.2
+    wrong_data = {'a': 4.15};
+    data = {'a': 4.0};
+    validator = new DataValidator(schema);
+    expect(validator.validate(wrong_data).isValid).toBe(false);
     expect(validator.validate(data).isValid).toBe(true);
 });
