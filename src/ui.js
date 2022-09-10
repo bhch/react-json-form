@@ -31,7 +31,8 @@ function FormField(props) {
         value: props.data,
         readOnly: props.schema.readOnly || props.schema.readonly,
         help_text: props.schema.help_text || props.schema.helpText,
-        error: props.errorMap[getCoordsFromName(props.name)]
+        error: props.errorMap[getCoordsFromName(props.name)],
+        required: props.schema.required || false,
     };
 
     if (props.schema.placeholder)
@@ -76,15 +77,28 @@ function FormField(props) {
             else {
                 inputProps.type = 'text';
             }
-            break;
-        case 'number':
-            inputProps.type = 'number';
-            InputField = FormInput;
+
+            if (props.schema.minLength || props.schema.minLength === 0)
+                inputProps.minlength = props.schema.minLength;
+
+            if (props.schema.maxLength || props.schema.maxLength === 0)
+                inputProps.maxlength = props.schema.maxLength;
+
             break;
         case 'integer':
-            inputProps.type = 'number';
             inputProps.step = '1';
+            // fall through
+        case 'number':
+            inputProps.type = 'number';
+
             InputField = FormInput;
+
+            if (props.schema.minimum || props.schema.minimum === 0)
+                inputProps.min = props.schema.minimum;
+
+            if (props.schema.maximum || props.schema.maximum === 0)
+                inputProps.max = props.schema.maximum;
+
             break;
         case 'boolean':
             inputProps.type = 'checkbox';
@@ -110,6 +124,13 @@ function FormField(props) {
             break;
         case 'textarea':
             InputField = FormTextareaInput;
+
+            if (props.schema.minLength || props.schema.minLength === 0)
+                inputProps.minlength = props.schema.minLength;
+
+            if (props.schema.maxLength || props.schema.maxLength === 0)
+                inputProps.maxlength = props.schema.maxLength;
+
             break;
         default:
             inputProps.type = 'text';
