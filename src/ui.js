@@ -85,11 +85,15 @@ function FormField(props) {
                 inputProps.maxlength = props.schema.maxLength;
 
             break;
+        case 'range':
         case 'integer':
             inputProps.step = '1';
             // fall through
         case 'number':
-            inputProps.type = 'number';
+            if (type === 'range')
+                inputProps.type = 'range';
+            else
+                inputProps.type = 'number';
 
             InputField = FormInput;
 
