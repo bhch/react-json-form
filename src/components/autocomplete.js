@@ -224,6 +224,7 @@ function AutocompleteSearchBox(props) {
                 inputRef={props.inputRef}
                 onChange={props.onChange}
                 value={props.value}
+                form={""}
             />
             {props.loading && <Loader />}
         </div>
