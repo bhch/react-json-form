@@ -7,6 +7,10 @@ export default function DataValidator(schema) {
     this.errorMap = {};
 
     this.validate = function(data) {
+        // reset errorMap so that this validator object
+        // can be reused for same schema
+        this.errorMap = {};
+
         let validator = this.getValidator(schema.type);
 
         if (validator)
@@ -55,7 +59,7 @@ export default function DataValidator(schema) {
     };
 
     this.getRef = function(ref) {
-        return EditorState.getRef(this.schema, ref);
+        return EditorState.getRef(ref, this.schema);
     };
 
     this.addError = function(coords, msg) {
@@ -109,7 +113,7 @@ export default function DataValidator(schema) {
         if (choices) {
             let invalid_choice = data.find((i) => choices.indexOf(i) === -1);
             if (typeof invalid_choice !== 'undefined')
-                thsis.addError(coords, 'Invalid choice + "' + invalid_choice + '"');
+                this.addError(coords, 'Invalid choice + "' + invalid_choice + '"');
         }
 
         let next_validator = this.getValidator(next_type);
@@ -123,7 +127,7 @@ export default function DataValidator(schema) {
 
     this.validateObject = function(schema, data, coords) {
         if (typeof data !== 'object' || Array.isArray(data)) {
-            this.addError(coords, "Invalid data type. Expected object.", errorMap);
+            this.addError(coords, "Invalid data type. Expected object.");
             return;
         }
 
@@ -185,7 +189,7 @@ export default function DataValidator(schema) {
         if (schema.minLength && data.length < parseInt(schema.minLength))
             this.addError(coords, 'This value must be at least ' + schema.minLength + ' characters long.');
         
-        if (schema.maxLength && data.length > parseInt(schema.maxLength))
+        if ((schema.maxLength || schema.maxLength == 0) && data.length > parseInt(schema.maxLength))
             this.addError(coords, 'This value may not be longer than ' + schema.maxLength + ' characters.');
 
         let format = normalizeKeyword(schema.format);
@@ -265,21 +269,21 @@ export default function DataValidator(schema) {
         if ((schema.maximum || schema.maximum === 0) && data > schema.maximum)
             this.addError(coords, 'This value must not be greater than ' + schema.minimum);
     
-        if ((schema.exclusiveMinimum || schema.exclusiveMinimum === 0) && data > schema.exclusiveMinimum)
+        if ((schema.exclusiveMinimum || schema.exclusiveMinimum === 0) && data <= schema.exclusiveMinimum)
             this.addError(coords, 'This value must be greater than ' + schema.exclusiveMinimum);
         
-        if ((schema.exclusiveMaximum || schema.exclusiveMaximum === 0) && data > schema.exclusiveMaximum)
+        if ((schema.exclusiveMaximum || schema.exclusiveMaximum === 0) && data >= schema.exclusiveMaximum)
             this.addError(coords, 'This value must be less than ' + schema.exclusiveMaximum);
     };
 
     this.validateEmail = function(schema, data, coords) {
         // half-arsed validation but will do for the time being
-        if (value.indexOf(' ') > -1 ) {
+        if (data.indexOf(' ') > -1 ) {
             this.addError(coords, 'Enter a valid email address.');
             return;
         }
 
-        if (value.length > 320) {
+        if (data.length > 320) {
             this.addError(coords, 'Email may not be longer than 320 characters');
             return;
         }
