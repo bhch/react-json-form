@@ -5,6 +5,20 @@ import {TimePicker} from './widgets';
 import {EditorContext, getCsrfCookie, capitalize, convertType, getCoordsFromName} from '../util';
 
 
+export function Label(props) {
+    if (!props.label)
+        return null;
+
+    return (
+        <label className={props.required ? 'rjf-required' : null}>
+            {props.children}
+            {props.children && ' '}
+            {props.label}
+        </label>
+    );
+}
+
+
 export function FormInput({label, help_text, error, inputRef, ...props}) {
 
     if (props.type === 'string')
@@ -18,7 +32,7 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
 
     return (
         <div>
-            {label && <label>{label}</label>}
+            <Label label={label} required={props.required} />
             <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                 <input {...props} />
                 {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
@@ -48,7 +62,7 @@ export function FormCheckInput({label, help_text, error, value, ...props}) {
 
     return (
         <div className={error ? "rjf-check-input has-error" : "rjf-check-input"}>
-            <label><input {...props} /> {label}</label>
+            <Label label={label} required={props.required}><input {...props} /></Label>
             {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
             {help_text && <span className="rjf-help-text">{help_text}</span>}
         </div>
@@ -62,7 +76,7 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
 
     return (
         <div className={error ? "rjf-check-input has-error" : "rjf-check-input"}>
-            <label>{label}</label>
+            <Label label={label} required={props.required} />
             {options.map((option, i) => {
                 let title, inputValue;
                 if (typeof option === 'object') {
@@ -97,7 +111,7 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
 
     return (
         <div>
-            {label && <label>{label}</label>}
+            <Label label={label} required={props.required} />
             <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                 <select value={value} {...props}>
                     <option disabled value="" key={'__placehlder'}>Select...</option>
@@ -463,7 +477,7 @@ export class FormFileInput extends React.Component {
 
         return (
             <div> 
-                {label && <label>{label}</label>}
+                <Label label={label} required={props.required} />
                 <div className="rjf-file-field">
                     {this.state.value && 
                         <div className="rjf-current-file-name">
@@ -524,7 +538,7 @@ export class FormTextareaInput extends React.Component {
 
         return (
             <div>
-                {label && <label>{label}</label>}
+                <Label label={label} required={props.required} />
                 <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                     <textarea {...props} />
                     {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
@@ -687,7 +701,7 @@ export class FormDateTimeInput extends React.Component {
     render() {
         return (
             <div className={this.props.error ? "rjf-datetime-field has-error" : "rjf-datetime-field"}>
-                {this.props.label && <label>{this.props.label}</label>}
+                <Label label={this.props.label} required={this.props.required} />
                 <div className="rjf-datetime-field-inner">
                     <div className="rjf-datetime-field-inputs">
                         <div className="rjf-datetime-field-date">

@@ -3,7 +3,7 @@ import ReactModal from 'react-modal';
 import Button from './buttons';
 import Loader from './loaders';
 import {EditorContext, capitalize, getCsrfCookie, getCoordsFromName} from '../util';
-import {FormFileInput} from './form.js';
+import {FormFileInput, Label} from './form.js';
 import Icon from './icons';
 
 export default class FileUploader extends React.Component {
@@ -168,7 +168,7 @@ export default class FileUploader extends React.Component {
 
         return (
             <div>
-                {this.props.label && <label>{this.props.label}</label>}
+                <Label label={this.props.label} required={this.props.required} />
                 <div className="rjf-file-field">
                 {this.props.value && 
                     <div className="rjf-current-file-name">
