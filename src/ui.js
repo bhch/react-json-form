@@ -340,7 +340,7 @@ export function getObjectFormRow(args) {
 
     let rows = [];
 
-    let schema_keys = ggetKeyword(schema, 'keys', 'properties');
+    let schema_keys = getKeyword(schema, 'keys', 'properties');
 
     let keys = [...Object.keys(schema_keys)];
 
