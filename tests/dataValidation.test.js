@@ -297,6 +297,13 @@ test('validateString method', () => {
     schema['properties']['a']['maxLength'] = 0
     wrong_data = {'a': '123456'}
     expect(validator.validate(wrong_data).isValid).toBe(false);
+
+    // 7. minLength should be ignore if field is not required and is empty
+    delete schema['properties']['a']['maxLength'];
+    schema['properties']['a']['minLength'] = 3;
+    schema['properties']['a']['required'] = false;
+    data = {'a': ''}
+    expect(validator.validate(data).isValid).toBe(true);
 });
 
 /* :TODO: Enable these tests later after writing format validations.
@@ -316,9 +323,11 @@ test('validate string formats', () => {
     };
     wrong_data = {'a': '1'};
     data = {'a': 'test@example.com'};
+    data_2 = {'a': ''}; // not required, can be empty
     validator = new DataValidator(schema);
     expect(validator.validate(wrong_data).isValid).toBe(false);
     expect(validator.validate(data).isValid).toBe(true);
+    expect(validator.validate(data_2).isValid).toBe(true);
 
     // 2. date
     schema['properties']['a']['format'] = 'date';

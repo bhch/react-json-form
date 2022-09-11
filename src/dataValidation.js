@@ -186,6 +186,9 @@ export default function DataValidator(schema) {
             return;
         }
 
+        if (!data) // not required, can be empty
+            return;
+
         if (schema.minLength && data.length < parseInt(schema.minLength))
             this.addError(coords, 'This value must be at least ' + schema.minLength + ' characters long.');
         
