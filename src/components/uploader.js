@@ -226,6 +226,7 @@ export default class FileUploader extends React.Component {
                                     label=''
                                     value=''
                                     help_text=''
+                                    error=''
                                 />
                             }
                             {this.state.pane === 'library' &&
