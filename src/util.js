@@ -102,3 +102,17 @@ export function normalizeKeyword(kw) {
         default: return kw;
     }
 }
+
+export function getKeyword(obj, keyword, alias, default_value) {
+    /* Function useful for getting value from schema if a
+     * keyword has an alias.
+    */
+    return getKey(obj, keyword, getKey(obj, alias, default_value));
+}
+
+export function getKey(obj, key, default_value) {
+    /* Approximation of Python's dict.get() function. */
+
+    let val = obj[key];
+    return (typeof val !== 'undefined') ? val : default_value;
+}

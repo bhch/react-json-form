@@ -1,3 +1,6 @@
+import {normalizeKeyword, getKeyword} from './util';
+
+
 export function getBlankObject(schema, getRef) {
     let keys = {};
 
@@ -11,12 +14,7 @@ export function getBlankObject(schema, getRef) {
         if (isRef)
             value = getRef(value['$ref']);
 
-        let type = value.type;
-
-        if (type === 'list')
-            type = 'array';
-        else if (type === 'dict')
-            type = 'object';
+        let type = normalizeKeyword(value.type);
 
         if (type === 'array')
             keys[key] = isRef ? [] : getBlankArray(value, getRef);
@@ -35,7 +33,7 @@ export function getBlankObject(schema, getRef) {
 
 
 export function getBlankArray(schema, getRef) {
-    let minItems = schema.minItems || schema.min_items || 0;
+    let minItems = getKeyword(schema, 'minItems', 'min_items') || 0;
 
     if (schema.default && schema.default.length >= minItems)
         return schema.default;
@@ -54,12 +52,7 @@ export function getBlankArray(schema, getRef) {
         schema.items = getRef(schema.items['$ref']);
     }
 
-    let type = schema.items.type;
-
-    if (type === 'list')
-        type = 'array';
-    else if (type === 'dict')
-        type = 'object';
+    let type = normalizeKeyword(schema.items.type);
 
     if (type === 'array') {
         while (items.length < minItems)
@@ -94,12 +87,7 @@ export function getBlankData(schema, getRef) {
     if (schema.hasOwnProperty('$ref'))
         schema = getRef(schema['$ref']);
 
-    let type = schema.type;
-
-    if (type === 'list')
-        type = 'array';
-    else if (type === 'dict')
-        type = 'object';
+    let type = normalizeKeyword(schema.type);
 
     if (type === 'array')
         return getBlankArray(schema, getRef);
@@ -124,13 +112,8 @@ function getSyncedArray(data, schema, getRef) {
         schema.items = getRef(schema.items['$ref'])
     }
 
-    let type = schema.items.type;
+    let type = normalizeKeyword(schema.items.type);
     let minItems = schema.minItems || schema.min_items || 0;
-    
-    if (type === 'list')
-        type = 'array';
-    else if (type === 'dict')
-        type = 'object';
 
     const filler = '__JSONRORM_FILLER__'; // filler for minItems
 
@@ -180,12 +163,7 @@ function getSyncedObject(data, schema, getRef) {
         if (isRef)
             schemaValue = getRef(schemaValue['$ref']);
 
-        let type = schemaValue.type;
-    
-        if (type === 'list')
-            type = 'array';
-        else if (type === 'dict')
-            type = 'object';
+        let type = normalizeKeyword(schemaValue.type);
       
         if (!data.hasOwnProperty(key)) {
             if (type === 'array')
@@ -227,12 +205,7 @@ export function getSyncedData(data, schema, getRef) {
     if (schema.hasOwnProperty('$ref'))
         schema = getRef(schema['$ref']);
 
-    let type = schema.type;
-    
-    if (type === 'list')
-        type = 'array';
-    else if (type === 'dict')
-        type = 'object';
+    let type = normalizeKeyword(schema.type);
 
     if (type === 'array') {
         return getSyncedArray(data, schema, getRef);

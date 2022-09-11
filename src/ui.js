@@ -2,7 +2,7 @@ import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
     FormFileInput, FormRow, FormGroup, GroupTitle, FormRowControls, FormTextareaInput,
     FormDateTimeInput, FormMultiSelectInput, FileUploader, AutoCompleteInput} from './components';
-import {getVerboseName, convertType, getCoordsFromName} from './util';
+import {getVerboseName, convertType, getCoordsFromName, getKeyword, normalizeKeyword} from './util';
 
 
 function handleChange(e, fieldType, callback) {
@@ -29,8 +29,8 @@ function FormField(props) {
     let inputProps = {
         name: props.name,
         value: props.data,
-        readOnly: props.schema.readOnly || props.schema.readonly,
-        help_text: props.schema.help_text || props.schema.helpText,
+        readOnly: getKeyword(props.schema, 'readOnly', 'readonly'),
+        help_text: getKeyword(props.schema, 'help_text', 'helpText'),
         error: props.errorMap[getCoordsFromName(props.name)],
         required: props.schema.required || false,
     };
@@ -42,7 +42,7 @@ function FormField(props) {
         inputProps.handler = props.schema.handler;
 
     let type = props.schema.type;
-    let choices = props.schema.choices || props.schema.enum;
+    let choices = getKeyword(props.schema, 'choices', 'enum');
 
     if (choices) {
         inputProps.options = choices;
@@ -204,12 +204,7 @@ export function getArrayFormRow(args) {
     if (isRef)
         schema.items = args.getRef(schema.items['$ref']);
 
-    let type = schema.items.type;
-    
-    if (type === 'list')
-        type = 'array';
-    else if (type === 'dict')
-        type = 'object';
+    let type = normalizeKeyword(schema.items.type);
 
     let nextArgs = {
         schema: schema.items,
@@ -366,12 +361,7 @@ export function getObjectFormRow(args) {
         if (isRef)
             schemaValue = args.getRef(schemaValue['$ref']);
 
-        let type = schemaValue.type;
-    
-        if (type === 'list')
-            type = 'array';
-        else if (type === 'dict')
-            type = 'object';
+        let type = normalizeKeyword(schemaValue.type);
 
         if (!schemaValue.title || (isRef && schema.additionalProperties)) // for additionalProperty refs, use the key as the title
             schemaValue.title = getVerboseName(key);
