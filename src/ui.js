@@ -35,6 +35,9 @@ function FormField(props) {
         required: props.schema.required || false,
     };
 
+    if (typeof inputProps.error === 'string')
+        inputProps.error = [inputProps.error];
+
     if (props.schema.placeholder)
         inputProps.placeholder = props.schema.placeholder;
 
@@ -285,6 +288,8 @@ export function getArrayFormRow(args) {
     }
 
     let groupError = args.errorMap[getCoordsFromName(coords)];
+    if (typeof groupError === 'string')
+        groupError = [groupError];
 
     if (groups.length) {
         let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onKeyEdit}>{schema.title}</GroupTitle> : null;
@@ -401,6 +406,8 @@ export function getObjectFormRow(args) {
     if (rows.length || schema.additionalProperties) {
         let coords = name;
         let groupError = args.errorMap[getCoordsFromName(coords)];
+        if (typeof groupError === 'string')
+            groupError = [groupError];
 
         rows = (
             <FormGroup
