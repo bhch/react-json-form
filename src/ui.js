@@ -72,7 +72,7 @@ function FormField(props) {
                     InputField = FormFileInput;
                 } else if (props.schema.format === 'file-url') {
                     InputField = FileUploader;
-                } else if (props.schema.format === 'datetime' || props.schema.format === 'date-time') {
+                } else if (normalizeKeyword(props.schema.format) === 'date-time') {
                     InputField = FormDateTimeInput;
                 }
                 inputProps.type = props.schema.format;
@@ -193,12 +193,12 @@ export function getArrayFormRow(args) {
     let groups = [];
 
     let removable = true;
-    let min_items = schema.min_items || schema.minItems || 0;
+    let min_items = getKeyword(schema, 'min_items', 'minItems') || 0;
     if (data.length <= min_items)
         removable = false;
 
     let addable = true;
-    let max_items = schema.max_items || schema.maxItems || 100;
+    let max_items = getKeyword(schema, 'max_items', 'maxItems') || 100;
     if (data.length >= max_items)
         addable = false;
 
@@ -340,7 +340,7 @@ export function getObjectFormRow(args) {
 
     let rows = [];
 
-    let schema_keys = schema.keys || schema.properties;
+    let schema_keys = ggetKeyword(schema, 'keys', 'properties');
 
     let keys = [...Object.keys(schema_keys)];
 
