@@ -61,18 +61,18 @@ const DEMOS = [
     },
 
     {
-        name: 'Choices with custom labels',
-        slug: 'choices-with-custom-labels',
+        name: 'Choices with custom titles',
+        slug: 'choices-with-custom-titles',
         schema: {
             type: 'object',
             keys: {
                 country: {
                     type: 'string',
                     choices: [
-                        {label: '🇦🇺 Australia', value: 'au'},
-                        {label: '🇮🇳 India', value: 'in'},
-                        {label: '🇬🇧 United Kingdom', value: 'gb'},
-                        {label: '🇺🇸 United States', value: 'us'},
+                        {title: '🇦🇺 Australia', value: 'au'},
+                        {title: '🇮🇳 India', value: 'in'},
+                        {title: '🇬🇧 United Kingdom', value: 'gb'},
+                        {title: '🇺🇸 United States', value: 'us'},
                     ]
                 }
             }
@@ -111,8 +111,8 @@ const DEMOS = [
                     title: 'Are you sure?',
                     widget: 'radio',
                     choices: [
-                        {label: 'Yes', value: true},
-                        {label: 'No', value: false},
+                        {title: 'Yes', value: true},
+                        {title: 'No', value: false},
                     ]
                 },
                 isActive3: {
@@ -120,8 +120,8 @@ const DEMOS = [
                     title: 'Really?',
                     widget: 'select',
                     choices: [
-                        {label: 'Yes', value: true},
-                        {label: 'No', value: false},
+                        {title: 'Yes', value: true},
+                        {title: 'No', value: false},
                     ]
                 },
             }
