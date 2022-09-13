@@ -34,6 +34,100 @@ function _objectWithoutPropertiesLoose(source, excluded) {
   return target;
 }
 
+const EditorContext = /*#__PURE__*/React$1.createContext();
+function capitalize$1(string) {
+  if (!string) return '';
+  return string.charAt(0).toUpperCase() + string.substr(1).toLowerCase();
+}
+function convertType(value, to) {
+  if (typeof value === to) return value;
+
+  if (to === 'number' || to === 'integer') {
+    if (typeof value === 'string') {
+      value = value.trim();
+      if (value === '') value = null;else if (!isNaN(Number(value))) value = Number(value);
+    } else if (typeof value === 'boolean') {
+      value = value === true ? 1 : 0;
+    }
+  } else if (to === 'boolean') {
+    if (value === 'false' || value === false) value = false;else value = true;
+  }
+
+  return value;
+}
+function getVerboseName(name) {
+  if (name === undefined || name === null) return '';
+  name = name.replace(/_/g, ' ');
+  return capitalize$1(name);
+}
+function getCsrfCookie() {
+  let csrfCookies = document.cookie.split(';').filter(item => item.trim().indexOf('csrftoken=') === 0);
+
+  if (csrfCookies.length) {
+    return csrfCookies[0].split('=')[1];
+  } else {
+    // if no cookie found, get the value from the csrf form input
+    let input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input) return input.value;
+  }
+
+  return null;
+}
+function getCoordsFromName(name) {
+  /* Returns coordinates of a field in the data from
+   * the given name of the input.
+   * Field names have rjf- prefix but the coordinates don't.
+   * e.g.:
+   * name: rjf-0-field
+   * coords: 0-field
+  */
+  return name.slice('4');
+}
+function debounce(func, wait) {
+  let timeout;
+  return function () {
+    clearTimeout(timeout);
+    let args = arguments;
+    let context = this;
+    timeout = setTimeout(function () {
+      func.apply(context, args);
+    }, wait || 1);
+  };
+}
+function normalizeKeyword(kw) {
+  /* Converts custom supported keywords to standard JSON schema keywords */
+  switch (kw) {
+    case 'list':
+      return 'array';
+
+    case 'dict':
+      return 'object';
+
+    case 'keys':
+      return 'properties';
+
+    case 'choices':
+      return 'enum';
+
+    case 'datetime':
+      return 'date-time';
+
+    default:
+      return kw;
+  }
+}
+function getKeyword(obj, keyword, alias, default_value) {
+  /* Function useful for getting value from schema if a
+   * keyword has an alias.
+  */
+  return getKey(obj, keyword, getKey(obj, alias, default_value));
+}
+function getKey(obj, key, default_value) {
+  /* Approximation of Python's dict.get() function. */
+  let val = obj[key];
+  return typeof val !== 'undefined' ? val : default_value;
+}
+
 function getBlankObject(schema, getRef) {
   let keys = {};
   let schema_keys = schema.keys || schema.properties;
@@ -42,8 +136,7 @@ function getBlankObject(schema, getRef) {
     let value = schema_keys[key];
     let isRef = value.hasOwnProperty('$ref');
     if (isRef) value = getRef(value['$ref']);
-    let type = value.type;
-    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+    let type = normalizeKeyword(value.type);
     if (type === 'array') keys[key] = isRef ? [] : getBlankArray(value, getRef);else if (type === 'object') keys[key] = getBlankObject(value, getRef);else if (type === 'boolean') keys[key] = value.default === false ? false : value.default || null;else if (type === 'integer' || type === 'number') keys[key] = value.default === 0 ? 0 : value.default || null;else // string etc.
       keys[key] = value.default || '';
   }
@@ -51,7 +144,7 @@ function getBlankObject(schema, getRef) {
   return keys;
 }
 function getBlankArray(schema, getRef) {
-  let minItems = schema.minItems || schema.min_items || 0;
+  let minItems = getKeyword(schema, 'minItems', 'min_items') || 0;
   if (schema.default && schema.default.length >= minItems) return schema.default;
   let items = [];
   if (schema.default) items = [...schema.default];
@@ -63,8 +156,7 @@ function getBlankArray(schema, getRef) {
     schema.items = getRef(schema.items['$ref']);
   }
 
-  let type = schema.items.type;
-  if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+  let type = normalizeKeyword(schema.items.type);
 
   if (type === 'array') {
     while (items.length < minItems) items.push(getBlankArray(schema.items, getRef));
@@ -91,8 +183,7 @@ function getBlankArray(schema, getRef) {
 }
 function getBlankData(schema, getRef) {
   if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
-  let type = schema.type;
-  if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+  let type = normalizeKeyword(schema.type);
   if (type === 'array') return getBlankArray(schema, getRef);else if (type === 'object') return getBlankObject(schema, getRef);else if (type === 'boolean') return schema.default === false ? false : schema.default || null;else if (type === 'integer' || type === 'number') return schema.default === 0 ? 0 : schema.default || null;else // string, etc.
     return schema.default || '';
 }
@@ -106,9 +197,8 @@ function getSyncedArray(data, schema, getRef) {
     schema.items = getRef(schema.items['$ref']);
   }
 
-  let type = schema.items.type;
+  let type = normalizeKeyword(schema.items.type);
   let minItems = schema.minItems || schema.min_items || 0;
-  if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
   const filler = '__JSONRORM_FILLER__'; // filler for minItems
 
   while (data.length < minItems) data.push(filler);
@@ -142,8 +232,7 @@ function getSyncedObject(data, schema, getRef) {
     let schemaValue = schema_keys[key];
     let isRef = schemaValue.hasOwnProperty('$ref');
     if (isRef) schemaValue = getRef(schemaValue['$ref']);
-    let type = schemaValue.type;
-    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+    let type = normalizeKeyword(schemaValue.type);
 
     if (!data.hasOwnProperty(key)) {
       if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'boolean') newData[key] = schemaValue.default === false ? false : schemaValue.default || null;else if (type === 'integer' || type === 'number') newData[key] = schemaValue.default === 0 ? 0 : schemaValue.default || null;else newData[key] = schemaValue.default || '';
@@ -164,8 +253,7 @@ function getSyncedObject(data, schema, getRef) {
 function getSyncedData(data, schema, getRef) {
   // adds those keys to data which are in schema but not in data
   if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
-  let type = schema.type;
-  if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+  let type = normalizeKeyword(schema.type);
 
   if (type === 'array') {
     return getSyncedArray(data, schema, getRef);
@@ -176,19 +264,23 @@ function getSyncedData(data, schema, getRef) {
   return data;
 }
 
-const _excluded$2 = ["className"];
+const _excluded$2 = ["className", "alterClassName"];
 function Button(_ref) {
   let {
-    className
+    className,
+    alterClassName
   } = _ref,
       props = _objectWithoutPropertiesLoose(_ref, _excluded$2);
 
   if (!className) className = '';
   let classes = className.split(' ');
-  className = '';
 
-  for (let i = 0; i < classes.length; i++) {
-    className = className + 'rjf-' + classes[i] + '-button ';
+  if (alterClassName !== false) {
+    className = '';
+
+    for (let i = 0; i < classes.length; i++) {
+      className = className + 'rjf-' + classes[i] + '-button ';
+    }
   }
 
   return /*#__PURE__*/React.createElement("button", _extends({
@@ -210,23 +302,31 @@ function Icon(props) {
 
   switch (props.name) {
     case 'chevron-up':
-      icon = /*#__PURE__*/React.createElement(ChevronUp, null);
+      icon = /*#__PURE__*/React$1.createElement(ChevronUp, null);
       break;
 
     case 'chevron-down':
-      icon = /*#__PURE__*/React.createElement(ChevronDown, null);
+      icon = /*#__PURE__*/React$1.createElement(ChevronDown, null);
       break;
 
     case 'arrow-down':
-      icon = /*#__PURE__*/React.createElement(ArrowDown, null);
+      icon = /*#__PURE__*/React$1.createElement(ArrowDown, null);
       break;
 
     case 'x-lg':
-      icon = /*#__PURE__*/React.createElement(XLg, null);
+      icon = /*#__PURE__*/React$1.createElement(XLg, null);
+      break;
+
+    case 'x-circle':
+      icon = /*#__PURE__*/React$1.createElement(XCircle, null);
+      break;
+
+    case 'three-dots-vertical':
+      icon = /*#__PURE__*/React$1.createElement(ThreeDotsVertical, null);
       break;
   }
 
-  return /*#__PURE__*/React.createElement("svg", {
+  return /*#__PURE__*/React$1.createElement("svg", {
     xmlns: "http://www.w3.org/2000/svg",
     width: "16",
     height: "16",
@@ -237,29 +337,43 @@ function Icon(props) {
 }
 
 function ChevronUp(props) {
-  return /*#__PURE__*/React.createElement("path", {
+  return /*#__PURE__*/React$1.createElement("path", {
     fillRule: "evenodd",
     d: "M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"
   });
 }
 
 function ChevronDown(props) {
-  return /*#__PURE__*/React.createElement("path", {
+  return /*#__PURE__*/React$1.createElement("path", {
     fillRule: "evenodd",
     d: "M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"
   });
 }
 
 function ArrowDown(props) {
-  return /*#__PURE__*/React.createElement("path", {
+  return /*#__PURE__*/React$1.createElement("path", {
     "fill-rule": "evenodd",
     d: "M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"
   });
 }
 
 function XLg(props) {
-  return /*#__PURE__*/React.createElement("path", {
+  return /*#__PURE__*/React$1.createElement("path", {
     d: "M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"
+  });
+}
+
+function XCircle(props) {
+  return /*#__PURE__*/React$1.createElement(React$1.Fragment, null, /*#__PURE__*/React$1.createElement("path", {
+    d: "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
+  }), /*#__PURE__*/React$1.createElement("path", {
+    d: "M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"
+  }));
+}
+
+function ThreeDotsVertical(props) {
+  return /*#__PURE__*/React$1.createElement("path", {
+    d: "M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"
   });
 }
 
@@ -272,7 +386,7 @@ class TimePicker extends React$1.Component {
     };
 
     this.validateValue = (name, value) => {
-      if (name === 'hh' && value < 1) return 1;else if (name !== 'hh' && value < 0) return 0;else if (name === 'hh' && value > 12) return 12;else if (name !== 'hh' && value > 59) return 59;
+      if (name === 'hh' && value < 1) return 12;else if (name !== 'hh' && value < 0) return 59;else if (name === 'hh' && value > 12) return 1;else if (name !== 'hh' && value > 59) return 0;
       return value;
     };
 
@@ -475,56 +589,23 @@ class TimePicker extends React$1.Component {
 
 }
 
-const EditorContext = /*#__PURE__*/React$1.createContext();
-function capitalize(string) {
-  if (!string) return '';
-  return string.charAt(0).toUpperCase() + string.substr(1).toLowerCase();
-}
-function convertType(value, to) {
-  if (typeof value === to) return value;
-
-  if (to === 'number' || to === 'integer') {
-    if (typeof value === 'string') {
-      value = value.trim();
-      if (value === '') value = null;else if (!isNaN(Number(value))) value = Number(value);
-    } else if (typeof value === 'boolean') {
-      value = value === true ? 1 : 0;
-    }
-  } else if (to === 'boolean') {
-    if (value === 'false' || value === false) value = false;else value = true;
-  }
-
-  return value;
-}
-function getVerboseName(name) {
-  if (name === undefined || name === null) return '';
-  name = name.replace(/_/g, ' ');
-  return capitalize(name);
-}
-function getCsrfCookie() {
-  let csrfCookies = document.cookie.split(';').filter(item => item.trim().indexOf('csrftoken=') === 0);
-
-  if (csrfCookies.length) {
-    return csrfCookies[0].split('=')[1];
-  } else {
-    // if no cookie found, get the value from the csrf form input
-    let input = document.querySelector('input[name="csrfmiddlewaretoken"]');
-    if (input) return input.value;
-  }
-
-  return null;
-}
-
 const _excluded$1 = ["label", "help_text", "error", "inputRef"],
       _excluded2 = ["label", "help_text", "error", "value"],
       _excluded3 = ["label", "help_text", "error", "value", "options"],
       _excluded4 = ["label", "help_text", "error", "value", "options"],
       _excluded5 = ["label", "value"],
       _excluded6 = ["label", "help_text", "error", "inputRef"];
+function Label(props) {
+  if (!props.label) return null;
+  return /*#__PURE__*/React$1.createElement("label", {
+    className: props.required ? 'rjf-required' : null
+  }, props.children, props.children && ' ', props.label);
+}
 function FormInput(_ref) {
   let {
     label,
     help_text,
+    error,
     inputRef
   } = _ref,
       props = _objectWithoutPropertiesLoose(_ref, _excluded$1);
@@ -532,9 +613,15 @@ function FormInput(_ref) {
   if (props.type === 'string') props.type = 'text';
   if (inputRef) props.ref = inputRef;
   if (props.value === null) props.value = '';
-  return /*#__PURE__*/React$1.createElement("div", null, label && /*#__PURE__*/React$1.createElement("label", null, label), /*#__PURE__*/React$1.createElement("div", {
-    className: "rjf-input-group"
-  }, /*#__PURE__*/React$1.createElement("input", props), help_text && /*#__PURE__*/React$1.createElement("span", {
+  return /*#__PURE__*/React$1.createElement("div", null, /*#__PURE__*/React$1.createElement(Label, {
+    label: label,
+    required: props.required
+  }), /*#__PURE__*/React$1.createElement("div", {
+    className: error ? "rjf-input-group has-error" : "rjf-input-group"
+  }, /*#__PURE__*/React$1.createElement("input", props), error && error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+    className: "rjf-error-text",
+    key: i
+  }, error)), help_text && /*#__PURE__*/React$1.createElement("span", {
     className: "rjf-help-text"
   }, help_text)));
 }
@@ -542,6 +629,7 @@ function FormCheckInput(_ref2) {
   let {
     label,
     help_text,
+    error,
     value
   } = _ref2,
       props = _objectWithoutPropertiesLoose(_ref2, _excluded2);
@@ -552,8 +640,14 @@ function FormCheckInput(_ref2) {
   if (props.checked === '' || props.checked === null || props.checked === undefined) props.checked = false;
   if (props.readOnly) props.disabled = true;
   return /*#__PURE__*/React$1.createElement("div", {
-    className: "rjf-check-input"
-  }, /*#__PURE__*/React$1.createElement("label", null, /*#__PURE__*/React$1.createElement("input", props), " ", label), help_text && /*#__PURE__*/React$1.createElement("span", {
+    className: error ? "rjf-check-input has-error" : "rjf-check-input"
+  }, /*#__PURE__*/React$1.createElement(Label, {
+    label: label,
+    required: props.required
+  }, /*#__PURE__*/React$1.createElement("input", props)), error && error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+    className: "rjf-error-text",
+    key: i
+  }, error)), help_text && /*#__PURE__*/React$1.createElement("span", {
     className: "rjf-help-text"
   }, help_text));
 }
@@ -561,6 +655,7 @@ function FormRadioInput(_ref3) {
   let {
     label,
     help_text,
+    error,
     value,
     options
   } = _ref3,
@@ -568,26 +663,32 @@ function FormRadioInput(_ref3) {
 
   if (props.readOnly) props.disabled = true;
   return /*#__PURE__*/React$1.createElement("div", {
-    className: "rjf-check-input"
-  }, /*#__PURE__*/React$1.createElement("label", null, label), options.map((option, i) => {
-    let label, inputValue;
+    className: error ? "rjf-check-input has-error" : "rjf-check-input"
+  }, /*#__PURE__*/React$1.createElement(Label, {
+    label: label,
+    required: props.required
+  }), options.map((option, i) => {
+    let title, inputValue;
 
     if (typeof option === 'object') {
-      label = option.label;
+      title = option.title || option.label;
       inputValue = option.value;
     } else {
-      label = option;
-      if (typeof label === 'boolean') label = capitalize(label.toString());
+      title = option;
+      if (typeof title === 'boolean') title = capitalize$1(title.toString());
       inputValue = option;
     }
 
     return /*#__PURE__*/React$1.createElement("label", {
-      key: label + '_' + inputValue + '_' + i
+      key: title + '_' + inputValue + '_' + i
     }, /*#__PURE__*/React$1.createElement("input", _extends({}, props, {
       value: inputValue,
       checked: inputValue === value
-    })), " ", label);
-  }), help_text && /*#__PURE__*/React$1.createElement("span", {
+    })), " ", title);
+  }), error && error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+    className: "rjf-error-text",
+    key: i
+  }, error)), help_text && /*#__PURE__*/React$1.createElement("span", {
     className: "rjf-help-text"
   }, help_text));
 }
@@ -595,6 +696,7 @@ function FormSelectInput(_ref4) {
   let {
     label,
     help_text,
+    error,
     value,
     options
   } = _ref4,
@@ -602,8 +704,11 @@ function FormSelectInput(_ref4) {
 
   if (props.readOnly) props.disabled = true;
   if (!value && value !== false && value !== 0) value = '';
-  return /*#__PURE__*/React$1.createElement("div", null, label && /*#__PURE__*/React$1.createElement("label", null, label), /*#__PURE__*/React$1.createElement("div", {
-    className: "rjf-input-group"
+  return /*#__PURE__*/React$1.createElement("div", null, /*#__PURE__*/React$1.createElement(Label, {
+    label: label,
+    required: props.required
+  }), /*#__PURE__*/React$1.createElement("div", {
+    className: error ? "rjf-input-group has-error" : "rjf-input-group"
   }, /*#__PURE__*/React$1.createElement("select", _extends({
     value: value
   }, props), /*#__PURE__*/React$1.createElement("option", {
@@ -611,22 +716,25 @@ function FormSelectInput(_ref4) {
     value: "",
     key: '__placehlder'
   }, "Select..."), options.map((option, i) => {
-    let label, inputValue;
+    let title, inputValue;
 
     if (typeof option === 'object') {
-      label = option.label;
+      title = option.title || option.label;
       inputValue = option.value;
     } else {
-      label = option;
-      if (typeof label === 'boolean') label = capitalize(label.toString());
+      title = option;
+      if (typeof title === 'boolean') title = capitalize$1(title.toString());
       inputValue = option;
     }
 
     return /*#__PURE__*/React$1.createElement("option", {
       value: inputValue,
-      key: label + '_' + inputValue + '_' + i
-    }, label);
-  })), help_text && /*#__PURE__*/React$1.createElement("span", {
+      key: title + '_' + inputValue + '_' + i
+    }, title);
+  })), error && error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+    className: "rjf-error-text",
+    key: i
+  }, error)), help_text && /*#__PURE__*/React$1.createElement("span", {
     className: "rjf-help-text"
   }, help_text)));
 }
@@ -703,7 +811,7 @@ class FormMultiSelectInput extends React$1.Component {
       containerRef: this.optionsContainer,
       inputRef: this.input,
       disabled: this.props.readOnly,
-      hasHelpText: this.props.help_text && 1
+      hasHelpText: (this.props.help_text || this.props.error) && 1
     }));
   }
 
@@ -735,14 +843,14 @@ class FormMultiSelectInputOptions extends React$1.Component {
         marginTop: '-15px'
       } : {}
     }, this.props.options.map((option, i) => {
-      let label, inputValue;
+      let title, inputValue;
 
       if (typeof option === 'object') {
-        label = option.label;
+        title = option.title || option.label;
         inputValue = option.value;
       } else {
-        label = option;
-        if (typeof label === 'boolean') label = capitalize(label.toString());
+        title = option;
+        if (typeof title === 'boolean') title = capitalize$1(title.toString());
         inputValue = option;
       }
 
@@ -751,7 +859,7 @@ class FormMultiSelectInputOptions extends React$1.Component {
       if (selected) optionClassName += ' selected';
       if (this.props.disabled) optionClassName += ' disabled';
       return /*#__PURE__*/React$1.createElement("div", {
-        key: label + '_' + inputValue + '_' + i,
+        key: title + '_' + inputValue + '_' + i,
         className: optionClassName
       }, /*#__PURE__*/React$1.createElement("label", null, /*#__PURE__*/React$1.createElement("input", {
         type: "checkbox",
@@ -759,7 +867,7 @@ class FormMultiSelectInputOptions extends React$1.Component {
         value: inputValue,
         checked: selected,
         disabled: this.props.disabled
-      }), " ", label));
+      }), " ", title));
     })));
   }
 
@@ -871,7 +979,7 @@ class FormFileInput extends React$1.Component {
         let formData = new FormData();
         formData.append('field_name', this.context.fieldName);
         formData.append('model_name', this.context.modelName);
-        formData.append('coordinates', JSON.stringify(this.props.name.split('-').slice(1)));
+        formData.append('coords', getCoordsFromName(this.props.name));
         formData.append('file', e.target.files[0]);
         fetch(endpoint, {
           method: 'POST',
@@ -950,7 +1058,10 @@ class FormFileInput extends React$1.Component {
     props.type = 'file';
     props.onChange = this.handleChange;
     if (props.readOnly) props.disabled = true;
-    return /*#__PURE__*/React$1.createElement("div", null, label && /*#__PURE__*/React$1.createElement("label", null, label), /*#__PURE__*/React$1.createElement("div", {
+    return /*#__PURE__*/React$1.createElement("div", null, /*#__PURE__*/React$1.createElement(Label, {
+      label: label,
+      required: props.required
+    }), /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-file-field"
     }, this.state.value && /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-current-file-name"
@@ -995,6 +1106,7 @@ class FormTextareaInput extends React$1.Component {
         {
       label,
       help_text,
+      error,
       inputRef
     } = _this$props,
         props = _objectWithoutPropertiesLoose(_this$props, _excluded6);
@@ -1002,9 +1114,15 @@ class FormTextareaInput extends React$1.Component {
     delete props.type;
     props.ref = inputRef || this.inputRef;
     props.onChange = this.handleChange;
-    return /*#__PURE__*/React$1.createElement("div", null, label && /*#__PURE__*/React$1.createElement("label", null, label), /*#__PURE__*/React$1.createElement("div", {
-      className: "rjf-input-group"
-    }, /*#__PURE__*/React$1.createElement("textarea", props), help_text && /*#__PURE__*/React$1.createElement("span", {
+    return /*#__PURE__*/React$1.createElement("div", null, /*#__PURE__*/React$1.createElement(Label, {
+      label: label,
+      required: props.required
+    }), /*#__PURE__*/React$1.createElement("div", {
+      className: error ? "rjf-input-group has-error" : "rjf-input-group"
+    }, /*#__PURE__*/React$1.createElement("textarea", props), error && error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+      className: "rjf-error-text",
+      key: i
+    }, error)), help_text && /*#__PURE__*/React$1.createElement("span", {
       className: "rjf-help-text"
     }, help_text)));
   }
@@ -1154,8 +1272,11 @@ class FormDateTimeInput extends React$1.Component {
 
   render() {
     return /*#__PURE__*/React$1.createElement("div", {
-      className: "rjf-datetime-field"
-    }, this.props.label && /*#__PURE__*/React$1.createElement("label", null, this.props.label), /*#__PURE__*/React$1.createElement("div", {
+      className: this.props.error ? "rjf-datetime-field has-error" : "rjf-datetime-field"
+    }, /*#__PURE__*/React$1.createElement(Label, {
+      label: this.props.label,
+      required: this.props.required
+    }), /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-datetime-field-inner"
     }, /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-datetime-field-inputs"
@@ -1183,11 +1304,260 @@ class FormDateTimeInput extends React$1.Component {
       mm: this.state.mm,
       ss: this.state.ss,
       ampm: this.state.ampm
-    })))), this.props.help_text && /*#__PURE__*/React$1.createElement("span", {
+    })))), this.props.error && this.props.error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+      className: "rjf-error-text",
+      key: i
+    }, error)), this.props.help_text && /*#__PURE__*/React$1.createElement("span", {
       className: "rjf-help-text"
     }, this.props.help_text)));
   }
 
+}
+
+class AutoCompleteInput extends React$1.Component {
+  constructor(props) {
+    super(props);
+
+    this.handleSelect = value => {
+      let event = {
+        target: {
+          type: this.props.type,
+          value: value,
+          name: this.props.name
+        }
+      };
+      this.hideOptions();
+      this.props.onChange(event);
+    };
+
+    this.clearValue = e => {
+      this.handleSelect('');
+    };
+
+    this.handleSearchInputChange = e => {
+      let value = e.target.value;
+
+      if (value) {
+        this.setState({
+          searchInputValue: value,
+          loading: true
+        }, this.debouncedFetchOptions);
+      } else {
+        this.setState({
+          searchInputValue: value,
+          loading: false,
+          options: []
+        });
+      }
+    };
+
+    this.fetchOptions = () => {
+      if (this.state.searchInputValue === '') return; // :TODO: cache results
+
+      let endpoint = this.props.handler;
+
+      if (!endpoint) {
+        console.error("Error: No 'handler' endpoing provided for autocomplete input.");
+        this.setState({
+          loading: false
+        });
+        return;
+      }
+
+      let url = endpoint + '?' + new URLSearchParams({
+        field_name: this.context.fieldName,
+        model_name: this.context.modelName,
+        coords: getCoordsFromName(this.props.name),
+        query: this.state.searchInputValue
+      });
+      fetch(url, {
+        method: 'GET'
+      }).then(response => response.json()).then(result => {
+        if (!Array.isArray(result.results)) result.results = [];
+        this.setState(state => ({
+          loading: false,
+          options: [...result.results]
+        }));
+      }).catch(error => {
+        alert('Something went wrong while fetching options');
+        console.error('Error:', error);
+        this.setState({
+          loading: false
+        });
+      });
+    };
+
+    this.showOptions = e => {
+      if (!this.state.showOptions) this.setState({
+        showOptions: true
+      });
+    };
+
+    this.hideOptions = e => {
+      this.setState({
+        showOptions: false,
+        searchInputValue: '',
+        options: [],
+        loading: false
+      });
+    };
+
+    this.toggleOptions = e => {
+      this.setState(state => {
+        if (state.showOptions) {
+          return {
+            showOptions: false,
+            searchInputValue: '',
+            options: [],
+            loading: false
+          };
+        } else {
+          return {
+            showOptions: true
+          };
+        }
+      });
+    };
+
+    this.state = {
+      searchInputValue: '',
+      showOptions: false,
+      options: [],
+      loading: false
+    };
+    this.optionsContainer = /*#__PURE__*/React$1.createRef();
+    this.searchInputRef = /*#__PURE__*/React$1.createRef();
+    this.input = /*#__PURE__*/React$1.createRef();
+    this.debouncedFetchOptions = debounce(this.fetchOptions, 500);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.showOptions && this.state.showOptions !== prevState.showOptions) {
+      if (this.searchInputRef.current) this.searchInputRef.current.focus();
+    }
+  }
+
+  render() {
+    return /*#__PURE__*/React$1.createElement("div", {
+      className: this.props.label ? 'rjf-autocomplete-field has-label' : 'rjf-autocomplete-field'
+    }, /*#__PURE__*/React$1.createElement(FormInput, {
+      label: this.props.label,
+      type: "text",
+      value: this.props.value,
+      help_text: this.props.help_text,
+      error: this.props.error,
+      readOnly: true,
+      onClick: this.toggleOptions,
+      inputRef: this.input,
+      placeholder: this.props.placeholder,
+      name: this.props.name,
+      className: "rjf-autocomplete-field-input"
+    }), this.props.value && !this.props.readOnly && /*#__PURE__*/React$1.createElement(Button, {
+      className: "autocomplete-field-clear",
+      title: "Clear",
+      onClick: this.clearValue
+    }, /*#__PURE__*/React$1.createElement(Icon, {
+      name: "x-circle"
+    }), " ", /*#__PURE__*/React$1.createElement("span", null, "Clear")), this.state.showOptions && !this.props.readOnly && /*#__PURE__*/React$1.createElement(AutoCompletePopup, {
+      options: this.state.options,
+      value: this.props.value,
+      hideOptions: this.hideOptions,
+      onSelect: this.handleSelect,
+      onSearchInputChange: this.handleSearchInputChange,
+      searchInputValue: this.state.searchInputValue,
+      containerRef: this.optionsContainer,
+      searchInputRef: this.searchInputRef,
+      inputRef: this.input,
+      loading: this.state.loading,
+      hasHelpText: (this.props.help_text || this.props.error) && 1
+    }));
+  }
+
+}
+AutoCompleteInput.contextType = EditorContext;
+
+class AutoCompletePopup extends React$1.Component {
+  constructor(...args) {
+    super(...args);
+
+    this.handleClickOutside = e => {
+      if (this.props.containerRef.current && !this.props.containerRef.current.contains(e.target) && !this.props.inputRef.current.contains(e.target)) this.props.hideOptions();
+    };
+  }
+
+  componentDidMount() {
+    document.addEventListener('mousedown', this.handleClickOutside);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClickOutside);
+  }
+
+  render() {
+    return /*#__PURE__*/React$1.createElement("div", {
+      ref: this.props.containerRef
+    }, /*#__PURE__*/React$1.createElement("div", {
+      className: "rjf-autocomplete-field-popup",
+      style: this.props.hasHelpText ? {
+        marginTop: '-15px'
+      } : {}
+    }, /*#__PURE__*/React$1.createElement(AutocompleteSearchBox, {
+      inputRef: this.props.searchInputRef,
+      onChange: this.props.onSearchInputChange,
+      value: this.props.searchInputValue,
+      loading: this.props.loading
+    }), this.props.searchInputValue && /*#__PURE__*/React$1.createElement(AutocompleteOptions, {
+      options: this.props.options,
+      value: this.props.value,
+      onSelect: this.props.onSelect,
+      loading: this.props.loading,
+      hasHelpText: this.props.hasHelpText
+    })));
+  }
+
+}
+
+function AutocompleteSearchBox(props) {
+  return /*#__PURE__*/React$1.createElement("div", {
+    className: "rjf-autocomplete-field-search"
+  }, /*#__PURE__*/React$1.createElement(FormInput, {
+    type: "text",
+    placeholder: "Search...",
+    inputRef: props.inputRef,
+    onChange: props.onChange,
+    value: props.value,
+    form: ""
+  }), props.loading && /*#__PURE__*/React$1.createElement(Loader, null));
+}
+
+function AutocompleteOptions(props) {
+  return /*#__PURE__*/React$1.createElement("div", {
+    className: "rjf-autocomplete-field-options"
+  }, !props.options.length && !props.loading && /*#__PURE__*/React$1.createElement("div", {
+    className: "rjf-autocomplete-field-option disabled"
+  }, "No options"), props.options.map((option, i) => {
+    let title, inputValue;
+
+    if (typeof option === 'object') {
+      title = option.title || option.label;
+      inputValue = option.value;
+    } else {
+      title = option;
+      if (typeof title === 'boolean') title = capitalize(title.toString());
+      inputValue = option;
+    }
+
+    let selected = props.value === inputValue;
+    let optionClassName = 'rjf-autocomplete-field-option';
+    if (selected) optionClassName += ' selected';
+    return /*#__PURE__*/React$1.createElement("div", {
+      key: title + '_' + inputValue + '_' + i,
+      className: optionClassName,
+      tabIndex: 0,
+      role: "button",
+      onClick: () => props.onSelect(inputValue)
+    }, title);
+  }));
 }
 
 function GroupTitle(props) {
@@ -1337,8 +1707,44 @@ class FileUploader extends React$1.Component {
     };
 
     this.handleFileUpload = e => {
+      this.newFiles.push(e.target.value);
+      this.addExitEventListeners();
       this.props.onChange(e);
       this.closeModal();
+    };
+
+    this.addExitEventListeners = () => {
+      /* Sets page exit (unload) event listeners.
+       *
+       * The purpose of these listeners is to send a DELETE
+       * request uf user leaves page WITHOUT SAVING FORM.
+       *
+       * The event listeners are only added if there a <form> element
+       * parent of this react-jsonform component because if there's
+       * no form to save, then the user will always have to leave
+       * without saving. Hence, no point in sending unsaved DELETE requests.
+      */
+      if (this.exitListenersAdded) return;
+      if (!this.hiddenInputRef.current) return;
+      if (!this.hiddenInputRef.current.form) return;
+      window.addEventListener('beforeunload', this.promptOnExit);
+      window.addEventListener('unload', this.sendDeleteRequestOnExit);
+      this.hiddenInputRef.current.form.addEventListener('submit', e => {
+        window.removeEventListener('beforeunload', this.promptOnExit);
+        window.removeEventListener('unload', this.sendDeleteRequestOnExit);
+      });
+      this.exitListenersAdded = true;
+    };
+
+    this.promptOnExit = e => {
+      if (!this.newFiles.length) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    this.sendDeleteRequestOnExit = e => {
+      if (!this.newFiles.length) return;
+      this.sendDeleteRequest([this.newFiles], 'unsaved_form_page_exit', true);
     };
 
     this.clearFile = () => {
@@ -1350,8 +1756,40 @@ class FileUploader extends React$1.Component {
             name: this.props.name
           }
         };
+        this.sendDeleteRequest([this.props.value], 'clear_button');
         this.props.onChange(event);
       }
+    };
+
+    this.sendDeleteRequest = (values, trigger, keepalive) => {
+      /* Sends DELETE request to file handler endpoint.
+       *
+       * Prams:
+       *   values: (array) names of files to delete
+       *   trigger: (string) the action which triggered the deletion
+       *   keepalive: (bool) whether to use keepalive flag or not
+      */
+      let endpoint = this.props.handler || this.context.fileHandler;
+      let querystring = new URLSearchParams({
+        field_name: this.context.fieldName,
+        model_name: this.context.modelName,
+        coords: getCoordsFromName(this.props.name),
+        trigger: trigger
+      });
+
+      for (let i = 0; i < values.length; i++) {
+        querystring.append('value', values[i]);
+      }
+
+      let url = endpoint + '?' + querystring;
+      let options = {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': getCsrfCookie()
+        }
+      };
+      if (keepalive) options['keepalive'] = true;
+      return fetch(url, options);
     };
 
     this.state = {
@@ -1361,7 +1799,11 @@ class FileUploader extends React$1.Component {
       open: false,
       pane: 'upload'
     };
-    this.inputRef = /*#__PURE__*/React$1.createRef();
+    this.hiddenInputRef = /*#__PURE__*/React$1.createRef();
+    this.newFiles = []; // track new uploaded files to send DELETE request
+    // on page exit if unsaved
+
+    this.exitListenersAdded = false;
   }
 
   render() {
@@ -1369,7 +1811,10 @@ class FileUploader extends React$1.Component {
       return /*#__PURE__*/React$1.createElement(FormFileInput, this.props);
     }
 
-    return /*#__PURE__*/React$1.createElement("div", null, this.props.label && /*#__PURE__*/React$1.createElement("label", null, this.props.label), /*#__PURE__*/React$1.createElement("div", {
+    return /*#__PURE__*/React$1.createElement("div", null, /*#__PURE__*/React$1.createElement(Label, {
+      label: this.props.label,
+      required: this.props.required
+    }), /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-file-field"
     }, this.props.value && /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-current-file-name"
@@ -1379,9 +1824,15 @@ class FileUploader extends React$1.Component {
     }, "Clear")), /*#__PURE__*/React$1.createElement(Button, {
       onClick: this.openModal,
       className: "upload-modal__open"
-    }, this.props.value ? 'Change file' : 'Select file'), this.props.help_text && /*#__PURE__*/React$1.createElement("span", {
+    }, this.props.value ? 'Change file' : 'Select file'), this.props.error && this.props.error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+      className: "rjf-error-text",
+      key: i
+    }, error)), this.props.help_text && /*#__PURE__*/React$1.createElement("span", {
       className: "rjf-help-text"
-    }, this.props.help_text)), /*#__PURE__*/React$1.createElement(ReactModal, {
+    }, this.props.help_text)), /*#__PURE__*/React$1.createElement("input", {
+      type: "hidden",
+      ref: this.hiddenInputRef
+    }), /*#__PURE__*/React$1.createElement(ReactModal, {
       isOpen: this.state.open,
       onRequestClose: this.closeModal,
       contentLabel: "Select file",
@@ -1415,15 +1866,17 @@ class FileUploader extends React$1.Component {
       onChange: this.handleFileUpload,
       label: "",
       value: "",
-      help_text: ""
+      help_text: "",
+      error: ""
     })), this.state.pane === 'library' && /*#__PURE__*/React$1.createElement(LibraryPane, {
       fileHandler: this.props.handler || this.context.fileHandler,
       fileHandlerArgs: {
         field_name: this.context.fieldName,
         model_name: this.context.modelName,
-        coordinates: JSON.stringify(this.props.name.split('-').slice(1))
+        coords: getCoordsFromName(this.props.name)
       },
-      onFileSelect: this.handleFileSelect
+      onFileSelect: this.handleFileSelect,
+      sendDeleteRequest: this.sendDeleteRequest
     })), /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-modal__footer"
     }, /*#__PURE__*/React$1.createElement(Button, {
@@ -1494,6 +1947,13 @@ class LibraryPane extends React$1.Component {
       }, this.fetchList);
     };
 
+    this.onFileDelete = () => {
+      this.setState({
+        page: 0,
+        files: []
+      }, this.onLoadMore);
+    };
+
     this.state = {
       loading: true,
       files: [],
@@ -1515,7 +1975,9 @@ class LibraryPane extends React$1.Component {
       className: "rjf-upload-modal__media-container"
     }, this.state.files.map(i => {
       return /*#__PURE__*/React$1.createElement(MediaTile, _extends({}, i, {
-        onClick: this.props.onFileSelect
+        onClick: this.props.onFileSelect,
+        sendDeleteRequest: this.props.sendDeleteRequest,
+        onFileDelete: this.onFileDelete
       }));
     })), this.state.loading && /*#__PURE__*/React$1.createElement(Loader, {
       className: "rjf-upload-modal__media-loader"
@@ -1537,7 +1999,11 @@ function MediaTile(props) {
   let metadata = props.metadata || {};
   return /*#__PURE__*/React$1.createElement("div", {
     className: "rjf-upload-modal__media-tile"
-  }, /*#__PURE__*/React$1.createElement("div", {
+  }, /*#__PURE__*/React$1.createElement(MediaTileMenu, {
+    value: props.value,
+    sendDeleteRequest: props.sendDeleteRequest,
+    onFileDelete: props.onFileDelete
+  }), /*#__PURE__*/React$1.createElement("div", {
     className: "rjf-upload-modal__media-tile-inner",
     tabIndex: "0",
     onClick: () => props.onClick(props.value)
@@ -1550,7 +2016,70 @@ function MediaTile(props) {
   }))));
 }
 
-const _excluded = ["data", "schema", "name", "onChange", "onRemove", "removable", "onEdit", "onKeyEdit", "editable", "onMoveUp", "onMoveDown", "parentType"];
+class MediaTileMenu extends React$1.Component {
+  constructor(props) {
+    super(props);
+
+    this.toggleMenu = e => {
+      this.setState(state => ({
+        open: !state.open
+      }));
+    };
+
+    this.handleDeleteClick = e => {
+      if (window.confirm('Do you want to delete this file?')) {
+        this.setState({
+          loading: true
+        });
+        this.props.sendDeleteRequest([this.props.value], 'delete_button').then(response => {
+          let status = response.status;
+          let msg;
+
+          if (status === 200) ; else if (status === 400) msg = 'Bad request';else if (status === 401 || status === 403) msg = "You don't have permission to delete this file";else if (status === 404) msg = 'This file does not exist on server';else if (status === 405) msg = 'This operation is not permitted';else if (status > 405) msg = 'Something went wrong while deleting file';
+
+          this.setState({
+            loading: false,
+            open: false
+          });
+          if (msg) alert(msg);else this.props.onFileDelete();
+        }).catch(error => {
+          alert('Something went wrong while deleting file');
+          console.error('Error:', error);
+          this.setState({
+            loading: false
+          });
+        });
+      }
+    };
+
+    this.state = {
+      open: false,
+      loading: false
+    };
+  }
+
+  render() {
+    return /*#__PURE__*/React$1.createElement("div", {
+      className: this.state.open ? 'rjf-dropdown open' : 'rjf-dropdown'
+    }, /*#__PURE__*/React$1.createElement(Button, {
+      className: "rjf-dropdown-toggler",
+      alterClassName: false,
+      title: this.state.open ? 'Close menu' : 'Open menu',
+      onClick: this.toggleMenu
+    }, /*#__PURE__*/React$1.createElement(Icon, {
+      name: this.state.open ? 'x-lg' : 'three-dots-vertical'
+    })), this.state.open && /*#__PURE__*/React$1.createElement("div", {
+      className: "rjf-dropdown-items"
+    }, /*#__PURE__*/React$1.createElement(Button, {
+      className: "rjf-dropdown-item rjf-text-danger",
+      alterClassName: false,
+      onClick: this.handleDeleteClick
+    }, this.state.loading && /*#__PURE__*/React$1.createElement(Loader, null), this.state.loading ? ' Deleting...' : 'Delete')));
+  }
+
+}
+
+const _excluded = ["data", "schema", "name", "onChange", "onRemove", "removable", "onEdit", "onKeyEdit", "editable", "onMoveUp", "onMoveDown", "parentType", "errorMap"];
 
 function handleChange(e, fieldType, callback) {
   let type = e.target.type;
@@ -1576,13 +2105,16 @@ function FormField(props) {
   let inputProps = {
     name: props.name,
     value: props.data,
-    readOnly: props.schema.readOnly || props.schema.readonly,
-    help_text: props.schema.help_text || props.schema.helpText
+    readOnly: getKeyword(props.schema, 'readOnly', 'readonly'),
+    help_text: getKeyword(props.schema, 'help_text', 'helpText'),
+    error: props.errorMap[getCoordsFromName(props.name)],
+    required: props.schema.required || false
   };
+  if (typeof inputProps.error === 'string') inputProps.error = [inputProps.error];
   if (props.schema.placeholder) inputProps.placeholder = props.schema.placeholder;
   if (props.schema.handler) inputProps.handler = props.schema.handler;
   let type = props.schema.type;
-  let choices = props.schema.choices || props.schema.enum;
+  let choices = getKeyword(props.schema, 'choices', 'enum');
 
   if (choices) {
     inputProps.options = choices;
@@ -1606,7 +2138,7 @@ function FormField(props) {
           InputField = FormFileInput;
         } else if (props.schema.format === 'file-url') {
           InputField = FileUploader;
-        } else if (props.schema.format === 'datetime' || props.schema.format === 'date-time') {
+        } else if (normalizeKeyword(props.schema.format) === 'date-time') {
           InputField = FormDateTimeInput;
         }
 
@@ -1615,17 +2147,20 @@ function FormField(props) {
         inputProps.type = 'text';
       }
 
+      if (props.schema.minLength || props.schema.minLength === 0) inputProps.minlength = props.schema.minLength;
+      if (props.schema.maxLength || props.schema.maxLength === 0) inputProps.maxlength = props.schema.maxLength;
       break;
+
+    case 'range':
+    case 'integer':
+      inputProps.step = '1';
+    // fall through
 
     case 'number':
-      inputProps.type = 'number';
+      if (type === 'range') inputProps.type = 'range';else inputProps.type = 'number';
       InputField = FormInput;
-      break;
-
-    case 'integer':
-      inputProps.type = 'number';
-      inputProps.step = '1';
-      InputField = FormInput;
+      if (props.schema.minimum || props.schema.minimum === 0) inputProps.min = props.schema.minimum;
+      if (props.schema.maximum || props.schema.maximum === 0) inputProps.max = props.schema.maximum;
       break;
 
     case 'boolean':
@@ -1652,8 +2187,14 @@ function FormField(props) {
       InputField = FormMultiSelectInput;
       break;
 
+    case 'autocomplete':
+      InputField = AutoCompleteInput;
+      break;
+
     case 'textarea':
       InputField = FormTextareaInput;
+      if (props.schema.minLength || props.schema.minLength === 0) inputProps.minlength = props.schema.minLength;
+      if (props.schema.maxLength || props.schema.maxLength === 0) inputProps.maxlength = props.schema.maxLength;
       break;
 
     default:
@@ -1683,7 +2224,8 @@ function getStringFormRow(args) {
     editable,
     onMoveUp,
     onMoveDown,
-    parentType
+    parentType,
+    errorMap
   } = args,
       fieldProps = _objectWithoutPropertiesLoose(args, _excluded);
 
@@ -1699,7 +2241,8 @@ function getStringFormRow(args) {
     onChange: onChange,
     onEdit: onKeyEdit,
     editable: editable,
-    parentType: parentType
+    parentType: parentType,
+    errorMap: errorMap
   }, fieldProps)));
 }
 function getArrayFormRow(args) {
@@ -1717,15 +2260,14 @@ function getArrayFormRow(args) {
   let rows = [];
   let groups = [];
   let removable = true;
-  let min_items = schema.min_items || schema.minItems || 0;
+  let min_items = getKeyword(schema, 'min_items', 'minItems') || 0;
   if (data.length <= min_items) removable = false;
   let addable = true;
-  let max_items = schema.max_items || schema.maxItems || 100;
+  let max_items = getKeyword(schema, 'max_items', 'maxItems') || 100;
   if (data.length >= max_items) addable = false;
   let isRef = schema.items.hasOwnProperty('$ref');
   if (isRef) schema.items = args.getRef(schema.items['$ref']);
-  let type = schema.items.type;
-  if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+  let type = normalizeKeyword(schema.items.type);
   let nextArgs = {
     schema: schema.items,
     onChange: onChange,
@@ -1737,7 +2279,8 @@ function getArrayFormRow(args) {
     onEdit: onEdit,
     onKeyEdit: args.onKeyEdit,
     parentType: 'array',
-    getRef: args.getRef
+    getRef: args.getRef,
+    errorMap: args.errorMap
   };
 
   if (nextArgs.schema.widget === 'multiselect') {
@@ -1788,6 +2331,9 @@ function getArrayFormRow(args) {
     }
   }
 
+  let groupError = args.errorMap[getCoordsFromName(coords)];
+  if (typeof groupError === 'string') groupError = [groupError];
+
   if (groups.length) {
     let groupTitle = schema.title ? /*#__PURE__*/React.createElement(GroupTitle, {
       editable: args.editable,
@@ -1802,7 +2348,10 @@ function getArrayFormRow(args) {
       className: "rjf-form-group"
     }, /*#__PURE__*/React.createElement("div", {
       className: level > 0 ? "rjf-form-group-inner" : ""
-    }, groupTitle, groups.map((i, index) => /*#__PURE__*/React.createElement("div", {
+    }, groupTitle, groupError && groupError.map((error, i) => /*#__PURE__*/React.createElement("div", {
+      className: "rjf-error-text",
+      key: i
+    }, error)), groups.map((i, index) => /*#__PURE__*/React.createElement("div", {
       className: "rjf-form-group-wrapper",
       key: 'group_wrapper_' + name + '_' + index
     }, /*#__PURE__*/React.createElement(FormRowControls, {
@@ -1831,7 +2380,7 @@ function getObjectFormRow(args) {
     level
   } = args;
   let rows = [];
-  let schema_keys = schema.keys || schema.properties;
+  let schema_keys = getKeyword(schema, 'keys', 'properties');
   let keys = [...Object.keys(schema_keys)];
   if (schema.additionalProperties) keys = [...keys, ...Object.keys(data).filter(k => keys.indexOf(k) === -1)];
 
@@ -1850,8 +2399,7 @@ function getObjectFormRow(args) {
 
     let isRef = schemaValue.hasOwnProperty('$ref');
     if (isRef) schemaValue = args.getRef(schemaValue['$ref']);
-    let type = schemaValue.type;
-    if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+    let type = normalizeKeyword(schemaValue.type);
     if (!schemaValue.title || isRef && schema.additionalProperties) // for additionalProperty refs, use the key as the title
       schemaValue.title = getVerboseName(key);
     let removable = false;
@@ -1868,7 +2416,8 @@ function getObjectFormRow(args) {
       onMove: onMove,
       onEdit: onEdit,
       parentType: 'object',
-      getRef: args.getRef
+      getRef: args.getRef,
+      errorMap: args.errorMap
     };
 
     nextArgs.onKeyEdit = () => handleKeyEdit(data, key, value, childName, onEdit);
@@ -1886,6 +2435,8 @@ function getObjectFormRow(args) {
 
   if (rows.length || schema.additionalProperties) {
     let coords = name;
+    let groupError = args.errorMap[getCoordsFromName(coords)];
+    if (typeof groupError === 'string') groupError = [groupError];
     rows = /*#__PURE__*/React.createElement(FormGroup, {
       level: level,
       schema: schema,
@@ -1894,7 +2445,10 @@ function getObjectFormRow(args) {
       editable: args.editable,
       onEdit: args.onKeyEdit,
       key: 'row_group_' + name
-    }, rows);
+    }, groupError && groupError.map((error, i) => /*#__PURE__*/React.createElement("div", {
+      className: "rjf-error-text",
+      key: i
+    }, error)), rows);
 
     if (args.parentType === 'object' && args.removable) {
       rows = /*#__PURE__*/React.createElement("div", {
@@ -1940,7 +2494,7 @@ function validateSchema(schema) {
     isValid: false,
     msg: "Schema must be an object"
   };
-  let type = normalize_keyword(schema.type);
+  let type = normalizeKeyword(schema.type);
   let validation = {
     isValid: true,
     msg: ""
@@ -1979,7 +2533,7 @@ function validateObject(schema) {
     let validation = {
       isValid: true
     };
-    let value_type = normalize_keyword(value.type);
+    let value_type = normalizeKeyword(value.type);
 
     if (value_type) {
       if (value_type === 'object') validation = validateObject(value);else if (value_type === 'array') validation = validateArray(value);
@@ -2006,7 +2560,7 @@ function validateObject(schema) {
         validation = validateRef(schema.additionalProperties);
         if (!validation.isValid) return validation;
       } else {
-        let type = normalize_keyword(schema.additionalProperties.type);
+        let type = normalizeKeyword(schema.additionalProperties.type);
         if (type === 'object') return validateObject(schema.additionalProperties);else if (type === 'array') return validateSchema(schema.additionalProperties);
         /* :TODO: else validate allowed types */
       }
@@ -2027,7 +2581,7 @@ function validateArray(schema) {
     isValid: false,
     msg: "The 'items' key must be a valid JavaScript Object'"
   };
-  let items_type = normalize_keyword(schema.items.type);
+  let items_type = normalizeKeyword(schema.items.type);
 
   if (items_type) {
     if (items_type === 'object') return validateObject(schema.items);else if (items_type === 'array') return validateArray(schema.items);
@@ -2063,26 +2617,6 @@ function validateRef(schema) {
     isValid: true,
     msg: ""
   };
-}
-
-function normalize_keyword(kw) {
-  /* Converts custom supported keywords to standard JSON schema keywords */
-  switch (kw) {
-    case 'list':
-      return 'array';
-
-    case 'dict':
-      return 'object';
-
-    case 'keys':
-      return 'properties';
-
-    case 'choices':
-      return 'enum';
-
-    default:
-      return kw;
-  }
 }
 
 class EditorState {
@@ -2193,35 +2727,26 @@ class ReactJSONForm extends React$1.Component {
       let data = this.props.editorState.getData();
       let schema = this.props.editorState.getSchema();
       let formGroups = [];
+      let type = schema.type;
+      if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+      let args = {
+        data: data,
+        schema: schema,
+        name: 'rjf',
+        onChange: this.handleChange,
+        onAdd: this.addFieldset,
+        onRemove: this.removeFieldset,
+        onEdit: this.editFieldset,
+        onMove: this.moveFieldset,
+        level: 0,
+        getRef: this.getRef,
+        errorMap: this.props.errorMap || {}
+      };
 
-      try {
-        let type = schema.type;
-        if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
-        let args = {
-          data: data,
-          schema: schema,
-          name: 'rjf',
-          onChange: this.handleChange,
-          onAdd: this.addFieldset,
-          onRemove: this.removeFieldset,
-          onEdit: this.editFieldset,
-          onMove: this.moveFieldset,
-          level: 0,
-          getRef: this.getRef
-        };
-
-        if (type === 'array') {
-          return getArrayFormRow(args);
-        } else if (type === 'object') {
-          return getObjectFormRow(args);
-        }
-      } catch (error) {
-        console.log(error);
-        formGroups = /*#__PURE__*/React$1.createElement("p", {
-          style: {
-            color: '#f00'
-          }
-        }, /*#__PURE__*/React$1.createElement("strong", null, "(!) Error:"), " Schema and data structure do not match.");
+      if (type === 'array') {
+        return getArrayFormRow(args);
+      } else if (type === 'object') {
+        return getObjectFormRow(args);
       }
 
       return formGroups;
@@ -2356,11 +2881,266 @@ function moveDataUsingCoords(oldCoords, newCoords, data) {
   return data;
 }
 
+function DataValidator(schema) {
+  this.schema = schema;
+  this.errorMap = {};
+
+  this.validate = function (data) {
+    // reset errorMap so that this validator object
+    // can be reused for same schema
+    this.errorMap = {};
+    let validator = this.getValidator(schema.type);
+    if (validator) validator(this.schema, data, '');else this.addError('', 'Invalid schema type: "' + schema.type + '"');
+    let validation = {
+      isValid: true,
+      errorMap: this.errorMap
+    };
+    if (Object.keys(this.errorMap).length) validation['isValid'] = false;
+    return validation;
+  };
+
+  this.getValidator = function (schema_type) {
+    schema_type = normalizeKeyword(schema_type);
+    let func;
+
+    switch (schema_type) {
+      case 'array':
+        func = this.validateArray;
+        break;
+
+      case 'object':
+        func = this.validateObject;
+        break;
+
+      case 'string':
+        func = this.validateString;
+        break;
+
+      case 'boolean':
+        func = this.validateBoolean;
+        break;
+
+      case 'integer':
+        func = this.validateInteger;
+        break;
+
+      case 'number':
+        func = this.validateNumber;
+        break;
+    }
+
+    if (func) return func.bind(this);
+    return func;
+  };
+
+  this.getRef = function (ref) {
+    return EditorState.getRef(ref, this.schema);
+  };
+
+  this.addError = function (coords, msg) {
+    if (!this.errorMap.hasOwnProperty(coords)) this.errorMap[coords] = [];
+    this.errorMap[coords].push(msg);
+  };
+
+  this.joinCoords = function (coords) {
+    let c = coords.join('-');
+    if (c.startsWith('-')) c = c.slice(1);
+    return c;
+  };
+
+  this.validateArray = function (schema, data, coords) {
+    if (!Array.isArray(data)) {
+      this.addError(coords, "Invalid data type. Expected array.");
+      return;
+    }
+
+    let next_schema = schema.items;
+    if (next_schema.hasOwnProperty('$ref')) next_schema = this.getRef(next_schema.$ref);
+    let next_type = normalizeKeyword(next_schema.type);
+    let minItems = getKeyword(schema, 'minItems', 'min_items');
+    let maxItems = getKeyword(schema, 'maxItems', 'max_items');
+    let choices = getKeyword(schema.items, 'choices', 'enum');
+    if (minItems && data.length < parseInt(minItems)) this.addError(coords, 'Minimum ' + minItems + ' items required.');
+    if (maxItems && data.length > parseInt(maxItems)) this.addError(coords, 'Maximum ' + maxItems + ' items allowed.');
+
+    if (getKey(schema, 'uniqueItems')) {
+      let items_type = next_type;
+
+      if (items_type === 'array' || items_type === 'object') {
+        if (data.length !== new Set(data.map(i => JSON.stringify(i))).size) this.addError(coords, 'All items in this list must be unique.');
+      } else {
+        if (data.length !== new Set(data).size) this.addError(coords, 'All items in this list must be unique.');
+      }
+    }
+
+    if (choices) {
+      let invalid_choice = data.find(i => choices.indexOf(i) === -1);
+      if (typeof invalid_choice !== 'undefined') this.addError(coords, 'Invalid choice + "' + invalid_choice + '"');
+    }
+
+    let next_validator = this.getValidator(next_type);
+
+    if (next_validator) {
+      for (let i = 0; i < data.length; i++) next_validator(next_schema, data[i], this.joinCoords([coords, i]));
+    } else this.addError(coords, 'Unsupported type "' + next_type + '" for array items.');
+  };
+
+  this.validateObject = function (schema, data, coords) {
+    if (typeof data !== 'object' || Array.isArray(data)) {
+      this.addError(coords, "Invalid data type. Expected object.");
+      return;
+    }
+
+    let fields = getKeyword(schema, 'properties', 'keys', {});
+    let data_keys = Object.keys(data);
+    let missing_keys = Object.keys(fields).filter(i => data_keys.indexOf(i) === -1);
+
+    if (missing_keys.length) {
+      this.addError(coords, 'These fields are missing from the data: ' + missing_keys.join(', '));
+      return;
+    }
+
+    for (let key in data) {
+      if (!data.hasOwnProperty(key)) continue;
+      let next_schema;
+      if (fields.hasOwnProperty(key)) next_schema = fields[key];else {
+        if (!schema.hasOwnProperty('additionalProperties')) continue;
+        next_schema = schema.additionalProperties;
+        if (next_schema === true) next_schema = {
+          type: 'string'
+        };
+      }
+      if (next_schema.hasOwnProperty('$ref')) next_schema = this.getRef(next_schema.$ref);
+      let next_type = normalizeKeyword(next_schema.type);
+      let next_validator = this.getValidator(next_type);
+      if (next_validator) next_validator(next_schema, data[key], this.joinCoords([coords, key]));else {
+        this.addError(coords, 'Unsupported type "' + next_type + '" for object properties (keys).');
+        return;
+      }
+    }
+  };
+
+  this.validateString = function (schema, data, coords) {
+    if (schema.required && !data) {
+      this.addError(coords, 'This field is required.');
+      return;
+    }
+
+    if (typeof data !== 'string') {
+      this.addError(coords, 'This value is invalid. Must be a valid string.');
+      return;
+    }
+
+    if (!data) // not required, can be empty
+      return;
+    if (schema.minLength && data.length < parseInt(schema.minLength)) this.addError(coords, 'This value must be at least ' + schema.minLength + ' characters long.');
+    if ((schema.maxLength || schema.maxLength == 0) && data.length > parseInt(schema.maxLength)) this.addError(coords, 'This value may not be longer than ' + schema.maxLength + ' characters.');
+    let format = normalizeKeyword(schema.format);
+    let format_validator;
+
+    switch (format) {
+      case 'email':
+        format_validator = this.validateEmail;
+        break;
+
+      case 'date':
+        format_validator = this.validateDate;
+        break;
+
+      case 'time':
+        format_validator = this.validateTime;
+        break;
+
+      case 'date-time':
+        format_validator = this.validateDateTime;
+        break;
+    }
+
+    if (format_validator) format_validator.call(this, schema, data, coords);
+  };
+
+  this.validateBoolean = function (schema, data, coords) {
+    if (schema.required && (data === null || data === undefined)) {
+      this.addError(coords, 'This field is required.');
+      return;
+    }
+
+    if (typeof data !== 'boolean' && data !== null && data !== undefined) this.addError(coords, 'Invalid value.');
+  };
+
+  this.validateInteger = function (schema, data, coords) {
+    if (schema.required && (data === null || data === undefined)) {
+      this.addError(coords, 'This field is required.');
+      return;
+    }
+
+    if (data === null) // not required, integer can be null
+      return;
+
+    if (typeof data !== 'number') {
+      this.addError(coords, 'Invalid value. Only integers allowed.');
+      return;
+    } // 1.0 and 1 must be treated equal
+
+
+    if (data !== parseInt(data)) {
+      this.addError(coords, 'Invalid value. Only integers allowed.');
+      return;
+    }
+
+    this.validateNumber(schema, data, coords);
+  };
+
+  this.validateNumber = function (schema, data, coords) {
+    if (schema.required && (data === null || data === undefined)) {
+      this.addError(coords, 'This field is required.');
+      return;
+    }
+
+    if (data === null) // not required, number can be null
+      return;
+
+    if (typeof data !== 'number') {
+      this.addError(coords, 'Invalid value. Only numbers allowed.');
+      return;
+    }
+
+    if ((schema.minimum || schema.minimum === 0) && data < schema.minimum) this.addError(coords, 'This value must not be less than ' + schema.minimum);
+    if ((schema.maximum || schema.maximum === 0) && data > schema.maximum) this.addError(coords, 'This value must not be greater than ' + schema.minimum);
+    if ((schema.exclusiveMinimum || schema.exclusiveMinimum === 0) && data <= schema.exclusiveMinimum) this.addError(coords, 'This value must be greater than ' + schema.exclusiveMinimum);
+    if ((schema.exclusiveMaximum || schema.exclusiveMaximum === 0) && data >= schema.exclusiveMaximum) this.addError(coords, 'This value must be less than ' + schema.exclusiveMaximum);
+    if ((schema.multipleOf || schema.multipleOf === 0) && data * 100 % (schema.multipleOf * 100) / 100) this.addError(coords, 'This value must be a multiple of ' + schema.multipleOf);
+  };
+
+  this.validateEmail = function (schema, data, coords) {
+    // half-arsed validation but will do for the time being
+    if (data.indexOf(' ') > -1) {
+      this.addError(coords, 'Enter a valid email address.');
+      return;
+    }
+
+    if (data.length > 320) {
+      this.addError(coords, 'Email may not be longer than 320 characters');
+      return;
+    }
+  };
+
+  this.validateDate = function (schema, data, coords) {// :TODO:
+  };
+
+  this.validateTime = function (schema, data, coords) {// :TODO:
+  };
+
+  this.validateDateTime = function (schema, data, coords) {// :TODO:
+  };
+}
+
 function FormInstance(config) {
   this.containerId = config.containerId;
   this.dataInputId = config.dataInputId;
   this.schema = config.schema;
   this.data = config.data;
+  this.errorMap = config.errorMap;
   this.fileHandler = config.fileHandler;
   this.fieldName = config.fieldName;
   this.modelName = config.modelName;
@@ -2373,6 +3153,7 @@ function FormInstance(config) {
   };
 
   this.onChange = function (e) {
+    this.data = e.data;
     if (!this.eventListeners) return;
     if (!this.eventListeners.hasOwnProperty('change') || !this.eventListeners.change.size) return;
     this.eventListeners.change.forEach(cb => cb(e));
@@ -2386,6 +3167,7 @@ function FormInstance(config) {
         schema: this.schema,
         dataInputId: this.dataInputId,
         data: this.data,
+        errorMap: this.errorMap,
         fileHandler: this.fileHandler,
         fieldName: this.fieldName,
         modelName: this.modelName,
@@ -2401,7 +3183,21 @@ function FormInstance(config) {
   this.update = function (config) {
     this.schema = config.schema || this.schema;
     this.data = config.data || this.data;
+    this.errorMap = config.errorMap || this.errorMap;
     this.render();
+  };
+
+  this.getSchema = function () {
+    return this.schema;
+  };
+
+  this.getData = function () {
+    return this.data;
+  };
+
+  this.validate = function () {
+    let validator = new DataValidator(this.getSchema());
+    return validator.validate(this.getData());
   };
 }
 const FORM_INSTANCES = {};
@@ -2471,14 +3267,15 @@ class FormContainer extends React$1.Component {
       onChange: this.handleChange,
       fileHandler: this.props.fileHandler,
       fieldName: this.props.fieldName,
-      modelName: this.props.modelName
+      modelName: this.props.modelName,
+      errorMap: this.props.errorMap
     });
   }
 
 }
 
 function ErrorReporter(props) {
-  /* Component for displaying errors to the user related for schema */
+  /* Component for displaying errors to the user related to schema */
   return /*#__PURE__*/React$1.createElement("div", {
     style: {
       color: '#f00'
@@ -2486,4 +3283,4 @@ function ErrorReporter(props) {
   }, /*#__PURE__*/React$1.createElement("p", null, "(!) ", props.error.toString()), /*#__PURE__*/React$1.createElement("p", null, "Check browser console for more details about the error."));
 }
 
-export { EditorState, ReactJSONForm, createForm, getFormInstance };
+export { DataValidator, EditorState, ReactJSONForm, createForm, getFormInstance };
