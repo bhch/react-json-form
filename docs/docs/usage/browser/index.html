@@ -109,11 +109,20 @@
 <p>Use the <a href="#reactjsonform.createform(config)"><code>reactJsonForm.createForm()</code></a> function to
 create the from from your schema.</p>
 <p>You'll also need to have a <code>textarea</code> where the form will save the data.</p>
-<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>formContainer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token comment">&lt;!-- The form will be displayed here --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>textarea</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>formData<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token comment">&lt;!-- The form data will be kept in this textarea --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>textarea</span><span class="token punctuation">></span></span><br><br><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text/javascript<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"><br><span class="token keyword">var</span> form <span class="token operator">=</span> reactJsonForm<span class="token punctuation">.</span><span class="token function">createForm</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>    <span class="token literal-property property">containerId</span><span class="token operator">:</span> <span class="token string">'formContainer'</span><span class="token punctuation">,</span><br>    <span class="token literal-property property">containerId</span><span class="token operator">:</span> <span class="token string">'formData'</span><span class="token punctuation">,</span><br>    <span class="token literal-property property">schema</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>        <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'object'</span><span class="token punctuation">,</span><br>        <span class="token literal-property property">keys</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>            <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'string'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>            <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'integer'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>        <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>form<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>formContainer<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token comment">&lt;!-- The form will be displayed here --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>textarea</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>formData<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token comment">&lt;!-- The form data will be kept in this textarea --></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>textarea</span><span class="token punctuation">></span></span><br><br><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text/javascript<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"><br><span class="token keyword">var</span> form <span class="token operator">=</span> reactJsonForm<span class="token punctuation">.</span><span class="token function">createForm</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>    <span class="token literal-property property">containerId</span><span class="token operator">:</span> <span class="token string">'formContainer'</span><span class="token punctuation">,</span><br>    <span class="token literal-property property">dataInputId</span><span class="token operator">:</span> <span class="token string">'formData'</span><span class="token punctuation">,</span><br>    <span class="token literal-property property">schema</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>        <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'object'</span><span class="token punctuation">,</span><br>        <span class="token literal-property property">keys</span><span class="token operator">:</span> <span class="token punctuation">{</span><br>            <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'string'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>            <span class="token literal-property property">age</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token string">'integer'</span><span class="token punctuation">}</span><span class="token punctuation">,</span><br>        <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>form<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
 <h2 id="handling-events" tabindex="-1">Handling events <a class="header-anchor" href="#handling-events">#</a></h2>
 <pre class="language-js"><code class="language-js">form<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'change'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// ... </span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 <p>See <a href="#forminstance.addeventlistener(event%2C-callback)"><code>addEventListener()</code></a> section for
 further details about handling events.</p>
+<h2 id="data-validation" tabindex="-1">Data validation <a class="header-anchor" href="#data-validation">#</a></h2>
+<p><em>New in version 2.1</em></p>
+<p>The form component provides basic data validation.</p>
+<p>Usage example:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> validation <span class="token operator">=</span> form<span class="token punctuation">.</span><span class="token function">validate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token keyword">var</span> isValid <span class="token operator">=</span> validation<span class="token punctuation">.</span>isValid<span class="token punctuation">;</span> <span class="token comment">// it will be false if data is not valid</span><br><br><span class="token keyword">var</span> errorMap <span class="token operator">=</span> validation<span class="token punctuation">.</span>errorMap<span class="token punctuation">;</span> <span class="token comment">// object containing error messages</span><br><br><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>isValid<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>     <span class="token comment">// notify user</span><br>    <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Please correct the errors'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>    <span class="token comment">// update the form component</span><br>    <span class="token comment">// it will display error messages below each input</span><br>    form<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token literal-property property">errorMap</span><span class="token operator">:</span> errorMap<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br></code></pre>
+<p>You can adopt the above code example to validate the data before a form is submitted.</p>
+<p>You can also implement custom validation instead of calling <code>.validate()</code>. In that
+case, you'll have to manually create an <a href="/react-json-form/docs/usage/node/#data-validation"><code>errorMap</code> object</a>
+for displaying error messages.</p>
 <h2 id="api-reference" tabindex="-1">API reference <a class="header-anchor" href="#api-reference">#</a></h2>
 <h3 id="library-functions" tabindex="-1">Library functions <a class="header-anchor" href="#library-functions">#</a></h3>
 <h5 id="reactjsonform.createform(config)" tabindex="-1"><code>reactJsonForm.createForm(config)</code> <a class="header-anchor" href="#reactjsonform.createform(config)">#</a></h5>
@@ -125,7 +134,9 @@ which may contain these keys:</p>
 <li><code>schema</code>: The schema of the form.</li>
 <li><code>data</code> <em>(Optional)</em>: The initial data of the form.</li>
 <li><code>fileHandler</code> <em>(Optional)</em>: URL for the common file handler endpoint for all file fields.</li>
+<li><code>errorMap</code> <em>(Optional)</em>: An object containing error messages for fields.</li>
 </ul>
+<p><em>Changed in version 2.1</em>: <code>errorMap</code> option was added.</p>
 <h5 id="reactjsonform.getforminstance(containerid)" tabindex="-1"><code>reactJsonForm.getFormInstance(containerId)</code> <a class="header-anchor" href="#reactjsonform.getforminstance(containerid)">#</a></h5>
 <p>Call this function to get a previously created form instance.</p>
 <p>If you've earlier created an instance in a scoped function, then to get
@@ -137,18 +148,42 @@ the form instance in another scope, this function can be helpful.</p>
 <h4 id="methods" tabindex="-1">Methods <a class="header-anchor" href="#methods">#</a></h4>
 <h5 id="forminstance.addeventlistener(event%2C-callback)" tabindex="-1"><code>formInstance.addEventListener(event, callback)</code> <a class="header-anchor" href="#forminstance.addeventlistener(event%2C-callback)">#</a></h5>
 <p>Register a callback for a given event (<a href="#events">see available events</a>).</p>
-<p>The callback function will be passed an <code>Object</code> with the following keys:</p>
+<h5 id="forminstance.render()" tabindex="-1"><code>formInstance.render()</code> <a class="header-anchor" href="#forminstance.render()">#</a></h5>
+<p>Function to render the form.</p>
+<h5 id="forminstance.update(config)" tabindex="-1"><code>formInstance.update(config)</code> <a class="header-anchor" href="#forminstance.update(config)">#</a></h5>
+<p>Re-render the form with the given <code>config</code>.</p>
+<h5 id="forminstance.validate()" tabindex="-1"><code>formInstance.validate()</code> <a class="header-anchor" href="#forminstance.validate()">#</a></h5>
+<p><em>New in version 2.1</em></p>
+<p>Validates the current data against the instance's schema.</p>
+<p>Returns a <em>validation</em> object with following keys:</p>
+<ul>
+<li><code>isValid</code>: It will be <code>true</code> if data is valid, else <code>false</code>.</li>
+<li><code>errorMap</code>: An object containing field names and validation errors.</li>
+</ul>
+<h5 id="forminstance.getdata()" tabindex="-1"><code>formInstance.getData()</code> <a class="header-anchor" href="#forminstance.getdata()">#</a></h5>
+<p><em>New in version 2.1</em></p>
+<p>Returns the current data of the form instance.</p>
+<h5 id="forminstance.getschema()" tabindex="-1"><code>formInstance.getSchema()</code> <a class="header-anchor" href="#forminstance.getschema()">#</a></h5>
+<p><em>New in version 2.1</em></p>
+<p>Returns the current schema of the form instance.</p>
+<h4 id="events" tabindex="-1">Events <a class="header-anchor" href="#events">#</a></h4>
+<p>Following is the list of currently available events:</p>
+<h5 id="change" tabindex="-1"><code>change</code> <a class="header-anchor" href="#change">#</a></h5>
+<p>This event is fired for every change in the form's data.</p>
+<p>The callback for this event will be passed an <code>Object</code> with the following keys:</p>
 <ul>
 <li><code>data</code>: Current data of the form.</li>
 <li><code>prevData</code>: Previous data of the form (before the event).</li>
 <li><code>schema</code>: Current schema of the form.</li>
 <li><code>prevSchema</code>: Previous schema of the form (before the event).</li>
 </ul>
+<p>Example:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> form <span class="token operator">=</span> reactjsonform<span class="token punctuation">.</span><span class="token function">createform</span><span class="token punctuation">(</span><span class="token operator">...</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>form<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'change'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">var</span> data <span class="token operator">=</span> e<span class="token punctuation">.</span>data<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">prevData</span><span class="token operator">:</span> e<span class="token punctuation">.</span>prevData<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">schema</span><span class="token operator">:</span> e<span class="token punctuation">.</span>schema<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">prevSchema</span><span class="token operator">:</span> e<span class="token punctuation">.</span>prevSchema<span class="token punctuation">;</span><br><br>    <span class="token comment">// do something ...</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 <div class="alert alert-info">
     <p><strong>Attention!</strong></p>
     <p>
         If you want to call the <a href="#forminstance.update(config)"><code>update()</code></a>
-        method from within an event listener, <strong>you must call it conditionally</strong>
+        method from the <code>change</code> event listener, <strong>you must call it conditionally</strong>
         or else it might cause an infite loop.
     </p>
     <p>
@@ -156,17 +191,6 @@ the form instance in another scope, this function can be helpful.</p>
         current <code>data</code> and <code>prevData</code> are not same.
     </p>
 </div>
-<p>Example:</p>
-<pre class="language-js"><code class="language-js"><span class="token keyword">var</span> form <span class="token operator">=</span> reactjsonform<span class="token punctuation">.</span><span class="token function">createform</span><span class="token punctuation">(</span><span class="token operator">...</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>form<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'change'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">e</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">var</span> data <span class="token operator">=</span> e<span class="token punctuation">.</span>data<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">prevData</span><span class="token operator">:</span> e<span class="token punctuation">.</span>prevData<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">schema</span><span class="token operator">:</span> e<span class="token punctuation">.</span>schema<span class="token punctuation">;</span><br>    <span class="token keyword">var</span> <span class="token literal-property property">prevSchema</span><span class="token operator">:</span> e<span class="token punctuation">.</span>prevSchema<span class="token punctuation">;</span><br><br>    <span class="token comment">// do something ...</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-<h5 id="forminstance.render()" tabindex="-1"><code>formInstance.render()</code> <a class="header-anchor" href="#forminstance.render()">#</a></h5>
-<p>Function to render the form.</p>
-<h5 id="forminstance.update(config)" tabindex="-1"><code>formInstance.update(config)</code> <a class="header-anchor" href="#forminstance.update(config)">#</a></h5>
-<p>Re-render the form with the given <code>config</code>.</p>
-<h4 id="events" tabindex="-1">Events <a class="header-anchor" href="#events">#</a></h4>
-<p>Following is the list of currently available events:</p>
-<ul>
-<li><code>change</code></li>
-</ul>
 
     </div>
 </div>
@@ -207,6 +231,18 @@ the form instance in another scope, this function can be helpful.</p>
 
     });
 </script>
+
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-94030773-1"></script>
+    <script type="text/javascript">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-94030773-1');
+    </script>
+
 
 </body>
 </html>

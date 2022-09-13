@@ -114,12 +114,15 @@ responsible for saving the state.</p>
 <h2 id="reactjsonform-api-reference" tabindex="-1"><code>ReactJSONForm</code> API reference <a class="header-anchor" href="#reactjsonform-api-reference">#</a></h2>
 <h3 id="props" tabindex="-1">Props <a class="header-anchor" href="#props">#</a></h3>
 <ul>
-<li><code>editorState</code>: Instance of <a href="#editorstate"><code>EditorState</code></a> containing the schema and data.</li>
-<li><code>onChange</code>: Callback function for handling changing. This function will receive a new instance of
+<li><code>editorState</code>: Instance of <a href="#editorstate-api-reference"><code>EditorState</code></a> containing the schema and data.</li>
+<li><code>onChange</code>: Callback function for handling changes. This function will receive a new instance of
 <code>EditorState</code> (because <code>EditorState</code> is immutable, instead of modifying the previous instance, we
 replace it with a new one).</li>
 <li><code>fileHandler</code>: A URL to a common file handler endpoint for all file input fields.</li>
+<li><code>errorMap</code>: An object containing error messages for input fields. <a href="#data-validation">See data validation section</a>
+for more.</li>
 </ul>
+<p><em>Changed in version 2.1</em>: <code>errorMap</code> prop was added.</p>
 <h2 id="editorstate-api-reference" tabindex="-1"><code>EditorState</code> API reference <a class="header-anchor" href="#editorstate-api-reference">#</a></h2>
 <p><code>EditorState</code> must be treated as an immutable object. If you want to make any
 changes to the state, such as updating the schema, or changing the data, you
@@ -159,6 +162,37 @@ updates as fast as possible.</p>
 declared in the schema.</p>
 <h5 id="editorstate.getschema()" tabindex="-1"><code>EditorState.getSchema()</code> <a class="header-anchor" href="#editorstate.getschema()">#</a></h5>
 <p>This method returns the schema.</p>
+<h4 id="data-validation" tabindex="-1">Data validation <a class="header-anchor" href="#data-validation">#</a></h4>
+<p><em>New in version 2.1</em></p>
+<p><strong>React JSON Form</strong> comes with some basic data validator called <a href="#datavalidator-api-reference"><code>DataValidator</code></a>.
+But you are free to validate the data however you want.</p>
+<p>After the validation, you may also want to display error messages below the
+input fields. For this purpose, the <code>ReactJSONForm</code> component accepts an <code>errorMap</code>
+prop which is basically a mapping of field names in the data and error messages.</p>
+<p>An <code>errorMap</code> looks like this:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> errorMap <span class="token operator">=</span> <span class="token punctuation">{</span><br>    <span class="token string-property property">'name'</span><span class="token operator">:</span> <span class="token string">'This field is required'</span><span class="token punctuation">,</span><br><br>    <span class="token comment">// multiple error messages</span><br>    <span class="token string-property property">'age'</span><span class="token operator">:</span> <span class="token punctuation">[</span><br>        <span class="token string">'This field is required'</span><span class="token punctuation">,</span><br>        <span class="token string">'This value must be greater than 18'</span><br>    <span class="token punctuation">]</span><br><br>    <span class="token comment">// nested arrays and objects</span><br><br>    <span class="token comment">// first item in array</span><br>    <span class="token string-property property">'0'</span><span class="token operator">:</span> <span class="token string">'This is required'</span><span class="token punctuation">,</span><br><br>    <span class="token comment">// first item > object > property: name</span><br>    <span class="token string-property property">'0-name'</span><span class="token operator">:</span> <span class="token string">'This is required'</span><br><span class="token punctuation">}</span></code></pre>
+<h5 id="datavalidator-api-reference" tabindex="-1"><code>DataValidator</code> API reference <a class="header-anchor" href="#datavalidator-api-reference">#</a></h5>
+<h5 id="constructor" tabindex="-1">Constructor <a class="header-anchor" href="#constructor">#</a></h5>
+<h5 id="new-datavalidator(schema)" tabindex="-1"><code>new DataValidator(schema)</code> <a class="header-anchor" href="#new-datavalidator(schema)">#</a></h5>
+<p><strong>Returns</strong>: An instance of <code>DataValidator</code></p>
+<p><strong>Arguments</strong>:</p>
+<ul>
+<li><code>schema</code>: Schema object (not JSON string).</li>
+</ul>
+<h5 id="instance-methods-1" tabindex="-1">Instance methods <a class="header-anchor" href="#instance-methods-1">#</a></h5>
+<p>Following methods must be called form the instance of <code>DataValidator</code>.</p>
+<h5 id="validatorinstance.validate(data)" tabindex="-1"><code>validatorInstance.validate(data)</code> <a class="header-anchor" href="#validatorinstance.validate(data)">#</a></h5>
+<p><strong>Returns</strong>: A <em>validation</em> object containing these keys:</p>
+<ul>
+<li><code>isValid</code>: A boolean denoting whether the data is valid or not.</li>
+<li><code>errorMap</code>: An object containing error messages for invalid data fields.</li>
+</ul>
+<p><strong>Arguments</strong>:</p>
+<ul>
+<li><code>data</code>: The data to validate against the <code>schema</code> provided to the constructor.</li>
+</ul>
+<p>Example:</p>
+<pre class="language-jsx"><code class="language-jsx"><span class="token keyword">import</span> <span class="token punctuation">{</span>DataValidator<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@bhch/react-json-form'</span><span class="token punctuation">;</span><br><br><span class="token keyword">const</span> validator <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">DataValidator</span><span class="token punctuation">(</span>schema<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">const</span> validation <span class="token operator">=</span> validator<span class="token punctuation">.</span><span class="token function">validate</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token keyword">const</span> isValid <span class="token operator">=</span> validation<span class="token punctuation">.</span>isValid<span class="token punctuation">;</span><br><span class="token keyword">const</span> errorMap <span class="token operator">=</span> validation<span class="token punctuation">.</span>errorMap<span class="token punctuation">;</span><br><br><span class="token keyword">if</span> <span class="token punctuation">(</span>isValid<span class="token punctuation">)</span><br>    <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Success'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">else</span><br>    <span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">'Invalid'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// pass the errorMap object to ReactJSONForm</span><br><span class="token comment">// and error messages will be displayed under</span><br><span class="token comment">// input fields</span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">ReactJSONForm</span></span><br>    <span class="token attr-name">editorState</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span></span><br>    <span class="token attr-name">errorMap</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>errorMap<span class="token punctuation">}</span></span><br><span class="token punctuation">/></span></span></code></pre>
 
     </div>
 </div>
@@ -199,6 +233,18 @@ declared in the schema.</p>
 
     });
 </script>
+
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-94030773-1"></script>
+    <script type="text/javascript">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-94030773-1');
+    </script>
+
 
 </body>
 </html>
