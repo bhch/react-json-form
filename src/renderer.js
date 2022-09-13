@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import EditorState from './editorState';
 import ReactJSONForm from './form';
+import DataValidator from './dataValidation';
 
 
 export function FormInstance(config) {
@@ -77,6 +78,11 @@ export function FormInstance(config) {
 
     this.getData = function() {
         return this.data;
+    };
+
+    this.validate = function() {
+        let validator = new DataValidator(this.getSchema());
+        return validator.validate(this.getData());
     };
 }
 
