@@ -28,6 +28,8 @@ export function FormInstance(config) {
     };
 
     this.onChange = function(e) {
+        this.data = e.data;
+
         if (!this.eventListeners)
             return;
 
@@ -67,6 +69,14 @@ export function FormInstance(config) {
         this.errorMap = config.errorMap || this.errorMap;
 
         this.render();
+    };
+
+    this.getSchema = function() {
+        return this.schema;
+    };
+
+    this.getData = function() {
+        return this.data;
     };
 }
 
