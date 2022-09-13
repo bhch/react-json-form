@@ -64,11 +64,15 @@ class MyComponent extends React.Component {
 
 ### Props
 
- - `editorState`: Instance of [`EditorState`](#editorstate) containing the schema and data.
- - `onChange`: Callback function for handling changing. This function will receive a new instance of 
+ - `editorState`: Instance of [`EditorState`](#editorstate-api-reference) containing the schema and data.
+ - `onChange`: Callback function for handling changes. This function will receive a new instance of 
  `EditorState` (because `EditorState` is immutable, instead of modifying the previous instance, we
  replace it with a new one).
  - `fileHandler`: A URL to a common file handler endpoint for all file input fields.
+ - `errorMap`: An object containing error messages for input fields. [See data validation section](#data-validation)
+ for more.  
+
+*Changed in version 2.1*: `errorMap` prop was added.
 
 ## `EditorState` API reference
 
@@ -132,3 +136,89 @@ declared in the schema.
 ##### `EditorState.getSchema()`
 
 This method returns the schema.
+
+
+#### Data validation
+
+*New in version 2.1*
+
+**React JSON Form** comes with some basic data validator called [`DataValidator`](#datavalidator-api-reference).
+But you are free to validate the data however you want.
+
+After the validation, you may also want to display error messages below the
+input fields. For this purpose, the `ReactJSONForm` component accepts an `errorMap`
+prop which is basically a mapping of field names in the data and error messages.
+
+An `errorMap` looks like this:
+
+```js
+let errorMap = {
+    'name': 'This field is required',
+
+    // multiple error messages
+    'age': [
+        'This field is required',
+        'This value must be greater than 18'
+    ]
+
+    // nested arrays and objects
+
+    // first item in array
+    '0': 'This is required',
+
+    // first item > object > property: name
+    '0-name': 'This is required'
+}
+```
+
+##### `DataValidator` API reference
+
+##### Constructor
+
+##### `new DataValidator(schema)`
+
+**Returns**: An instance of `DataValidator`
+
+**Arguments**:
+
+ - `schema`: Schema object (not JSON string).
+
+##### Instance methods
+
+Following methods must be called form the instance of `DataValidator`.
+
+##### `validatorInstance.validate(data)`
+
+**Returns**: A *validation* object containing these keys:
+
+ - `isValid`: A boolean denoting whether the data is valid or not.
+ - `errorMap`: An object containing error messages for invalid data fields.
+
+**Arguments**:
+
+ - `data`: The data to validate against the `schema` provided to the constructor.
+
+Example:
+
+```jsx
+import {DataValidator} from '@bhch/react-json-form';
+
+const validator = new DataValidator(schema);
+const validation = validator.validate(data);
+
+const isValid = validation.isValid;
+const errorMap = validation.errorMap;
+
+if (isValid)
+    alert('Success');
+else
+    alert('Invalid');
+
+// pass the errorMap object to ReactJSONForm
+// and error messages will be displayed under
+// input fields
+<ReactJSONForm
+    editorState={...}
+    errorMap={errorMap}
+/>
+```

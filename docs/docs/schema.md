@@ -25,3 +25,10 @@ Documented here: <https://django-jsonform.readthedocs.io/en/latest/guide/upload.
 
 Although the code examples in the document is for Django (Python) backend, but
 the concept can be adapted to any language.
+
+## Autocomplete input
+
+Documented here: <https://django-jsonform.readthedocs.io/en/latest/guide/autocomplete.html>
+
+Although the code examples in the document is for Django (Python) backend, but
+the concept can be adapted to any language.

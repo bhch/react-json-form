@@ -226,6 +226,23 @@ const DEMOS = [
     },
 
     {
+        name: 'Autocomplete',
+        slug: 'autocomplete',
+        schema: {
+            type: 'object',
+            keys: {
+                country: {type: 'string', widget: 'autocomplete', handler: '/'},
+            }
+        },
+        description: () => (
+            <div>
+                Autocomplete widget sends AJAX request to a server. Hence, this demo will
+                not show any options because there's no server.
+            </div>
+        )
+    },
+
+    {
         name: 'Textarea',
         slug: 'textarea',
         schema: {
@@ -233,6 +250,18 @@ const DEMOS = [
             keys: {
                 title: {type: 'string'},
                 body: {type: 'string', widget: 'textarea'}
+            }
+        }
+    },
+
+    {
+        name: 'Range input',
+        slug: 'range',
+        schema: {
+            type: 'object',
+            title: 'Range input',
+            properties: {
+                volume: {type: 'number', widget: 'range', minimum: 0, maximum: 10}
             }
         }
     },
@@ -276,8 +305,20 @@ const DEMOS = [
             keys: {
                 email: {type: 'string', format: 'email'},
                 password: {type: 'string', format: 'password'},
-                range: {type: 'string', format: 'range'},
                 colour: {type: 'string', format: 'color'},
+            }
+        }
+    },
+
+    {
+        name: 'Validation',
+        slug: 'validation',
+        schema: {
+            type: 'object',
+            title: 'Press "Submit" to validate data',
+            keys: {
+                name: {type: 'string', required: true},
+                age: {type: 'number', required: true, minimum: 50},
             }
         }
     }

@@ -27,6 +27,39 @@ a:hover {
     color: #000;
 }
 
+.btn {
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-width: 2px;
+    border-bottom-width: 3px;
+    border-radius: .25rem;
+    padding: 4px 10px;
+}
+.btn-secondary {
+    color: #000;
+    background-color: #f6f6f6;
+    border-color: #ddd;
+}
+.btn-secondary:hover {
+    color: #000;
+    background-color: #ddd;
+    border-color: #000;
+}
+.btn-secondary:not(:disabled):not(.disabled).active,
+.btn-secondary:not(:disabled):not(.disabled):active,
+.show > .btn-secondary.dropdown-toggle {
+    color: #000;
+    background-color: #ccc;
+    border-color: #000;
+}
+.btn-secondary.focus,
+.btn-secondary:focus {
+    color: #000;
+    background-color: #ddd;
+    border-color: #000;
+    box-shadow: 0 0 0 .2rem rgba(0,0,0,.15);
+}
+
 .top-nav {
     background-color: #fff;
     border-bottom: 1px solid #ddd;
@@ -450,6 +483,13 @@ input[type="radio"] {
     min-width: 0;
     vertical-align: middle;
 }
+input[type="range"] {
+    padding-left: 0;
+    padding-right: 0;
+}
+.has-error input {
+    border-color: red;
+}
 fieldset {
     border: none;
 }
@@ -510,6 +550,12 @@ button.rjf-add-button:hover {
 .rjf-help-text {
     font-size: 88%;
     color: #777;
+    display: block;
+    margin-top: 0.2rem;
+}
+.rjf-error-text {
+    font-size: 92%;
+    color: red;
     display: block;
     margin-top: 0.2rem;
 }
@@ -634,6 +680,100 @@ button.rjf-add-button:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.rjf-autocomplete-field {
+    position: relative;
+}
+.rjf-autocomplete-field-input {
+    cursor: pointer;
+    padding-right: 40px !important;
+    background-color: #fff !important;
+}
+.rjf-autocomplete-field-clear-button {
+    position: absolute;
+    right: 6px;
+    top: 5px;
+    line-height: 1;
+    padding: 1px 2px;
+    background: transparent;
+    color: var(--link-fg);
+    border: 0;
+    z-index: 10;
+    cursor: pointer;
+}
+.rjf-autocomplete-field.has-label .rjf-autocomplete-field-clear-button {
+    top: 5px;
+}
+.rjf-autocomplete-field-clear-button:hover {
+    background-color: #eee;
+    color: var(--link-hover-color);
+}
+.rjf-autocomplete-field-clear-button > .rjf-icon {
+    display: none;
+}
+.rjf-autocomplete-field-clear-button > span {
+    vertical-align: middle;
+}
+.rjf-autocomplete-field-popup {
+    position: absolute;
+    left: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 18rem;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.12);
+    z-index: 100;
+    top: 34px;
+}
+.rjf-autocomplete-field.has-label .rjf-autocomplete-field-popup {
+    left: 8rem;
+    width: auto;
+}
+.rjf-autocomplete-field-search {
+    padding: 8px 10px;
+    position: relative;
+    display: table;
+    width: 100%;
+}
+.rjf-autocomplete-field-search .rjf-input-group {
+    float: none;
+}
+.rjf-autocomplete-field-search input {
+    width: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' fill='%23444444' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 6px center;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+.rjf-autocomplete-field-search .rjf-loader {
+    position: absolute;
+    right: 14px;
+    top: 16px;
+}
+.rjf-autocomplete-field-options {
+    padding: 8px 0;
+    border-top: 1px solid #ccc;
+    max-height: 156px;
+    overflow: auto;
+}
+.rjf-autocomplete-field-option {
+    padding: 6px 12px;
+    cursor: pointer;
+}
+.rjf-autocomplete-field-option:hover,
+.rjf-autocomplete-field-option:focus {
+    background-color: #eee;
+}
+.rjf-autocomplete-field-option.disabled {
+    color: #999;
+    cursor: default;
+}
+.rjf-autocomplete-field-option.disabled:hover,
+.rjf-autocomplete-field-option.disabled:focus {
+    background-color: transparent;
 }
 .rjf-loader {
     width: 32px;
@@ -934,4 +1074,12 @@ button.rjf-upload-modal__tab-button--active:hover {
     display: block;
     margin: auto;
     margin-top: 2.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .rjf-autocomplete-field.has-label .rjf-autocomplete-field-popup {
+        top: 68px;
+        left: 0;
+        width: auto;
+    }
 }

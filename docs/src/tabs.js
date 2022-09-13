@@ -10,7 +10,7 @@ import {closeBrackets, completionKeymap} from '@codemirror/autocomplete';
 import {lintKeymap, lintGutter, linter} from '@codemirror/lint';
 import {json, jsonParseLinter} from "@codemirror/lang-json";
 
-import {ReactJSONForm, EditorState as RJFEditorState} from 'react-json-form';
+import {ReactJSONForm, EditorState as RJFEditorState, DataValidator} from 'react-json-form';
 
 import DEMOS from './demos.js';
 
@@ -49,6 +49,7 @@ export class TabContent extends React.Component {
         this.state = {
             rjf_state: RJFEditorState.create(this.getActiveTabSchema(), this.getActiveTabData()),
             schemaHasError: false,
+            errorMap: {}
         };
 
         this.schemaEditorParentRef = React.createRef();
@@ -71,7 +72,8 @@ export class TabContent extends React.Component {
         if (this.props.activeTabIndex !== prevProps.activeTabIndex) {
             this.setState({
                 rjf_state: RJFEditorState.create(this.getActiveTabSchema(), this.getActiveTabData()),
-                schemaHasError: false
+                schemaHasError: false,
+                errorMap: {},
             }, (state) => {
 
                 this.schemaEditorView.setState(this.getSchemaEditorNewState());
@@ -152,6 +154,10 @@ export class TabContent extends React.Component {
         });
     }
 
+    getActiveTab() {
+        return DEMOS[this.props.activeTabIndex];
+    }
+
     getActiveTabSchema() {
         return DEMOS[this.props.activeTabIndex].schema;
     }
@@ -177,6 +183,16 @@ export class TabContent extends React.Component {
 
             this.updateDataEditor(this.getEditorData());
         });
+    }
+
+    validateData = () => {
+        let validator = new DataValidator(this.state.rjf_state.getSchema());
+        let validation = validator.validate(this.state.rjf_state.getData());
+        if (!validation.isValid) {
+            this.setState({
+                errorMap: validation.errorMap
+            })
+        }
     }
 
     render() {
@@ -207,7 +223,20 @@ export class TabContent extends React.Component {
                                 fileHandler='/none/'
                                 fieldName='test_field'
                                 modelName='TestModel'
+                                errorMap={this.state.errorMap}
                             />
+
+                            {this.getActiveTab().slug === 'validation' &&
+                            <div className="mt-1">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary px-3"
+                                    onClick={this.validateData}
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                            }
                         </div>
                     </div>
                 </div>
