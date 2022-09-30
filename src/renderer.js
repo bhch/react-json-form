@@ -18,6 +18,8 @@ export function FormInstance(config) {
 
     this.eventListeners = null;
 
+    this._dataSynced = false;
+
     this.addEventListener = function(event, listener) {
         if (this.eventListeners === null)
             this.eventListeners = {};
@@ -30,6 +32,12 @@ export function FormInstance(config) {
 
     this.onChange = function(e) {
         this.data = e.data;
+
+        if (!this._dataSynced) {
+            // this is the first change event for syncing data
+            this._dataSynced = true;
+            return;
+        }
 
         if (!this.eventListeners)
             return;
@@ -118,6 +126,7 @@ export class FormContainer extends React.Component {
     }
 
     componentDidMount() {
+        this.props.onChange({data: this.state.editorState.getData()});
         this.populateDataInput(this.state.editorState.getData());
     }
 
