@@ -119,8 +119,6 @@ export default class FileUploader extends React.Component {
                 }
             };
 
-            this.sendDeleteRequest([this.props.value], 'clear_button');
-
             this.props.onChange(event);
         }
     }
