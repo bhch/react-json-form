@@ -98,9 +98,11 @@ which may contain these keys:
  - `schema`: The schema of the form.
  - `data` *(Optional)*: The initial data of the form.
  - `fileHandler` *(Optional)*: URL for the common file handler endpoint for all file fields.
+ - `fileHandlerArgs` *(Optional)*: Key-value pairs which will be sent via querystring to the `fileHandler` URL.
  - `errorMap` *(Optional)*: An object containing error messages for fields.
 
 *Changed in version 2.1*: `errorMap` option was added.
+*Changed in version 2.2*: `fileHandlerArgs` option was added.
 
 
 ##### `reactJsonForm.getFormInstance(containerId)`
