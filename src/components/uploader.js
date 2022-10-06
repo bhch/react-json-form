@@ -135,8 +135,7 @@ export default class FileUploader extends React.Component {
         let endpoint = this.props.handler || this.context.fileHandler;
 
         let querystring = new URLSearchParams({
-            field_name: this.context.fieldName,
-            model_name: this.context.modelName,
+            ...this.context.fileHandlerArgs,
             coords: getCoordsFromName(this.props.name),
             trigger: trigger
         });
@@ -231,8 +230,7 @@ export default class FileUploader extends React.Component {
                                 <LibraryPane
                                     fileHandler={this.props.handler || this.context.fileHandler}
                                     fileHandlerArgs={{
-                                        field_name: this.context.fieldName,
-                                        model_name: this.context.modelName,
+                                        ...this.context.fileHandlerArgs,
                                         coords: getCoordsFromName(this.props.name),
                                     }}
                                     onFileSelect={this.handleFileSelect}

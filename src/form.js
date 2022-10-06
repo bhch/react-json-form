@@ -125,8 +125,7 @@ export default class ReactJSONForm extends React.Component {
                     <EditorContext.Provider 
                         value={{
                             fileHandler: this.props.fileHandler,
-                            fieldName: this.props.fieldName,
-                            modelName: this.props.modelName,
+                            fileHandlerArgs: this.props.fileHandlerArgs,
                         }}
                     >
                     {this.getFields()}

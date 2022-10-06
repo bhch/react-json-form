@@ -13,8 +13,7 @@ export function FormInstance(config) {
     this.data = config.data;
     this.errorMap = config.errorMap;
     this.fileHandler = config.fileHandler;
-    this.fieldName = config.fieldName;
-    this.modelName = config.modelName;
+    this.fileHandlerArgs = config.fileHandlerArgs || {};
 
     this.eventListeners = null;
 
@@ -58,8 +57,7 @@ export function FormInstance(config) {
                     data={this.data}
                     errorMap={this.errorMap}
                     fileHandler={this.fileHandler}
-                    fieldName={this.fieldName}
-                    modelName={this.modelName}
+                    fileHandlerArgs={this.fileHandlerArgs}
                     onChange={this.onChange}
                 />,
                 document.getElementById(this.containerId)
@@ -175,8 +173,7 @@ export class FormContainer extends React.Component {
                 editorState={this.state.editorState}
                 onChange={this.handleChange}
                 fileHandler={this.props.fileHandler}
-                fieldName={this.props.fieldName}
-                modelName={this.props.modelName}
+                fileHandlerArgs={this.props.fileHandlerArgs}
                 errorMap={this.props.errorMap}
             />
         );
