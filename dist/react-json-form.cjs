@@ -983,8 +983,11 @@ class FormFileInput extends React__default["default"].Component {
           loading: true
         });
         let formData = new FormData();
-        formData.append('field_name', this.context.fieldName);
-        formData.append('model_name', this.context.modelName);
+
+        for (let key in this.context.fileHandlerArgs) {
+          if (this.context.fileHandlerArgs.hasOwnProperty(key)) formData.append(key, this.context.fileHandlerArgs[key]);
+        }
+
         formData.append('coords', getCoordsFromName(this.props.name));
         formData.append('file', e.target.files[0]);
         fetch(endpoint, {
@@ -1762,7 +1765,6 @@ class FileUploader extends React__default["default"].Component {
             name: this.props.name
           }
         };
-        this.sendDeleteRequest([this.props.value], 'clear_button');
         this.props.onChange(event);
       }
     };
@@ -1776,12 +1778,10 @@ class FileUploader extends React__default["default"].Component {
        *   keepalive: (bool) whether to use keepalive flag or not
       */
       let endpoint = this.props.handler || this.context.fileHandler;
-      let querystring = new URLSearchParams({
-        field_name: this.context.fieldName,
-        model_name: this.context.modelName,
+      let querystring = new URLSearchParams(_extends({}, this.context.fileHandlerArgs, {
         coords: getCoordsFromName(this.props.name),
         trigger: trigger
-      });
+      }));
 
       for (let i = 0; i < values.length; i++) {
         querystring.append('value', values[i]);
@@ -1876,11 +1876,9 @@ class FileUploader extends React__default["default"].Component {
       error: ""
     })), this.state.pane === 'library' && /*#__PURE__*/React__default["default"].createElement(LibraryPane, {
       fileHandler: this.props.handler || this.context.fileHandler,
-      fileHandlerArgs: {
-        field_name: this.context.fieldName,
-        model_name: this.context.modelName,
+      fileHandlerArgs: _extends({}, this.context.fileHandlerArgs, {
         coords: getCoordsFromName(this.props.name)
-      },
+      }),
       onFileSelect: this.handleFileSelect,
       sendDeleteRequest: this.sendDeleteRequest
     })), /*#__PURE__*/React__default["default"].createElement("div", {
@@ -2807,8 +2805,7 @@ class ReactJSONForm extends React__default["default"].Component {
     }, /*#__PURE__*/React__default["default"].createElement(EditorContext.Provider, {
       value: {
         fileHandler: this.props.fileHandler,
-        fieldName: this.props.fieldName,
-        modelName: this.props.modelName
+        fileHandlerArgs: this.props.fileHandlerArgs
       }
     }, this.getFields())));
   }
@@ -3148,9 +3145,9 @@ function FormInstance(config) {
   this.data = config.data;
   this.errorMap = config.errorMap;
   this.fileHandler = config.fileHandler;
-  this.fieldName = config.fieldName;
-  this.modelName = config.modelName;
+  this.fileHandlerArgs = config.fileHandlerArgs || {};
   this.eventListeners = null;
+  this._dataSynced = false;
 
   this.addEventListener = function (event, listener) {
     if (this.eventListeners === null) this.eventListeners = {};
@@ -3160,6 +3157,13 @@ function FormInstance(config) {
 
   this.onChange = function (e) {
     this.data = e.data;
+
+    if (!this._dataSynced) {
+      // this is the first change event for syncing data
+      this._dataSynced = true;
+      return;
+    }
+
     if (!this.eventListeners) return;
     if (!this.eventListeners.hasOwnProperty('change') || !this.eventListeners.change.size) return;
     this.eventListeners.change.forEach(cb => cb(e));
@@ -3175,8 +3179,7 @@ function FormInstance(config) {
         data: this.data,
         errorMap: this.errorMap,
         fileHandler: this.fileHandler,
-        fieldName: this.fieldName,
-        modelName: this.modelName,
+        fileHandlerArgs: this.fileHandlerArgs,
         onChange: this.onChange
       }), document.getElementById(this.containerId));
     } catch (error) {
@@ -3238,6 +3241,9 @@ class FormContainer extends React__default["default"].Component {
   }
 
   componentDidMount() {
+    this.props.onChange({
+      data: this.state.editorState.getData()
+    });
     this.populateDataInput(this.state.editorState.getData());
   }
 
@@ -3272,8 +3278,7 @@ class FormContainer extends React__default["default"].Component {
       editorState: this.state.editorState,
       onChange: this.handleChange,
       fileHandler: this.props.fileHandler,
-      fieldName: this.props.fieldName,
-      modelName: this.props.modelName,
+      fileHandlerArgs: this.props.fileHandlerArgs,
       errorMap: this.props.errorMap
     });
   }
