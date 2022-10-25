@@ -76,8 +76,7 @@ function FormField(props) {
                     InputField = FormDateTimeInput;
                 }
                 inputProps.type = props.schema.format;
-            }
-            else {
+            } else {
                 inputProps.type = 'text';
             }
 
@@ -87,6 +86,11 @@ function FormField(props) {
             if (props.schema.maxLength || props.schema.maxLength === 0)
                 inputProps.maxlength = props.schema.maxLength;
 
+            break;
+        case 'fileinput':
+            InputField = FormFileInput;
+            if (props.schema.format)
+                inputProps.type = props.schema.format;
             break;
         case 'range':
         case 'integer':
