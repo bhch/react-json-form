@@ -188,11 +188,9 @@ export class TabContent extends React.Component {
     validateData = () => {
         let validator = new DataValidator(this.state.rjf_state.getSchema());
         let validation = validator.validate(this.state.rjf_state.getData());
-        if (!validation.isValid) {
-            this.setState({
-                errorMap: validation.errorMap
-            })
-        }
+        this.setState({
+            errorMap: validation.errorMap
+        });
     }
 
     render() {
