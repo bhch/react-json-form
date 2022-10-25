@@ -69,6 +69,7 @@ class MyComponent extends React.Component {
  `EditorState` (because `EditorState` is immutable, instead of modifying the previous instance, we
  replace it with a new one).
  - `fileHandler`: A URL to a common file handler endpoint for all file input fields.
+ - `fileHandlerArgs` (*Optional*): Key-value pairs which will be sent via querystring to the `fileHandler` URL.
  - `errorMap`: An object containing error messages for input fields. [See data validation section](#data-validation)
  for more.  
 
