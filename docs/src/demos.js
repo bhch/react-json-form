@@ -189,7 +189,17 @@ const DEMOS = [
             'type': 'object',
             'properties': {
                 'base64_upload': {type: 'string', 'format': 'data-url'},
-                'server_upload': {type: 'string', 'format': 'file-url'},
+                'server_upload': {
+                    type: 'string',
+                    'format': 'file-url',
+                    'helpText': 'Default input for file-url opens a modal',
+                },
+                'simple_input': {
+                    type: 'string',
+                    'format': 'file-url',
+                    'widget': 'fileinput',
+                    'helpText': 'Custom input using widget: \'fileinput\''
+                },
             }
         },
         data: {},
