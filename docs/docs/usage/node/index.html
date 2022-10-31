@@ -119,6 +119,7 @@ responsible for saving the state.</p>
 <code>EditorState</code> (because <code>EditorState</code> is immutable, instead of modifying the previous instance, we
 replace it with a new one).</li>
 <li><code>fileHandler</code>: A URL to a common file handler endpoint for all file input fields.</li>
+<li><code>fileHandlerArgs</code> (<em>Optional</em>): Key-value pairs which will be sent via querystring to the <code>fileHandler</code> URL.</li>
 <li><code>errorMap</code>: An object containing error messages for input fields. <a href="#data-validation">See data validation section</a>
 for more.</li>
 </ul>
