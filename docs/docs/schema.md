@@ -5,7 +5,7 @@ title: Schema
 
 This document will be completed in future.
 
-Meanwhile, all the following things have been documented React JSON Form's sister
+Meanwhile, all the following things have been documented in React JSON Form's sister
 project: [django-jsonform](https://django-jsonform.readthedocs.io/en/latest/).
 
 ## Schema guide
