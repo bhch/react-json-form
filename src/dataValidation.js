@@ -71,7 +71,7 @@ export default function DataValidator(schema) {
     };
 
     this.joinCoords = function(coords) {
-        let c = joinCoords(coords);
+        let c = joinCoords.apply(null, coords);
         
         if (c.startsWith(JOIN_SYMBOL))
             c = c.slice(1);
