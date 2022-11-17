@@ -1,4 +1,5 @@
 import React from 'react';
+import {JOIN_SYMBOL, FIELD_NAME_PREFIX} from './constants';
 
 
 export const EditorContext = React.createContext();
@@ -62,15 +63,27 @@ export function getCsrfCookie() {
 }
 
 
+export function joinCoords() {
+    /* Generates coordinates from given arguments */
+    return Array.from(arguments).join(JOIN_SYMBOL);
+}
+
+
+export function splitCoords(coords) {
+    /* Generates coordinates */
+    return coords.split(JOIN_SYMBOL);
+}
+
+
 export function getCoordsFromName(name) {
     /* Returns coordinates of a field in the data from
      * the given name of the input.
-     * Field names have rjf- prefix but the coordinates don't.
+     * Field names have FIELD_NAME_PREFIX prepended but the coordinates don't.
      * e.g.:
-     * name: rjf-0-field
+     * name: rjf-0-field (where rjf- is the FIELD_NAME_PREFIX)
      * coords: 0-field
     */
-    return name.slice('4');
+    return name.slice((FIELD_NAME_PREFIX + JOIN_SYMBOL).length);
 }
 
 

@@ -1,4 +1,5 @@
 import {normalizeKeyword, getKeyword} from './util';
+import {FILLER} from './constants';
 
 
 export function getBlankObject(schema, getRef) {
@@ -115,24 +116,22 @@ function getSyncedArray(data, schema, getRef) {
     let type = normalizeKeyword(schema.items.type);
     let minItems = schema.minItems || schema.min_items || 0;
 
-    const filler = '__JSONRORM_FILLER__'; // filler for minItems
-
     while (data.length < minItems)
-        data.push(filler);
+        data.push(FILLER);
 
     for (let i = 0; i < data.length; i++) {
         let item = data[i];
 
         if (type === 'array') {
-            if (item === filler)
+            if (item === FILLER)
                 item = [];
             newData[i] = getSyncedArray(item, schema.items, getRef);
         } else if (type === 'object') {
-            if (item === filler)
+            if (item === FILLER)
                 item = {};
             newData[i] = getSyncedObject(item, schema.items, getRef);
         } else {
-            if (item === filler) {
+            if (item === FILLER) {
                 if (type === 'integer' || type === 'number')
                     newData[i] = schema.items.default === 0 ? 0 : (schema.items.default || null);
                 else if (type === 'boolean')

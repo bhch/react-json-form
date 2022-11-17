@@ -1,4 +1,5 @@
-import {normalizeKeyword, getKeyword, getKey} from './util';
+import {normalizeKeyword, getKeyword, getKey, joinCoords} from './util';
+import {JOIN_SYMBOL} from './constants';
 import EditorState from './editorState';
 
 
@@ -70,9 +71,9 @@ export default function DataValidator(schema) {
     };
 
     this.joinCoords = function(coords) {
-        let c = coords.join('-');
+        let c = joinCoords(coords);
         
-        if (c.startsWith('-'))
+        if (c.startsWith(JOIN_SYMBOL))
             c = c.slice(1);
 
         return c;

@@ -1,6 +1,7 @@
 import React from 'react';
 import {getArrayFormRow, getObjectFormRow} from './ui';
-import {EditorContext} from './util';
+import {EditorContext, joinCoords, splitCoords} from './util';
+import {FIELD_NAME_PREFIX} from './constants';
 import EditorState from './editorState';
 
 
@@ -14,7 +15,7 @@ export default class ReactJSONForm extends React.Component {
 
             This first coordinate is not important and should be removed.
         */
-        coords = coords.split('-');
+        coords = splitCoords(coords);
 
         coords.shift(); // remove first coord
 
@@ -45,7 +46,7 @@ export default class ReactJSONForm extends React.Component {
         let args = {
             data: data,
             schema: schema,
-            name: 'rjf',
+            name: FIELD_NAME_PREFIX,
             onChange: this.handleChange,
             onAdd: this.addFieldset,
             onRemove: this.removeFieldset,
@@ -66,7 +67,7 @@ export default class ReactJSONForm extends React.Component {
     }
 
     addFieldset = (blankData, coords) => {
-        coords = coords.split('-');
+        coords = splitCoords(coords);
         coords.shift();
 
         // :TODO: use immutable JS instead of JSON-ising the data
@@ -76,7 +77,7 @@ export default class ReactJSONForm extends React.Component {
     }
 
     removeFieldset = (coords) => {
-        coords = coords.split('-');
+        coords = splitCoords(coords);
         coords.shift();
  
         // :TODO: use immutable JS instead of JSON-ising the data
@@ -92,10 +93,10 @@ export default class ReactJSONForm extends React.Component {
             oldCoords willbe removed
         */
 
-        newCoords = newCoords.split('-');
+        newCoords = splitCoords(newCoords);
         newCoords.shift();
 
-        oldCoords = oldCoords.split('-');
+        oldCoords = splitCoords(oldCoords);
         oldCoords.shift();
 
         let data = addDataUsingCoords(newCoords, JSON.parse(JSON.stringify(this.props.editorState.getData())), value);
@@ -106,10 +107,10 @@ export default class ReactJSONForm extends React.Component {
     }
 
     moveFieldset = (oldCoords, newCoords) => {
-        oldCoords = oldCoords.split("-");
+        oldCoords = splitCoords(oldCoords);
         oldCoords.shift();
 
-        newCoords = newCoords.split("-");
+        newCoords = splitCoords(newCoords);
         newCoords.shift();
 
         // :TODO: use immutable JS instead of JSON-ising the data

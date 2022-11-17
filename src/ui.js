@@ -2,7 +2,8 @@ import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
     FormFileInput, FormRow, FormGroup, GroupTitle, FormRowControls, FormTextareaInput,
     FormDateTimeInput, FormMultiSelectInput, FileUploader, AutoCompleteInput} from './components';
-import {getVerboseName, convertType, getCoordsFromName, getKeyword, normalizeKeyword} from './util';
+import {getVerboseName, convertType, getCoordsFromName, getKeyword, normalizeKeyword,
+    joinCoords, splitCoords} from './util';
 
 
 function handleChange(e, fieldType, callback) {
@@ -240,17 +241,17 @@ export function getArrayFormRow(args) {
 
         for (let i = 0; i < data.length; i++) {
             nextArgs.data = data[i];
-            nextArgs.name = name + '-' + i;
+            nextArgs.name = joinCoords(name, i);
 
             if (i === 0)
                 nextArgs.onMoveUp = null;
             else
-                nextArgs.onMoveUp = (e) => onMove(name + '-' + i, name + '-' + (i - 1));
+                nextArgs.onMoveUp = (e) => onMove(joinCoords(name, i), joinCoords(name, i - 1));
 
             if (i === data.length - 1)
                 nextArgs.onMoveDown = null;
             else
-                nextArgs.onMoveDown = (e) => onMove(name + '-' + i, name + '-' + (i + 1));
+                nextArgs.onMoveDown = (e) => onMove(joinCoords(name, i), joinCoords(name, i + 1));
 
             if (type === 'array') {
                 groups.push(getArrayFormRow(nextArgs));
@@ -312,9 +313,9 @@ export function getArrayFormRow(args) {
                         {groups.map((i, index) => (
                             <div className="rjf-form-group-wrapper" key={'group_wrapper_' + name + '_' + index}>
                                 <FormRowControls
-                                    onRemove={removable ? (e) => onRemove(name + '-' + index) : null}
-                                    onMoveUp={index > 0 ? (e) => onMove(name + '-' + index, name + '-' + (index - 1)) : null}
-                                    onMoveDown={index < groups.length - 1 ? (e) => onMove(name + '-' + index, name + '-' + (index + 1)) : null}
+                                    onRemove={removable ? (e) => onRemove(joinCoords(name, index)) : null}
+                                    onMoveUp={index > 0 ? (e) => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null}
+                                    onMoveDown={index < groups.length - 1 ? (e) => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null}
                                 />
                                 {i}
                             </div>
@@ -354,7 +355,7 @@ export function getObjectFormRow(args) {
     for (let i = 0; i < keys.length; i++) {
         let key = keys[i];
         let value = data[key];
-        let childName = name + '-' + key;
+        let childName = joinCoords(name, key);
         let schemaValue = schema_keys.hasOwnProperty(key) ? {...schema_keys[key]} : undefined;
 
         if (typeof schemaValue === 'undefined') {
@@ -458,7 +459,7 @@ function handleKeyValueAdd(data, coords, onAdd, newSchema, getRef) {
     else if (data.hasOwnProperty(key))
         alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
     else
-        onAdd(getBlankData(newSchema, getRef), coords + '-' + key);   
+        onAdd(getBlankData(newSchema, getRef), joinCoords(coords, key));
 }
 
 
@@ -477,10 +478,10 @@ function handleKeyEdit(data, key, value, coords, onEdit) {
     else if (data.hasOwnProperty(newKey))
         return alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
 
-    let newCoords = coords.split('-');
+    let newCoords = splitCoords(coords);
     newCoords.pop();
     newCoords.push(newKey);
-    newCoords = newCoords.join('-');
+    newCoords = joinCoords.apply(null, newCoords);
 
 
     onEdit(value, newCoords, coords);
