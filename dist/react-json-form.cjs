@@ -40,6 +40,19 @@ function _objectWithoutPropertiesLoose(source, excluded) {
   return target;
 }
 
+/* Symbol for joining coordinates.
+ * Earlier, a hyphen (-) was used. But that caused problems when
+ * object keys had hyphen in them. So, we're switching to a less
+ * commonly used symbol.
+*/
+const JOIN_SYMBOL = '§';
+/* HTML field name prefix */
+
+const FIELD_NAME_PREFIX = 'rjf';
+/* Filler item for arrays to make them at least minItems long */
+
+const FILLER = '__RJF_FILLER__';
+
 const EditorContext = /*#__PURE__*/React__default["default"].createContext();
 function capitalize$1(string) {
   if (!string) return '';
@@ -79,15 +92,23 @@ function getCsrfCookie() {
 
   return null;
 }
+function joinCoords() {
+  /* Generates coordinates from given arguments */
+  return Array.from(arguments).join(JOIN_SYMBOL);
+}
+function splitCoords(coords) {
+  /* Generates coordinates */
+  return coords.split(JOIN_SYMBOL);
+}
 function getCoordsFromName(name) {
   /* Returns coordinates of a field in the data from
    * the given name of the input.
-   * Field names have rjf- prefix but the coordinates don't.
+   * Field names have FIELD_NAME_PREFIX prepended but the coordinates don't.
    * e.g.:
-   * name: rjf-0-field
+   * name: rjf-0-field (where rjf- is the FIELD_NAME_PREFIX)
    * coords: 0-field
   */
-  return name.slice('4');
+  return name.slice((FIELD_NAME_PREFIX + JOIN_SYMBOL).length);
 }
 function debounce(func, wait) {
   let timeout;
@@ -205,21 +226,20 @@ function getSyncedArray(data, schema, getRef) {
 
   let type = normalizeKeyword(schema.items.type);
   let minItems = schema.minItems || schema.min_items || 0;
-  const filler = '__JSONRORM_FILLER__'; // filler for minItems
 
-  while (data.length < minItems) data.push(filler);
+  while (data.length < minItems) data.push(FILLER);
 
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
 
     if (type === 'array') {
-      if (item === filler) item = [];
+      if (item === FILLER) item = [];
       newData[i] = getSyncedArray(item, schema.items, getRef);
     } else if (type === 'object') {
-      if (item === filler) item = {};
+      if (item === FILLER) item = {};
       newData[i] = getSyncedObject(item, schema.items, getRef);
     } else {
-      if (item === filler) {
+      if (item === FILLER) {
         if (type === 'integer' || type === 'number') newData[i] = schema.items.default === 0 ? 0 : schema.items.default || null;else if (type === 'boolean') newData[i] = schema.items.default === false ? false : schema.items.default || null;else newData[i] = schema.items.default || '';
       }
     }
@@ -2303,9 +2323,9 @@ function getArrayFormRow(args) {
   } else {
     for (let i = 0; i < data.length; i++) {
       nextArgs.data = data[i];
-      nextArgs.name = name + '-' + i;
-      if (i === 0) nextArgs.onMoveUp = null;else nextArgs.onMoveUp = e => onMove(name + '-' + i, name + '-' + (i - 1));
-      if (i === data.length - 1) nextArgs.onMoveDown = null;else nextArgs.onMoveDown = e => onMove(name + '-' + i, name + '-' + (i + 1));
+      nextArgs.name = joinCoords(name, i);
+      if (i === 0) nextArgs.onMoveUp = null;else nextArgs.onMoveUp = e => onMove(joinCoords(name, i), joinCoords(name, i - 1));
+      if (i === data.length - 1) nextArgs.onMoveDown = null;else nextArgs.onMoveDown = e => onMove(joinCoords(name, i), joinCoords(name, i + 1));
 
       if (type === 'array') {
         groups.push(getArrayFormRow(nextArgs));
@@ -2364,9 +2384,9 @@ function getArrayFormRow(args) {
       className: "rjf-form-group-wrapper",
       key: 'group_wrapper_' + name + '_' + index
     }, /*#__PURE__*/React.createElement(FormRowControls, {
-      onRemove: removable ? e => onRemove(name + '-' + index) : null,
-      onMoveUp: index > 0 ? e => onMove(name + '-' + index, name + '-' + (index - 1)) : null,
-      onMoveDown: index < groups.length - 1 ? e => onMove(name + '-' + index, name + '-' + (index + 1)) : null
+      onRemove: removable ? e => onRemove(joinCoords(name, index)) : null,
+      onMoveUp: index > 0 ? e => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null,
+      onMoveDown: index < groups.length - 1 ? e => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null
     }), i)), addable && /*#__PURE__*/React.createElement(Button, {
       className: "add",
       onClick: e => onAdd(getBlankData(schema.items, args.getRef), coords),
@@ -2396,7 +2416,7 @@ function getObjectFormRow(args) {
   for (let i = 0; i < keys.length; i++) {
     let key = keys[i];
     let value = data[key];
-    let childName = name + '-' + key;
+    let childName = joinCoords(name, key);
     let schemaValue = schema_keys.hasOwnProperty(key) ? _extends({}, schema_keys[key]) : undefined;
 
     if (typeof schemaValue === 'undefined') {
@@ -2480,7 +2500,7 @@ function handleKeyValueAdd(data, coords, onAdd, newSchema, getRef) {
     type: 'string'
   };
   key = key.trim();
-  if (!key) alert("(!) Can't add empty key.\r\n\r\n‎");else if (data.hasOwnProperty(key)) alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");else onAdd(getBlankData(newSchema, getRef), coords + '-' + key);
+  if (!key) alert("(!) Can't add empty key.\r\n\r\n‎");else if (data.hasOwnProperty(key)) alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");else onAdd(getBlankData(newSchema, getRef), joinCoords(coords, key));
 }
 
 function handleKeyEdit(data, key, value, coords, onEdit) {
@@ -2491,10 +2511,10 @@ function handleKeyEdit(data, key, value, coords, onEdit) {
   if (newKey === key) // same keys
     return;
   if (!newKey) return alert("(!) Key name can't be empty.\r\n\r\n‎");else if (data.hasOwnProperty(newKey)) return alert("(!) Duplicate keys not allowed. This key already exists.\r\n\r\n‎");
-  let newCoords = coords.split('-');
+  let newCoords = splitCoords(coords);
   newCoords.pop();
   newCoords.push(newKey);
-  newCoords = newCoords.join('-');
+  newCoords = joinCoords.apply(null, newCoords);
   onEdit(value, newCoords, coords);
 }
 
@@ -2719,7 +2739,7 @@ class ReactJSONForm extends React__default["default"].Component {
           a particular deeply nested item.
            This first coordinate is not important and should be removed.
       */
-      coords = coords.split('-');
+      coords = splitCoords(coords);
       coords.shift(); // remove first coord
       // :TODO: use immutable JS instead of JSON-ising the data
 
@@ -2741,7 +2761,7 @@ class ReactJSONForm extends React__default["default"].Component {
       let args = {
         data: data,
         schema: schema,
-        name: 'rjf',
+        name: FIELD_NAME_PREFIX,
         onChange: this.handleChange,
         onAdd: this.addFieldset,
         onRemove: this.removeFieldset,
@@ -2762,7 +2782,7 @@ class ReactJSONForm extends React__default["default"].Component {
     };
 
     this.addFieldset = (blankData, coords) => {
-      coords = coords.split('-');
+      coords = splitCoords(coords);
       coords.shift(); // :TODO: use immutable JS instead of JSON-ising the data
 
       let data = addDataUsingCoords(coords, JSON.parse(JSON.stringify(this.props.editorState.getData())), blankData);
@@ -2770,7 +2790,7 @@ class ReactJSONForm extends React__default["default"].Component {
     };
 
     this.removeFieldset = coords => {
-      coords = coords.split('-');
+      coords = splitCoords(coords);
       coords.shift(); // :TODO: use immutable JS instead of JSON-ising the data
 
       let data = removeDataUsingCoords(coords, JSON.parse(JSON.stringify(this.props.editorState.getData())));
@@ -2782,9 +2802,9 @@ class ReactJSONForm extends React__default["default"].Component {
            newCoords will be added
           oldCoords willbe removed
       */
-      newCoords = newCoords.split('-');
+      newCoords = splitCoords(newCoords);
       newCoords.shift();
-      oldCoords = oldCoords.split('-');
+      oldCoords = splitCoords(oldCoords);
       oldCoords.shift();
       let data = addDataUsingCoords(newCoords, JSON.parse(JSON.stringify(this.props.editorState.getData())), value);
       data = removeDataUsingCoords(oldCoords, data);
@@ -2792,9 +2812,9 @@ class ReactJSONForm extends React__default["default"].Component {
     };
 
     this.moveFieldset = (oldCoords, newCoords) => {
-      oldCoords = oldCoords.split("-");
+      oldCoords = splitCoords(oldCoords);
       oldCoords.shift();
-      newCoords = newCoords.split("-");
+      newCoords = splitCoords(newCoords);
       newCoords.shift(); // :TODO: use immutable JS instead of JSON-ising the data
 
       let data = moveDataUsingCoords(oldCoords, newCoords, JSON.parse(JSON.stringify(this.props.editorState.getData())));
@@ -2951,8 +2971,8 @@ function DataValidator(schema) {
   };
 
   this.joinCoords = function (coords) {
-    let c = coords.join('-');
-    if (c.startsWith('-')) c = c.slice(1);
+    let c = joinCoords.apply(null, coords);
+    if (c.startsWith(JOIN_SYMBOL)) c = c.slice(1);
     return c;
   };
 
