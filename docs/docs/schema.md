@@ -3,10 +3,14 @@ layout: page.html
 title: Schema
 ---
 
-This document will be completed in future.
-
-Meanwhile, all the following things have been documented in React JSON Form's sister
-project: [django-jsonform](https://django-jsonform.readthedocs.io/en/latest/).
+<div class="alert alert-info">
+    <p><strong>Note</strong></p>
+    <p>This document will be completed in future.</p>
+    <p>
+        Meanwhile, all the following things have been documented in React JSON Form's sister
+        project: <a href="https://django-jsonform.readthedocs.io/en/latest/">django-jsonform<a>.
+    </p>
+</div>
 
 ## Schema guide
 

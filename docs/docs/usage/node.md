@@ -168,9 +168,25 @@ let errorMap = {
     '0': 'This is required',
 
     // first item > object > property: name
-    '0-name': 'This is required'
+    // (see note below about the section sign "§")
+    '0§name': 'This is required'
 }
 ```
+
+<div class="alert alert-info">
+    <p><strong>The section sign (§)</strong></p>
+    <p>
+        The section sign (<code>§</code>) is used as the separator symbol for
+        doing nested items lookup.
+    </p>
+    <p>
+        Earlier, the hyphen (<code>-</code>) was used but that complicated things
+        when the the schema object properties (i.e. field names) also had a hyphen
+        in them. Then it became impossible to determine whether the hyphen was the
+        separator or part of the key.
+    </p>
+</div>
+
 
 ##### `DataValidator` API reference
 
