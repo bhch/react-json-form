@@ -171,7 +171,20 @@ But you are free to validate the data however you want.</p>
 input fields. For this purpose, the <code>ReactJSONForm</code> component accepts an <code>errorMap</code>
 prop which is basically a mapping of field names in the data and error messages.</p>
 <p>An <code>errorMap</code> looks like this:</p>
-<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> errorMap <span class="token operator">=</span> <span class="token punctuation">{</span><br>    <span class="token string-property property">'name'</span><span class="token operator">:</span> <span class="token string">'This field is required'</span><span class="token punctuation">,</span><br><br>    <span class="token comment">// multiple error messages</span><br>    <span class="token string-property property">'age'</span><span class="token operator">:</span> <span class="token punctuation">[</span><br>        <span class="token string">'This field is required'</span><span class="token punctuation">,</span><br>        <span class="token string">'This value must be greater than 18'</span><br>    <span class="token punctuation">]</span><br><br>    <span class="token comment">// nested arrays and objects</span><br><br>    <span class="token comment">// first item in array</span><br>    <span class="token string-property property">'0'</span><span class="token operator">:</span> <span class="token string">'This is required'</span><span class="token punctuation">,</span><br><br>    <span class="token comment">// first item > object > property: name</span><br>    <span class="token string-property property">'0-name'</span><span class="token operator">:</span> <span class="token string">'This is required'</span><br><span class="token punctuation">}</span></code></pre>
+<pre class="language-js"><code class="language-js"><span class="token keyword">let</span> errorMap <span class="token operator">=</span> <span class="token punctuation">{</span><br>    <span class="token string-property property">'name'</span><span class="token operator">:</span> <span class="token string">'This field is required'</span><span class="token punctuation">,</span><br><br>    <span class="token comment">// multiple error messages</span><br>    <span class="token string-property property">'age'</span><span class="token operator">:</span> <span class="token punctuation">[</span><br>        <span class="token string">'This field is required'</span><span class="token punctuation">,</span><br>        <span class="token string">'This value must be greater than 18'</span><br>    <span class="token punctuation">]</span><br><br>    <span class="token comment">// nested arrays and objects</span><br><br>    <span class="token comment">// first item in array</span><br>    <span class="token string-property property">'0'</span><span class="token operator">:</span> <span class="token string">'This is required'</span><span class="token punctuation">,</span><br><br>    <span class="token comment">// first item > object > property: name</span><br>    <span class="token comment">// (see note below about the section sign "§")</span><br>    <span class="token string-property property">'0§name'</span><span class="token operator">:</span> <span class="token string">'This is required'</span><br><span class="token punctuation">}</span></code></pre>
+<div class="alert alert-info">
+    <p><strong>The section sign (§)</strong></p>
+    <p>
+        The section sign (<code>§</code>) is used as the separator symbol for
+        doing nested items lookup.
+    </p>
+    <p>
+        Earlier, the hyphen (<code>-</code>) was used but that complicated things
+        when the the schema object properties (i.e. field names) also had a hyphen
+        in them. Then it became impossible to determine whether the hyphen was the
+        separator or part of the key.
+    </p>
+</div>
 <h5 id="datavalidator-api-reference" tabindex="-1"><code>DataValidator</code> API reference <a class="header-anchor" href="#datavalidator-api-reference">#</a></h5>
 <h5 id="constructor" tabindex="-1">Constructor <a class="header-anchor" href="#constructor">#</a></h5>
 <h5 id="new-datavalidator(schema)" tabindex="-1"><code>new DataValidator(schema)</code> <a class="header-anchor" href="#new-datavalidator(schema)">#</a></h5>
