@@ -5,17 +5,27 @@ import {FILLER} from './constants';
 export function getBlankObject(schema, getRef) {
     let keys = {};
 
-    let schema_keys = schema.keys || schema.properties;
+    let schema_keys = getKeyword(schema, 'keys', 'properties', {});
 
     for (let key in schema_keys) {
         let value = schema_keys[key];
-        
+
         let isRef = value.hasOwnProperty('$ref');
         
         if (isRef)
             value = getRef(value['$ref']);
 
         let type = normalizeKeyword(value.type);
+
+        if (!type) {
+            // check for oneOf/anyOf
+            if (value.hasOwnProperty('oneOf'))
+                value =  value.oneOf[0];
+            else if (value.hasOwnProperty('anyOf'))
+                value =  value.anyOf[0];
+
+            type = normalizeKeyword(value.type);
+        }
 
         if (type === 'array')
             keys[key] = isRef ? [] : getBlankArray(value, getRef);
@@ -25,8 +35,20 @@ export function getBlankObject(schema, getRef) {
             keys[key] = value.default === false ? false : (value.default || null);
         else if (type === 'integer' || type === 'number')
             keys[key] = value.default === 0 ? 0 : (value.default || null);
-        else // string etc.
+        else
             keys[key] = value.default || '';
+    }
+
+    if (schema.hasOwnProperty('oneOf'))
+        keys = {...keys, ...getBlankObject(schema.oneOf[0])};
+    
+    if (schema.hasOwnProperty('anyOf'))
+        keys = {...keys, ...getBlankObject(schema.anyOf[0])};
+
+    if (schema.hasOwnProperty('allOf')) {
+        for (let i = 0; i < schema.allOf.length; i++) {
+            keys = {...keys, ...getBlankObject(schema.allOf[i])};
+        }
     }
 
     return keys;
@@ -54,6 +76,15 @@ export function getBlankArray(schema, getRef) {
     }
 
     let type = normalizeKeyword(schema.items.type);
+
+    if (!type) {
+        if (schema.items.hasOwnProperty['oneOf'])
+            type = schema.items.oneOf[0];
+        else if (schema.items.hasOwnProperty['anyOf'])
+            type = schema.items.anyOf[0];
+        else if (schema.items.hasOwnProperty['allOf'])
+            type = schema.items.allOf[0];
+    }
 
     if (type === 'array') {
         while (items.length < minItems)
@@ -103,7 +134,6 @@ export function getBlankData(schema, getRef) {
 }
 
 
-
 function getSyncedArray(data, schema, getRef) {
     let newData = JSON.parse(JSON.stringify(data));
 
@@ -149,7 +179,14 @@ function getSyncedArray(data, schema, getRef) {
 function getSyncedObject(data, schema, getRef) {
     let newData = JSON.parse(JSON.stringify(data));
 
-    let schema_keys = schema.keys || schema.properties;
+    let schema_keys = getKeyword(schema, 'keys', 'properties', {});
+
+
+    if (schema.hasOwnProperty('allOf')) {
+        for (let i = 0; i < schema.allOf.length; i++) {
+            schema_keys = {...schema_keys, ...getBlankObject(schema.allOf[i])};
+        }
+    }
 
     let keys = [...Object.keys(schema_keys)];
 

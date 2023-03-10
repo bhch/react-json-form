@@ -38,6 +38,26 @@ export function convertType(value, to) {
 }
 
 
+export function actualType(value) {
+    /* Returns the "actual" type of the given value.
+
+        - array -> 'array'
+        - null -> 'null'
+    */
+
+    let type = typeof value;
+
+    if (type === 'object') {
+        if (Array.isArray(value))
+            type = 'array';
+        else if (value === null)
+            type = 'null';
+    }
+
+    return type;
+}
+
+
 export function getVerboseName(name) {
     if (name === undefined || name === null)
         return '';
@@ -128,4 +148,29 @@ export function getKey(obj, key, default_value) {
 
     let val = obj[key];
     return (typeof val !== 'undefined') ? val : default_value;
+}
+
+
+/* Set operations */
+
+export function isEqualset(a, b) {
+    return a.size === b.size && Array.from(a).every((i) => b.has(i));
+}
+
+export function isSuperset(set, subset) {
+    for (const elem of subset) {
+        if (!set.has(elem)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+export function isSubset(set, superset) {
+    for (const elem of set) {
+        if (!superset.has(elem)) {
+            return false;
+        }
+    }
+    return true;
 }

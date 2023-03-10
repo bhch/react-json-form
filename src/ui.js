@@ -1,9 +1,10 @@
+import React from 'react';
 import {getBlankData} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
     FormFileInput, FormRow, FormGroup, GroupTitle, FormRowControls, FormTextareaInput,
     FormDateTimeInput, FormMultiSelectInput, FileUploader, AutoCompleteInput} from './components';
 import {getVerboseName, convertType, getCoordsFromName, getKeyword, normalizeKeyword,
-    joinCoords, splitCoords} from './util';
+    joinCoords, splitCoords, actualType, isEqualset, isSubset} from './util';
 
 
 function handleChange(e, fieldType, callback) {
@@ -258,7 +259,14 @@ export function getArrayFormRow(args) {
             } else if (type === 'object') {
                 groups.push(getObjectFormRow(nextArgs));
             } else {
-                rows.push(getStringFormRow(nextArgs));
+                // oneOf/anyOf
+                if (schema.items.hasOwnProperty('oneOf')) {
+                    groups.push(<OneOf parentArgs={args} nextArgs={{...nextArgs}} key={"oneOf_" + name + '_' + i} />);
+                } else if (schema.items.hasOwnProperty('anyOf')) {
+                    groups.push(<AnyOf parentArgs={args} nextArgs={{...nextArgs}} key={"anyOf_" + name + '_' + i} />);
+                } else {
+                    rows.push(getStringFormRow(nextArgs));
+                }
             } 
         }
     }
@@ -345,9 +353,16 @@ export function getObjectFormRow(args) {
 
     let rows = [];
 
-    let schema_keys = getKeyword(schema, 'keys', 'properties');
+    let schema_keys = getKeyword(schema, 'keys', 'properties', {});
+
+    if (schema.hasOwnProperty('allOf')) {
+        for (let i = 0; i < schema.allOf.length; i++) {
+            schema_keys = {...schema_keys, ...getKeyword(schema.allOf[i], 'keys', 'properties', {})};
+        }
+    }
 
     let keys = [...Object.keys(schema_keys)];
+
 
     if (schema.additionalProperties)
         keys = [...keys, ...Object.keys(data).filter((k) => keys.indexOf(k) === -1)];
@@ -404,8 +419,25 @@ export function getObjectFormRow(args) {
         } else if (type === 'object') {
             rows.push(getObjectFormRow(nextArgs));
         } else {
-            rows.push(getStringFormRow(nextArgs));
+            // oneOf/anyOf
+            if (nextArgs.schema.hasOwnProperty('oneOf')) {
+                rows.push(<OneOf parentArgs={args} nextArgs={{...nextArgs}} key={"oneOf_" + name + '_' + i} />);
+            } else if (nextArgs.schema.hasOwnProperty('anyOf')) {
+                rows.push(<AnyOf parentArgs={args} nextArgs={{...nextArgs}} key={"anyOf_" + name + '_' + i} />);
+            } else {
+                rows.push(getStringFormRow(nextArgs));
+            }
         }
+    }
+
+    // oneOf
+    if (schema.hasOwnProperty('oneOf')) {
+        rows.push(<OneOf parentArgs={args} key={"oneOf_" + name} />);
+    }
+
+    // anyOf
+    if (schema.hasOwnProperty('anyOf')) {
+        rows.push(<AnyOf parentArgs={args} key={"anyOf_" + name} />);
     }
 
     if (rows.length || schema.additionalProperties) {
@@ -443,6 +475,380 @@ export function getObjectFormRow(args) {
 
     return rows;
 }
+
+
+function getSchemaType(schema) {
+    /* Returns type of the given schema */
+    let type = normalizeKeyword(schema.type);
+
+
+    if (!type) {
+        if (schema.hasOwnProperty('properties') ||
+            schema.hasOwnProperty('keys')
+        ) {
+            type = 'object';
+        } else {
+            type = 'string';
+        }
+    }
+
+    return type;
+}
+
+
+function dataObjectMatchesSchema(data, subschema) {
+    let dataType = actualType(data);
+    let subType = getSchemaType(subschema);
+
+    if (subType !== dataType)
+        return false;
+
+    let subSchemaKeys = getKeyword(subschema, 'properties', 'keys', {});
+
+    // check if all keys in the schema are present in the data
+    keyset1 = new Set(Object.keys(data));
+    keyset2 = new Set(Object.keys(subSchemaKeys));
+
+    if (subschema.hasOwnProperty('additionalProperties')) {
+        // subSchemaKeys must be a subset of data
+        if (!isSubset(keyset2, keyset1))
+            return false;
+    } else {
+        // subSchemaKeys must be equal to data
+        if (!isEqualset(keyset2, keyset1))
+            return false;
+    }
+
+    for (let key in subSchemaKeys) {
+        if (!subSchemaKeys.hasOwnProperty(key))
+            continue;
+
+        if (!data.hasOwnProperty(key))
+            return false;
+
+
+        let keyType = normalizeKeyword(subSchemaKeys[key].type);
+        let dataValueType = actualType(data[key]);
+
+        if (keyType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (keyType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (keyType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (keyType === 'string' && dataValueType !== 'string') {
+            return false;
+        }
+    }
+
+    // if here, all checks have passed
+    return true;
+}
+
+function dataArrayMatchesSchema(data, subschema) {
+    let dataType = actualType(data);
+    let subType = getSchemaType(subschema);
+
+    if (subType !== dataType)
+        return false;
+
+    let itemsType = subschema.items.type; // Temporary. Nested subschemas inside array.items won't work.
+
+    // check each item in data conforms to array items.type
+    for (let i = 0; i < data.length; i++) {
+        dataValueType = actualType(data[i]);
+
+        if (itemsType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (itemsType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (itemsType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (itemsType === 'string' && dataValueType !== 'string') {
+            return false;
+        }
+    }
+
+    // if here, all checks have passed
+    return true;
+}
+
+class OneOf extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.schemaName = this.props.schemaName || 'oneOf';
+
+        this.state = {
+            option: this.findSelectedOption(),
+        };
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.nextArgs || this.props.nextArgs) {
+            let prevDataType = 'string';
+            let newDataType = 'string';
+            if (prevProps.nextArgs)
+                prevDataType = actualType(prevProps.nextArgs.data);
+            if (this.props.nextArgs)
+                newDataType = actualType(this.props.nextArgs.data);
+
+            if (prevDataType !== newDataType)
+                this.setState({option: this.findSelectedOption()});
+        }
+    }
+
+    findSelectedOption = () => {
+        /* Returns index of currently selected option.
+         * It's a hard problem to reliably find the selected option for
+         * the given data.
+        */
+        let index = 0;
+        let parentType = this.getParentType();
+
+        if (this.props.nextArgs) {
+            let dataType = actualType(this.props.nextArgs.data);
+            let subschemas = this.props.nextArgs.schema[this.schemaName];
+
+            for (let i = 0; i < subschemas.length; i++) {
+                let subschema = subschemas[i];
+                let subType = getSchemaType(subschema);
+
+                if (dataType === 'number') {
+                    if (subType === 'number' || subType === 'integer') {
+                        index = i;
+                        break;
+                    }
+                } else if (dataType === 'null' && ['boolean', 'integer', 'number'].indexOf(subType) > -1) {
+                    index = i;
+                    break;
+                } else if (dataType === 'object') {
+                    // check if all keys match
+                    if (dataObjectMatchesSchema(this.props.nextArgs.data, subschema)) {
+                        index = i;
+                        break;
+                    }
+
+                } else if (dataType === 'array') {
+                    // check if item types match
+                    if (dataArrayMatchesSchema(this.props.nextArgs.data, subschema)) {
+                        index = i;
+                        break;
+                    }
+                } else if (dataType === subType) {
+                    index = i;
+                    break;
+                }
+            }
+        } else {
+            let data = this.props.parentArgs.data;
+            let dataType = actualType(data);
+
+            let subschemas = this.props.parentArgs.schema[this.schemaName];
+
+            if (subschemas === undefined)
+                return index;
+
+            for (let i = 0; i < subschemas.length; i++) {
+                let subschema = subschemas[i];
+                let subType = getSchemaType(subschema);
+
+                if (subType !== dataType)
+                    continue;
+
+                if (dataType === 'object') {
+                    if (dataObjectMatchesSchema(data, subschema)) {
+                        index = i;
+                        break;
+                    }
+
+                } else if (dataType === 'array') {
+                    // check if all items in data match the items type
+                    // strangely enough, haven't found a schema case
+                    // which triggers this condition.
+                    // for the time being, let's just throw an error if
+                    // this runs and ask the user to report the error
+                    throw new Error(
+                        "Unexpected block (#1) tirggered. " +
+                        "If you see this error, you've found a rare schema. " +
+                        "Please report this issue on our Github."
+                    );
+                }
+            }
+        }
+
+        return index;
+    }
+
+    getOptions = () => {
+        let parentType = this.getParentType();
+
+        if (parentType === 'object') {
+            let schema;
+            if (this.props.nextArgs) {
+                // this is an object key which has oneOf keyword
+                schema = this.props.nextArgs.schema;
+            } else {
+                schema = this.props.parentArgs.schema;
+            }
+
+            return schema[this.schemaName].map((option, index) => {
+                return {label: option.title || 'Option ' + (index + 1), value: index};
+            });
+        } else if (parentType === 'array') {
+            return this.props.parentArgs.schema.items[this.schemaName].map((option, index) => {
+                return {label: option.title || 'Option ' + (index + 1), value: index};
+            });
+        }
+
+        return [];
+    }
+
+    getSchema = (index) => {
+        if (index === undefined)
+            index = this.state.option;
+
+        let parentType = this.getParentType();
+
+        let schema;
+
+        if (parentType === 'object') {
+            if (this.props.nextArgs) {
+                // this is an object key which has oneOf keyword
+                schema = {...this.props.nextArgs.schema[this.schemaName][index]};
+                if (!schema.title)
+                    schema.title = this.props.nextArgs.schema.title;
+            } else {
+                schema = this.props.parentArgs.schema[this.schemaName][index];
+            }
+        } else if (parentType === 'array') {
+            schema = this.props.parentArgs.schema.items[this.schemaName][index];
+        } else {
+            schema = {'type': 'string'};
+        }
+
+        let isRef = schema.hasOwnProperty('$ref');
+
+        if (isRef)
+            schema = this.props.parentArgs.getRef(schema['$ref']);
+
+        return schema;
+    }
+
+    getParentType = () => {
+        return getSchemaType(this.props.parentArgs.schema);
+    }
+
+    handleChange = (e) => {
+        this.updateData(this.getSchema(), this.getSchema(e.target.value));
+        this.setState({
+            option: e.target.value
+        });
+    }
+
+    updateData(oldSchema, newSchema) {
+        let parentType = this.getParentType();
+
+        /*
+            If parent is an object,
+                then all subschemas in oneOf must be objects containing properties
+                of the parent object
+                otherwise, it's an error
+
+            If parent is an array,
+                then the subschemas in oneOf can be anything.
+        */
+
+        if (parentType === 'object' && !this.props.nextArgs) {
+            let name = this.props.parentArgs.name;
+            let schema = newSchema;
+            let data = this.props.parentArgs.data;
+
+            // keys to remove
+            let remove = [...Object.keys(getKeyword(oldSchema, 'properties', 'keys'))];
+
+            // keys to add
+            let add = [...Object.keys(getKeyword(schema, 'properties', 'keys'))];
+
+            let newData = {};
+
+            for (let key in data) {
+                if (!data.hasOwnProperty(key))
+                    continue;
+
+                if (remove.indexOf(key) > -1)
+                    continue;
+
+                newData[key] = data[key];
+            }
+
+            add.forEach((key, index) => {
+                newData[key] = getBlankData(schema.properties[key], this.props.parentArgs.getRef);
+            });
+
+            this.props.parentArgs.onChange(name, newData);
+        } else if (parentType === 'array' || this.props.nextArgs) {
+            let name = this.props.nextArgs.name;
+            let schema = newSchema;
+            let data = this.props.nextArgs.data;
+
+            this.props.parentArgs.onChange(name, getBlankData(schema, this.props.parentArgs.getRef));
+        }
+    }
+
+    render() {
+        let schema = this.getSchema();
+        let type = getSchemaType(schema);
+        let args = this.props.nextArgs ? this.props.nextArgs : this.props.parentArgs;
+        let rowFunc;
+
+        if (type === 'object') {
+            rowFunc = getObjectFormRow;
+            if (typeof args.data != 'object' || args.data === null)
+                args.data = {};
+
+        } else if (type === 'array') {
+            rowFunc = getArrayFormRow;
+            if (!Array.isArray(args.data))
+                args.data = [];
+        } else {
+            rowFunc = getStringFormRow;
+            args.removable = false;
+            args.onMoveUp = null;
+            args.onMoveDown = null;
+
+            if (Array.isArray(args.data) || typeof args.data === 'object')
+                args.data = null;
+        }
+
+        let rows = rowFunc({...args, schema: schema});
+
+        let selectorLabel = null;
+        if (this.props.nextArgs)
+            selectorLabel = this.props.nextArgs.schema.title || null;
+
+        return (
+            <div className="rjf-form-group rjf-oneof-group">
+                <div className="rjf-oneof-selector">
+                    <FormSelectInput
+                        value={this.state.option}
+                        options={this.getOptions()}
+                        onChange={this.handleChange}
+                        className="rjf-oneof-selector-input"
+                        label={selectorLabel}
+                    />
+                </div>
+
+                {rows}
+            </div>
+        );
+    }
+}
+
+
+function AnyOf(props) {
+    return <OneOf {...props} schemaName="anyOf" />;
+};
 
 
 function handleKeyValueAdd(data, coords, onAdd, newSchema, getRef) {
