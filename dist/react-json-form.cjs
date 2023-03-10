@@ -74,6 +74,19 @@ function convertType(value, to) {
 
   return value;
 }
+function actualType(value) {
+  /* Returns the "actual" type of the given value.
+       - array -> 'array'
+      - null -> 'null'
+  */
+  let type = typeof value;
+
+  if (type === 'object') {
+    if (Array.isArray(value)) type = 'array';else if (value === null) type = 'null';
+  }
+
+  return type;
+}
 function getVerboseName(name) {
   if (name === undefined || name === null) return '';
   name = name.replace(/_/g, ' ');
@@ -154,18 +167,47 @@ function getKey(obj, key, default_value) {
   let val = obj[key];
   return typeof val !== 'undefined' ? val : default_value;
 }
+/* Set operations */
+
+function isEqualset(a, b) {
+  return a.size === b.size && Array.from(a).every(i => b.has(i));
+}
+function isSubset(set, superset) {
+  for (const elem of set) {
+    if (!superset.has(elem)) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 function getBlankObject(schema, getRef) {
   let keys = {};
-  let schema_keys = schema.keys || schema.properties;
+  let schema_keys = getKeyword(schema, 'keys', 'properties', {});
 
   for (let key in schema_keys) {
     let value = schema_keys[key];
     let isRef = value.hasOwnProperty('$ref');
     if (isRef) value = getRef(value['$ref']);
     let type = normalizeKeyword(value.type);
-    if (type === 'array') keys[key] = isRef ? [] : getBlankArray(value, getRef);else if (type === 'object') keys[key] = getBlankObject(value, getRef);else if (type === 'boolean') keys[key] = value.default === false ? false : value.default || null;else if (type === 'integer' || type === 'number') keys[key] = value.default === 0 ? 0 : value.default || null;else // string etc.
-      keys[key] = value.default || '';
+
+    if (!type) {
+      // check for oneOf/anyOf
+      if (value.hasOwnProperty('oneOf')) value = value.oneOf[0];else if (value.hasOwnProperty('anyOf')) value = value.anyOf[0];
+      type = normalizeKeyword(value.type);
+    }
+
+    if (type === 'array') keys[key] = isRef ? [] : getBlankArray(value, getRef);else if (type === 'object') keys[key] = getBlankObject(value, getRef);else if (type === 'boolean') keys[key] = value.default === false ? false : value.default || null;else if (type === 'integer' || type === 'number') keys[key] = value.default === 0 ? 0 : value.default || null;else keys[key] = value.default || '';
+  }
+
+  if (schema.hasOwnProperty('oneOf')) keys = _extends({}, keys, getBlankObject(schema.oneOf[0]));
+  if (schema.hasOwnProperty('anyOf')) keys = _extends({}, keys, getBlankObject(schema.anyOf[0]));
+
+  if (schema.hasOwnProperty('allOf')) {
+    for (let i = 0; i < schema.allOf.length; i++) {
+      keys = _extends({}, keys, getBlankObject(schema.allOf[i]));
+    }
   }
 
   return keys;
@@ -184,6 +226,10 @@ function getBlankArray(schema, getRef) {
   }
 
   let type = normalizeKeyword(schema.items.type);
+
+  if (!type) {
+    if (schema.items.hasOwnProperty['oneOf']) type = schema.items.oneOf[0];else if (schema.items.hasOwnProperty['anyOf']) type = schema.items.anyOf[0];else if (schema.items.hasOwnProperty['allOf']) type = schema.items.allOf[0];
+  }
 
   if (type === 'array') {
     while (items.length < minItems) items.push(getBlankArray(schema.items, getRef));
@@ -250,7 +296,14 @@ function getSyncedArray(data, schema, getRef) {
 
 function getSyncedObject(data, schema, getRef) {
   let newData = JSON.parse(JSON.stringify(data));
-  let schema_keys = schema.keys || schema.properties;
+  let schema_keys = getKeyword(schema, 'keys', 'properties', {});
+
+  if (schema.hasOwnProperty('allOf')) {
+    for (let i = 0; i < schema.allOf.length; i++) {
+      schema_keys = _extends({}, schema_keys, getBlankObject(schema.allOf[i]));
+    }
+  }
+
   let keys = [...Object.keys(schema_keys)];
 
   for (let i = 0; i < keys.length; i++) {
@@ -2231,8 +2284,8 @@ function FormField(props) {
       InputField = FormInput;
   }
 
-  return /*#__PURE__*/React.createElement(InputField, _extends({}, inputProps, {
-    label: props.editable ? /*#__PURE__*/React.createElement("span", null, props.schema.title, " ", /*#__PURE__*/React.createElement(Button, {
+  return /*#__PURE__*/React__default["default"].createElement(InputField, _extends({}, inputProps, {
+    label: props.editable ? /*#__PURE__*/React__default["default"].createElement("span", null, props.schema.title, " ", /*#__PURE__*/React__default["default"].createElement(Button, {
       className: "edit",
       onClick: props.onEdit,
       title: "Edit"
@@ -2258,12 +2311,12 @@ function getStringFormRow(args) {
   } = args,
       fieldProps = _objectWithoutPropertiesLoose(args, _excluded);
 
-  return /*#__PURE__*/React.createElement(FormRow, {
+  return /*#__PURE__*/React__default["default"].createElement(FormRow, {
     key: name,
     onRemove: removable ? e => onRemove(name) : null,
     onMoveUp: onMoveUp,
     onMoveDown: onMoveDown
-  }, /*#__PURE__*/React.createElement(FormField, _extends({
+  }, /*#__PURE__*/React__default["default"].createElement(FormField, _extends({
     data: data,
     schema: schema,
     name: name,
@@ -2332,7 +2385,22 @@ function getArrayFormRow(args) {
       } else if (type === 'object') {
         groups.push(getObjectFormRow(nextArgs));
       } else {
-        rows.push(getStringFormRow(nextArgs));
+        // oneOf/anyOf
+        if (schema.items.hasOwnProperty('oneOf')) {
+          groups.push( /*#__PURE__*/React__default["default"].createElement(OneOf, {
+            parentArgs: args,
+            nextArgs: _extends({}, nextArgs),
+            key: "oneOf_" + name + '_' + i
+          }));
+        } else if (schema.items.hasOwnProperty('anyOf')) {
+          groups.push( /*#__PURE__*/React__default["default"].createElement(AnyOf, {
+            parentArgs: args,
+            nextArgs: _extends({}, nextArgs),
+            key: "anyOf_" + name + '_' + i
+          }));
+        } else {
+          rows.push(getStringFormRow(nextArgs));
+        }
       }
     }
   }
@@ -2340,7 +2408,7 @@ function getArrayFormRow(args) {
   let coords = name; // coordinates for insertion and deletion
 
   if (rows.length || !rows.length && !groups.length) {
-    rows = /*#__PURE__*/React.createElement(FormGroup, {
+    rows = /*#__PURE__*/React__default["default"].createElement(FormGroup, {
       level: level,
       schema: schema,
       addable: addable,
@@ -2351,10 +2419,10 @@ function getArrayFormRow(args) {
     }, rows);
 
     if (args.parentType === 'object' && args.removable) {
-      rows = /*#__PURE__*/React.createElement("div", {
+      rows = /*#__PURE__*/React__default["default"].createElement("div", {
         className: "rjf-form-group-wrapper",
         key: 'row_group_wrapper_' + name
-      }, /*#__PURE__*/React.createElement(FormRowControls, {
+      }, /*#__PURE__*/React__default["default"].createElement(FormRowControls, {
         onRemove: e => onRemove(name)
       }), rows);
     }
@@ -2364,30 +2432,30 @@ function getArrayFormRow(args) {
   if (typeof groupError === 'string') groupError = [groupError];
 
   if (groups.length) {
-    let groupTitle = schema.title ? /*#__PURE__*/React.createElement(GroupTitle, {
+    let groupTitle = schema.title ? /*#__PURE__*/React__default["default"].createElement(GroupTitle, {
       editable: args.editable,
       onEdit: args.onKeyEdit
     }, schema.title) : null;
-    groups = /*#__PURE__*/React.createElement("div", {
+    groups = /*#__PURE__*/React__default["default"].createElement("div", {
       key: 'group_' + name,
       className: "rjf-form-group-wrapper"
-    }, args.parentType === 'object' && args.removable && /*#__PURE__*/React.createElement(FormRowControls, {
+    }, args.parentType === 'object' && args.removable && /*#__PURE__*/React__default["default"].createElement(FormRowControls, {
       onRemove: e => onRemove(name)
-    }), /*#__PURE__*/React.createElement("div", {
+    }), /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-form-group"
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React__default["default"].createElement("div", {
       className: level > 0 ? "rjf-form-group-inner" : ""
-    }, groupTitle, groupError && groupError.map((error, i) => /*#__PURE__*/React.createElement("div", {
+    }, groupTitle, groupError && groupError.map((error, i) => /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-error-text",
       key: i
-    }, error)), groups.map((i, index) => /*#__PURE__*/React.createElement("div", {
+    }, error)), groups.map((i, index) => /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-form-group-wrapper",
       key: 'group_wrapper_' + name + '_' + index
-    }, /*#__PURE__*/React.createElement(FormRowControls, {
+    }, /*#__PURE__*/React__default["default"].createElement(FormRowControls, {
       onRemove: removable ? e => onRemove(joinCoords(name, index)) : null,
       onMoveUp: index > 0 ? e => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null,
       onMoveDown: index < groups.length - 1 ? e => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null
-    }), i)), addable && /*#__PURE__*/React.createElement(Button, {
+    }), i)), addable && /*#__PURE__*/React__default["default"].createElement(Button, {
       className: "add",
       onClick: e => onAdd(getBlankData(schema.items, args.getRef), coords),
       title: "Add new item"
@@ -2409,7 +2477,14 @@ function getObjectFormRow(args) {
     level
   } = args;
   let rows = [];
-  let schema_keys = getKeyword(schema, 'keys', 'properties');
+  let schema_keys = getKeyword(schema, 'keys', 'properties', {});
+
+  if (schema.hasOwnProperty('allOf')) {
+    for (let i = 0; i < schema.allOf.length; i++) {
+      schema_keys = _extends({}, schema_keys, getKeyword(schema.allOf[i], 'keys', 'properties', {}));
+    }
+  }
+
   let keys = [...Object.keys(schema_keys)];
   if (schema.additionalProperties) keys = [...keys, ...Object.keys(data).filter(k => keys.indexOf(k) === -1)];
 
@@ -2458,15 +2533,46 @@ function getObjectFormRow(args) {
     } else if (type === 'object') {
       rows.push(getObjectFormRow(nextArgs));
     } else {
-      rows.push(getStringFormRow(nextArgs));
+      // oneOf/anyOf
+      if (nextArgs.schema.hasOwnProperty('oneOf')) {
+        rows.push( /*#__PURE__*/React__default["default"].createElement(OneOf, {
+          parentArgs: args,
+          nextArgs: _extends({}, nextArgs),
+          key: "oneOf_" + name + '_' + i
+        }));
+      } else if (nextArgs.schema.hasOwnProperty('anyOf')) {
+        rows.push( /*#__PURE__*/React__default["default"].createElement(AnyOf, {
+          parentArgs: args,
+          nextArgs: _extends({}, nextArgs),
+          key: "anyOf_" + name + '_' + i
+        }));
+      } else {
+        rows.push(getStringFormRow(nextArgs));
+      }
     }
+  } // oneOf
+
+
+  if (schema.hasOwnProperty('oneOf')) {
+    rows.push( /*#__PURE__*/React__default["default"].createElement(OneOf, {
+      parentArgs: args,
+      key: "oneOf_" + name
+    }));
+  } // anyOf
+
+
+  if (schema.hasOwnProperty('anyOf')) {
+    rows.push( /*#__PURE__*/React__default["default"].createElement(AnyOf, {
+      parentArgs: args,
+      key: "anyOf_" + name
+    }));
   }
 
   if (rows.length || schema.additionalProperties) {
     let coords = name;
     let groupError = args.errorMap[getCoordsFromName(coords)];
     if (typeof groupError === 'string') groupError = [groupError];
-    rows = /*#__PURE__*/React.createElement(FormGroup, {
+    rows = /*#__PURE__*/React__default["default"].createElement(FormGroup, {
       level: level,
       schema: schema,
       addable: schema.additionalProperties,
@@ -2474,22 +2580,345 @@ function getObjectFormRow(args) {
       editable: args.editable,
       onEdit: args.onKeyEdit,
       key: 'row_group_' + name
-    }, groupError && groupError.map((error, i) => /*#__PURE__*/React.createElement("div", {
+    }, groupError && groupError.map((error, i) => /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-error-text",
       key: i
     }, error)), rows);
 
     if (args.parentType === 'object' && args.removable) {
-      rows = /*#__PURE__*/React.createElement("div", {
+      rows = /*#__PURE__*/React__default["default"].createElement("div", {
         className: "rjf-form-group-wrapper",
         key: 'row_group_wrapper_' + name
-      }, /*#__PURE__*/React.createElement(FormRowControls, {
+      }, /*#__PURE__*/React__default["default"].createElement(FormRowControls, {
         onRemove: e => onRemove(name)
       }), rows);
     }
   }
 
   return rows;
+}
+
+function getSchemaType$1(schema) {
+  /* Returns type of the given schema */
+  let type = normalizeKeyword(schema.type);
+
+  if (!type) {
+    if (schema.hasOwnProperty('properties') || schema.hasOwnProperty('keys')) {
+      type = 'object';
+    } else {
+      type = 'string';
+    }
+  }
+
+  return type;
+}
+
+function dataObjectMatchesSchema(data, subschema) {
+  let dataType = actualType(data);
+  let subType = getSchemaType$1(subschema);
+  if (subType !== dataType) return false;
+  let subSchemaKeys = getKeyword(subschema, 'properties', 'keys', {}); // check if all keys in the schema are present in the data
+
+  keyset1 = new Set(Object.keys(data));
+  keyset2 = new Set(Object.keys(subSchemaKeys));
+
+  if (subschema.hasOwnProperty('additionalProperties')) {
+    // subSchemaKeys must be a subset of data
+    if (!isSubset(keyset2, keyset1)) return false;
+  } else {
+    // subSchemaKeys must be equal to data
+    if (!isEqualset(keyset2, keyset1)) return false;
+  }
+
+  for (let key in subSchemaKeys) {
+    if (!subSchemaKeys.hasOwnProperty(key)) continue;
+    if (!data.hasOwnProperty(key)) return false;
+    let keyType = normalizeKeyword(subSchemaKeys[key].type);
+    let dataValueType = actualType(data[key]);
+
+    if (keyType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (keyType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (keyType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (keyType === 'string' && dataValueType !== 'string') {
+      return false;
+    }
+  } // if here, all checks have passed
+
+
+  return true;
+}
+
+function dataArrayMatchesSchema(data, subschema) {
+  let dataType = actualType(data);
+  let subType = getSchemaType$1(subschema);
+  if (subType !== dataType) return false;
+  let itemsType = subschema.items.type; // Temporary. Nested subschemas inside array.items won't work.
+  // check each item in data conforms to array items.type
+
+  for (let i = 0; i < data.length; i++) {
+    dataValueType = actualType(data[i]);
+
+    if (itemsType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (itemsType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (itemsType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (itemsType === 'string' && dataValueType !== 'string') {
+      return false;
+    }
+  } // if here, all checks have passed
+
+
+  return true;
+}
+
+class OneOf extends React__default["default"].Component {
+  constructor(props) {
+    super(props);
+
+    this.findSelectedOption = () => {
+      /* Returns index of currently selected option.
+       * It's a hard problem to reliably find the selected option for
+       * the given data.
+      */
+      let index = 0;
+      this.getParentType();
+
+      if (this.props.nextArgs) {
+        let dataType = actualType(this.props.nextArgs.data);
+        let subschemas = this.props.nextArgs.schema[this.schemaName];
+
+        for (let i = 0; i < subschemas.length; i++) {
+          let subschema = subschemas[i];
+          let subType = getSchemaType$1(subschema);
+
+          if (dataType === 'number') {
+            if (subType === 'number' || subType === 'integer') {
+              index = i;
+              break;
+            }
+          } else if (dataType === 'null' && ['boolean', 'integer', 'number'].indexOf(subType) > -1) {
+            index = i;
+            break;
+          } else if (dataType === 'object') {
+            // check if all keys match
+            if (dataObjectMatchesSchema(this.props.nextArgs.data, subschema)) {
+              index = i;
+              break;
+            }
+          } else if (dataType === 'array') {
+            // check if item types match
+            if (dataArrayMatchesSchema(this.props.nextArgs.data, subschema)) {
+              index = i;
+              break;
+            }
+          } else if (dataType === subType) {
+            index = i;
+            break;
+          }
+        }
+      } else {
+        let data = this.props.parentArgs.data;
+        let dataType = actualType(data);
+        let subschemas = this.props.parentArgs.schema[this.schemaName];
+        if (subschemas === undefined) return index;
+
+        for (let i = 0; i < subschemas.length; i++) {
+          let subschema = subschemas[i];
+          let subType = getSchemaType$1(subschema);
+          if (subType !== dataType) continue;
+
+          if (dataType === 'object') {
+            if (dataObjectMatchesSchema(data, subschema)) {
+              index = i;
+              break;
+            }
+          } else if (dataType === 'array') {
+            // check if all items in data match the items type
+            // strangely enough, haven't found a schema case
+            // which triggers this condition.
+            // for the time being, let's just throw an error if
+            // this runs and ask the user to report the error
+            throw new Error("Unexpected block (#1) tirggered. " + "If you see this error, you've found a rare schema. " + "Please report this issue on our Github.");
+          }
+        }
+      }
+
+      return index;
+    };
+
+    this.getOptions = () => {
+      let parentType = this.getParentType();
+
+      if (parentType === 'object') {
+        let schema;
+
+        if (this.props.nextArgs) {
+          // this is an object key which has oneOf keyword
+          schema = this.props.nextArgs.schema;
+        } else {
+          schema = this.props.parentArgs.schema;
+        }
+
+        return schema[this.schemaName].map((option, index) => {
+          return {
+            label: option.title || 'Option ' + (index + 1),
+            value: index
+          };
+        });
+      } else if (parentType === 'array') {
+        return this.props.parentArgs.schema.items[this.schemaName].map((option, index) => {
+          return {
+            label: option.title || 'Option ' + (index + 1),
+            value: index
+          };
+        });
+      }
+
+      return [];
+    };
+
+    this.getSchema = index => {
+      if (index === undefined) index = this.state.option;
+      let parentType = this.getParentType();
+      let schema;
+
+      if (parentType === 'object') {
+        if (this.props.nextArgs) {
+          // this is an object key which has oneOf keyword
+          schema = _extends({}, this.props.nextArgs.schema[this.schemaName][index]);
+          if (!schema.title) schema.title = this.props.nextArgs.schema.title;
+        } else {
+          schema = this.props.parentArgs.schema[this.schemaName][index];
+        }
+      } else if (parentType === 'array') {
+        schema = this.props.parentArgs.schema.items[this.schemaName][index];
+      } else {
+        schema = {
+          'type': 'string'
+        };
+      }
+
+      let isRef = schema.hasOwnProperty('$ref');
+      if (isRef) schema = this.props.parentArgs.getRef(schema['$ref']);
+      return schema;
+    };
+
+    this.getParentType = () => {
+      return getSchemaType$1(this.props.parentArgs.schema);
+    };
+
+    this.handleChange = e => {
+      this.updateData(this.getSchema(), this.getSchema(e.target.value));
+      this.setState({
+        option: e.target.value
+      });
+    };
+
+    this.schemaName = this.props.schemaName || 'oneOf';
+    this.state = {
+      option: this.findSelectedOption()
+    };
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.nextArgs || this.props.nextArgs) {
+      let prevDataType = 'string';
+      let newDataType = 'string';
+      if (prevProps.nextArgs) prevDataType = actualType(prevProps.nextArgs.data);
+      if (this.props.nextArgs) newDataType = actualType(this.props.nextArgs.data);
+      if (prevDataType !== newDataType) this.setState({
+        option: this.findSelectedOption()
+      });
+    }
+  }
+
+  updateData(oldSchema, newSchema) {
+    let parentType = this.getParentType();
+    /*
+        If parent is an object,
+            then all subschemas in oneOf must be objects containing properties
+            of the parent object
+            otherwise, it's an error
+         If parent is an array,
+            then the subschemas in oneOf can be anything.
+    */
+
+    if (parentType === 'object' && !this.props.nextArgs) {
+      let name = this.props.parentArgs.name;
+      let schema = newSchema;
+      let data = this.props.parentArgs.data; // keys to remove
+
+      let remove = [...Object.keys(getKeyword(oldSchema, 'properties', 'keys'))]; // keys to add
+
+      let add = [...Object.keys(getKeyword(schema, 'properties', 'keys'))];
+      let newData = {};
+
+      for (let key in data) {
+        if (!data.hasOwnProperty(key)) continue;
+        if (remove.indexOf(key) > -1) continue;
+        newData[key] = data[key];
+      }
+
+      add.forEach((key, index) => {
+        newData[key] = getBlankData(schema.properties[key], this.props.parentArgs.getRef);
+      });
+      this.props.parentArgs.onChange(name, newData);
+    } else if (parentType === 'array' || this.props.nextArgs) {
+      let name = this.props.nextArgs.name;
+      let schema = newSchema;
+      this.props.parentArgs.onChange(name, getBlankData(schema, this.props.parentArgs.getRef));
+    }
+  }
+
+  render() {
+    let schema = this.getSchema();
+    let type = getSchemaType$1(schema);
+    let args = this.props.nextArgs ? this.props.nextArgs : this.props.parentArgs;
+    let rowFunc;
+
+    if (type === 'object') {
+      rowFunc = getObjectFormRow;
+      if (typeof args.data != 'object' || args.data === null) args.data = {};
+    } else if (type === 'array') {
+      rowFunc = getArrayFormRow;
+      if (!Array.isArray(args.data)) args.data = [];
+    } else {
+      rowFunc = getStringFormRow;
+      args.removable = false;
+      args.onMoveUp = null;
+      args.onMoveDown = null;
+      if (Array.isArray(args.data) || typeof args.data === 'object') args.data = null;
+    }
+
+    let rows = rowFunc(_extends({}, args, {
+      schema: schema
+    }));
+    let selectorLabel = null;
+    if (this.props.nextArgs) selectorLabel = this.props.nextArgs.schema.title || null;
+    return /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "rjf-form-group rjf-oneof-group"
+    }, /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "rjf-oneof-selector"
+    }, /*#__PURE__*/React__default["default"].createElement(FormSelectInput, {
+      value: this.state.option,
+      options: this.getOptions(),
+      onChange: this.handleChange,
+      className: "rjf-oneof-selector-input",
+      label: selectorLabel
+    })), rows);
+  }
+
+}
+
+function AnyOf(props) {
+  return /*#__PURE__*/React__default["default"].createElement(OneOf, _extends({}, props, {
+    schemaName: "anyOf"
+  }));
 }
 
 function handleKeyValueAdd(data, coords, onAdd, newSchema, getRef) {
@@ -2542,39 +2971,15 @@ function validateSchema(schema) {
   return validation;
 }
 function validateObject(schema) {
-  if (!schema.hasOwnProperty('keys') && !schema.hasOwnProperty('properties')) return {
+  if (!schema.hasOwnProperty('keys') && !schema.hasOwnProperty('properties') && !schema.hasOwnProperty('oneOf') && !schema.hasOwnProperty('anyOf') && !schema.hasOwnProperty('allOf')) return {
     isValid: false,
-    msg: "Schema of type '" + schema.type + "' must have a key called 'properties' or 'keys'"
+    msg: "Schema of type '" + schema.type + "' must have at least one of these keys: " + "['properties' or 'keys' or 'oneOf' or 'anyOf' or 'allOf']"
   };
+  let validation;
   let keys = schema.properties || schema.keys;
-  if (!(keys instanceof Object)) return {
-    isValid: false,
-    msg: "The 'keys' or 'properties' key must be a valid JavaScript Object"
-  };
 
-  for (let key in keys) {
-    if (!keys.hasOwnProperty(key)) continue;
-    let value = keys[key];
-    if (!(value instanceof Object)) return {
-      isValid: false,
-      msg: "Key '" + key + "' must be a valid JavaScript Object"
-    };
-    let validation = {
-      isValid: true
-    };
-    let value_type = normalizeKeyword(value.type);
-
-    if (value_type) {
-      if (value_type === 'object') validation = validateObject(value);else if (value_type === 'array') validation = validateArray(value);
-    } else if (value.hasOwnProperty('$ref')) {
-      validation = validateRef(value);
-    } else {
-      validation = {
-        isValid: false,
-        msg: "Key '" + key + "' must have a 'type' or a '$ref"
-      };
-    }
-
+  if (keys) {
+    validation = validateKeys(keys);
     if (!validation.isValid) return validation;
   }
 
@@ -2596,11 +3001,71 @@ function validateObject(schema) {
     }
   }
 
+  if (schema.hasOwnProperty('oneOf')) {
+    validation = validateOneOf(schema);
+    if (!validation.isValid) return validation;
+  }
+
+  if (schema.hasOwnProperty('anyOf')) {
+    validation = validateAnyOf(schema);
+    if (!validation.isValid) return validation;
+  }
+
+  if (schema.hasOwnProperty('allOf')) {
+    validation = validateAllOf(schema);
+    if (!validation.isValid) return validation;
+  }
+
   return {
     isValid: true,
     msg: ""
   };
 }
+
+function validateKeys(keys) {
+  if (!(keys instanceof Object)) return {
+    isValid: false,
+    msg: "The 'keys' or 'properties' key must be a valid JavaScript Object"
+  };
+
+  for (let key in keys) {
+    if (!keys.hasOwnProperty(key)) continue;
+    let value = keys[key];
+    if (!(value instanceof Object)) return {
+      isValid: false,
+      msg: "Key '" + key + "' must be a valid JavaScript Object"
+    };
+    let validation = {
+      isValid: true
+    };
+    let value_type = normalizeKeyword(value.type);
+
+    if (value_type) {
+      if (value_type === 'object') validation = validateObject(value);else if (value_type === 'array') validation = validateArray(value);
+    } else if (value.hasOwnProperty('$ref')) {
+      validation = validateRef(value);
+    } else if (value.hasOwnProperty('oneOf')) {
+      validation = validateOneOf(value);
+    } else if (value.hasOwnProperty('anyOf')) {
+      validation = validateAnyOf(value);
+    } else if (value.hasOwnProperty('allOf')) {
+      validation = validateAllOf(value);
+    } else {
+      validation = {
+        isValid: false,
+        msg: "Key '" + key + "' must have a 'type' or a '$ref"
+      };
+    }
+
+    if (!validation.isValid) return validation;
+  }
+
+  return {
+    isValid: true,
+    msg: ""
+  };
+}
+
 function validateArray(schema) {
   if (!schema.hasOwnProperty('items')) return {
     isValid: false,
@@ -2618,10 +3083,25 @@ function validateArray(schema) {
   } else if (schema.items.hasOwnProperty('$ref')) {
     return validateRef(schema.items);
   } else {
-    return {
+    if (!schema.items.hasOwnProperty('oneOf') && !schema.items.hasOwnProperty('anyOf') && !schema.items.hasOwnProperty('allOf')) return {
       isValid: false,
-      msg: "'items' key must have a 'type' or a '$ref'"
+      msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf' or 'allOf'"
     };
+  }
+
+  if (schema.hasOwnProperty('oneOf')) {
+    validation = validateOneOf(schema.items);
+    if (!validation.isValid) return validation;
+  }
+
+  if (schema.hasOwnProperty('anyOf')) {
+    validation = validateAnyOf(schema.items);
+    if (!validation.isValid) return validation;
+  }
+
+  if (schema.hasOwnProperty('allOf')) {
+    validation = validateAllOf(schema.items);
+    if (!validation.isValid) return validation;
   }
 
   return {
@@ -2646,6 +3126,67 @@ function validateRef(schema) {
     isValid: true,
     msg: ""
   };
+}
+function validateOneOf(schema) {
+  return validateSubschemas(schema, 'oneOf');
+}
+function validateAnyOf(schema) {
+  return validateSubschemas(schema, 'anyOf');
+}
+function validateAllOf(schema) {
+  return validateSubschemas(schema, 'allOf');
+}
+
+function validateSubschemas(schema, keyword) {
+  /*
+    Common validator for oneOf/anyOf/allOf
+     Params:
+      schema: the schema containing the oneOf/anyOf/allOf subschema
+      keyword: one of 'oneOf' or 'anyOf' or 'allOf'
+     Validation:
+    1. Must be an array
+    2. If directly inside an object, each subschema in array must have 'properties' or 'keys keyword
+  */
+  let subschemas = schema[keyword];
+  if (!Array.isArray(subschemas)) return {
+    isValid: false,
+    msg: "'" + keyword + "' property must be an array"
+  };
+
+  for (let i = 0; i < subschemas.length; i++) {
+    let subschema = subschemas[i];
+    let subType = getSchemaType(subschema);
+
+    if (subType === 'object') {
+      let validation = validateObject(subschema);
+      if (!validation.isValid) return validation;
+    } else if (subType === 'array') {
+      let validation = validateArray(subschema);
+      if (!validation.isValid) return validation;
+    }
+  }
+
+  return {
+    isValid: true,
+    msg: ""
+  };
+}
+/* Utility functions */
+
+
+function getSchemaType(schema) {
+  /* Returns type of the given schema */
+  let type = normalizeKeyword(schema.type);
+
+  if (!type) {
+    if (schema.hasOwnProperty('properties') || schema.hasOwnProperty('keys')) {
+      type = 'object';
+    } else {
+      type = 'string';
+    }
+  }
+
+  return type;
 }
 
 class EditorState {
