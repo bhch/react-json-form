@@ -48,7 +48,7 @@ export class TabContent extends React.Component {
 
         this.state = {
             rjf_state: RJFEditorState.create(this.getActiveTabSchema(), this.getActiveTabData()),
-            schemaHasError: false,
+            schemaError: false,
             errorMap: {}
         };
 
@@ -72,7 +72,7 @@ export class TabContent extends React.Component {
         if (this.props.activeTabIndex !== prevProps.activeTabIndex) {
             this.setState({
                 rjf_state: RJFEditorState.create(this.getActiveTabSchema(), this.getActiveTabData()),
-                schemaHasError: false,
+                schemaError: false,
                 errorMap: {},
             }, (state) => {
 
@@ -110,16 +110,22 @@ export class TabContent extends React.Component {
                         // only update form state if the schema is valid JSON
                         try {
                             let newSchema = JSON.parse(update.state.doc.toString());
+                        } catch (error) {
+                            this.setState({schemaError: 'Must be strictly valid JSON (no trailing commas, use double-quotes, etc.)'});
+                            return;
+                        }
+
+                        try {
 
                             let newState = RJFEditorState.create(update.state.doc.toString());
 
-                            this.setState({rjf_state: newState, schemaHasError: false}, (state) => {
+                            this.setState({rjf_state: newState, schemaError: false}, (state) => {
                                 this.updateDataEditor(this.getEditorData());
                             });
                         } catch (error) {
                             // schema didn't validate
-                            if (!this.state.schemaHasError)
-                                this.setState({schemaHasError: true});
+                            if (this.state.schemaError !== true)
+                                this.setState({schemaError: true});
 
                             return;
                         }
@@ -204,7 +210,13 @@ export class TabContent extends React.Component {
                         <div className="mb-4">
                             <p><strong>Schema</strong></p>
                             <div ref={this.schemaEditorParentRef} className="cm-container"></div>
-                            {this.state.schemaHasError && <small className="text-danger">(!) Schema is not valid</small>}
+                            {this.state.schemaError &&
+                                <p className="text-danger">
+                                    <small>(!) Schema is not valid</small>
+                                    <br/>
+                                    <small>{this.state.schemaError}</small>
+                                </p>
+                            }
                         </div>
                         <div className="mb-4">
                             <p><strong>Output data</strong></p>
