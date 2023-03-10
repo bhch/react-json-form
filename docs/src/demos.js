@@ -331,7 +331,99 @@ const DEMOS = [
                 age: {type: 'number', required: true, minimum: 50},
             }
         }
-    }
+    },
+
+    {
+        name: 'AnyOf',
+        slug: 'anyof',
+        schema: {
+            type: 'object',
+            title: 'Person info',
+            properties: {
+                name: {type: 'string'},
+                age_or_birthdate: {
+                    title: 'Age or Birthdate',
+                    anyOf: [
+                        {type: 'integer', title: 'Age'},
+                        {type: 'string', 'format': 'date-time', title: 'Birthdate'},
+                    ]
+                },
+                contacts: {
+                    type: 'array',
+                    items: {
+                        anyOf: [
+                            {type: 'string', title: 'Email', placeholder: 'you@example.com'},
+                            {type: 'integer', title: 'Phone', placeholder: '1234567890'},
+                        ]
+                    }
+                }
+            },
+        },
+    },
+
+    {
+        name: 'OneOf',
+        slug: 'oneof',
+        schema: {
+            type: 'object',
+            properties: {
+                location: {
+                    oneOf: [
+                        {
+                            type: 'object',
+                            title: 'Coordinates',
+                            properties: {
+                                latitude: {type: 'number'},
+                                longitude: {type: 'number'},
+                            }
+                        },
+                        {
+                            type: 'object',
+                            title: 'City & Country',
+                            properties: {
+                                city: {type: 'string'},
+                                country: {type: 'string'},
+                            }
+                        },
+                    ]
+                },
+                secret_code: {
+                    oneOf: [
+                        {type: 'integer', title: 'Numeric code'},
+                        {type: 'string', title: 'String code'},
+                    ]
+                },
+            },
+        },
+    },
+
+    {
+        name: 'AllOf',
+        slug: 'allof',
+        schema: {
+            type: 'object',
+            title: 'Person',
+            allOf: [
+                {
+                    properties: {
+                        name: {type: 'string'}
+                    }
+                },
+                {
+                    properties: {
+                        age: {type: 'integer'}
+                    }
+                },
+            ]
+        },
+        description: () => (
+            <div>
+                Currently, <code>allOf</code> supports very limited features.
+                It only works inside objects and won't work inside arrays or other types.
+            </div>
+        )
+
+    },
 ];
 
 
