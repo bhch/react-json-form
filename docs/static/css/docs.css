@@ -18,6 +18,8 @@ h1, h2, h3, h4, h5, h6 {
 a {
     color: #40f;
     text-decoration: underline dashed;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.13em;
 }
 a:hover {
     color: #3409ab;
@@ -654,6 +656,22 @@ button.rjf-add-button:hover {
 }
 .rjf-form-row-controls button span {
     pointer-events: none;
+}
+.rjf-oneof-group {
+    border: 0;
+    padding: 0;
+}
+.rjf-oneof-selector {
+    display: table;
+    width: 100%;
+    padding: 5px;
+    padding-bottom: 10px;
+}
+.rjf-oneof-selector .rjf-oneof-selector-input {
+
+}
+.rjf-oneof-selector label + .rjf-oneof-selector-input {
+
 }
 .rjf-input-group,
 .rjf-file-field {
