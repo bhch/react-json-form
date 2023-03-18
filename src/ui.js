@@ -395,6 +395,11 @@ export function getObjectFormRow(args) {
         if (schema_keys[key] === undefined)
             removable = true;
 
+        if (schema.hasOwnProperty('required') && Array.isArray(schema.required)) {
+            if (schema.required.indexOf(key) > -1)
+                schemaValue['required'] = true;
+        }
+
         let nextArgs = {
             data: value,
             schema: schemaValue,
