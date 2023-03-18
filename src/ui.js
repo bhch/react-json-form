@@ -83,10 +83,10 @@ function FormField(props) {
             }
 
             if (props.schema.minLength || props.schema.minLength === 0)
-                inputProps.minlength = props.schema.minLength;
+                inputProps.minLength = props.schema.minLength;
 
             if (props.schema.maxLength || props.schema.maxLength === 0)
-                inputProps.maxlength = props.schema.maxLength;
+                inputProps.maxLength = props.schema.maxLength;
 
             break;
         case 'fileinput':
@@ -139,10 +139,10 @@ function FormField(props) {
             InputField = FormTextareaInput;
 
             if (props.schema.minLength || props.schema.minLength === 0)
-                inputProps.minlength = props.schema.minLength;
+                inputProps.minLength = props.schema.minLength;
 
             if (props.schema.maxLength || props.schema.maxLength === 0)
-                inputProps.maxlength = props.schema.maxLength;
+                inputProps.maxLength = props.schema.maxLength;
 
             break;
         default:
