@@ -2218,8 +2218,8 @@ function FormField(props) {
         inputProps.type = 'text';
       }
 
-      if (props.schema.minLength || props.schema.minLength === 0) inputProps.minlength = props.schema.minLength;
-      if (props.schema.maxLength || props.schema.maxLength === 0) inputProps.maxlength = props.schema.maxLength;
+      if (props.schema.minLength || props.schema.minLength === 0) inputProps.minLength = props.schema.minLength;
+      if (props.schema.maxLength || props.schema.maxLength === 0) inputProps.maxLength = props.schema.maxLength;
       break;
 
     case 'fileinput':
@@ -2269,8 +2269,8 @@ function FormField(props) {
 
     case 'textarea':
       InputField = FormTextareaInput;
-      if (props.schema.minLength || props.schema.minLength === 0) inputProps.minlength = props.schema.minLength;
-      if (props.schema.maxLength || props.schema.maxLength === 0) inputProps.maxlength = props.schema.maxLength;
+      if (props.schema.minLength || props.schema.minLength === 0) inputProps.minLength = props.schema.minLength;
+      if (props.schema.maxLength || props.schema.maxLength === 0) inputProps.maxLength = props.schema.maxLength;
       break;
 
     default:
@@ -2502,6 +2502,11 @@ function getObjectFormRow(args) {
       schemaValue.title = getVerboseName(key);
     let removable = false;
     if (schema_keys[key] === undefined) removable = true;
+
+    if (schema.hasOwnProperty('required') && Array.isArray(schema.required)) {
+      if (schema.required.indexOf(key) > -1) schemaValue['required'] = true;
+    }
+
     let nextArgs = {
       data: value,
       schema: schemaValue,
@@ -3574,6 +3579,11 @@ function DataValidator(schema) {
         };
       }
       if (next_schema.hasOwnProperty('$ref')) next_schema = this.getRef(next_schema.$ref);
+
+      if (schema.hasOwnProperty('required') && Array.isArray(schema.required)) {
+        if (schema.required.indexOf(key) > -1) next_schema['required'] = true;
+      }
+
       let next_type = normalizeKeyword(next_schema.type);
       let next_validator = this.getValidator(next_type);
       if (next_validator) next_validator(next_schema, data[key], this.joinCoords([coords, key]));else {
