@@ -174,13 +174,26 @@ test('object has all the keys that are in schema', () => {
             'b': {'type': 'string'}
         }
     };
-    let wrong_data = {'a': ''}; // some meys missing
+    let wrong_data = {'a': ''}; // some keys missing
     let data_1 = {'a': '', 'b': ''}; // exact keys
     let data_2 = {'a': '', 'b': '', 'c': ''}; // extra keys
     let validator = new DataValidator(schema);
     expect(validator.validate(wrong_data).isValid).toBe(false);
     expect(validator.validate(data_1).isValid).toBe(true);
     expect(validator.validate(data_2).isValid).toBe(true);
+});
+
+test('object required properties', () => {
+    let schema = {
+        'type': 'object',
+        'properties': {'a': {'type': 'string'}},
+        'required': ['a'],
+    };
+    let wrong_data = {'a': ''}; // empty data
+    let data = {'a': 'hello'};
+    let validator = new DataValidator(schema);
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    expect(validator.validate(data).isValid).toBe(true);
 });
 
 test('additionalProperties type', () => {
