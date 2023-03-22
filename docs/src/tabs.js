@@ -124,9 +124,7 @@ export class TabContent extends React.Component {
                             });
                         } catch (error) {
                             // schema didn't validate
-                            if (this.state.schemaError !== true)
-                                this.setState({schemaError: true});
-
+                            this.setState({schemaError: error.toString()});
                             return;
                         }
                     }

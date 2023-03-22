@@ -667,6 +667,9 @@ button.rjf-add-button:hover {
     padding: 5px;
     padding-bottom: 10px;
 }
+.rjf-oneof-group-top-level > .rjf-oneof-selector {
+    padding-left: 0;
+}
 .rjf-oneof-selector .rjf-oneof-selector-input {
 
 }
