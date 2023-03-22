@@ -58,6 +58,37 @@ export function actualType(value) {
 }
 
 
+export function getSchemaType(schema) {
+    /* Returns type of the given schema.
+
+       If schema.type is not present, it tries to guess the type.
+
+       If data is given, it will try to use that to guess the type.
+    */
+    let type = normalizeKeyword(schema.type);
+
+    if (!type) {
+        if (schema.hasOwnProperty('properties') ||
+            schema.hasOwnProperty('keys')
+        )
+            type = 'object';
+        else if (schema.hasOwnProperty('items'))
+            type = 'array';
+        else if (schema.hasOwnProperty('allOf'))
+            type = 'allOf';
+        else if (schema.hasOwnProperty('oneOf'))
+            type = 'oneOf';
+        else if (schema.hasOwnProperty('anyOf'))
+            type = 'anyOf';
+        else
+            type = 'string';
+    }
+
+    return type;
+}
+
+
+
 export function getVerboseName(name) {
     if (name === undefined || name === null)
         return '';

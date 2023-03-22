@@ -1,4 +1,4 @@
-import {normalizeKeyword, getKeyword, getKey, joinCoords} from './util';
+import {normalizeKeyword, getKeyword, getKey, joinCoords, getSchemaType} from './util';
 import {JOIN_SYMBOL} from './constants';
 import EditorState from './editorState';
 
@@ -12,7 +12,7 @@ export default function DataValidator(schema) {
         // can be reused for same schema
         this.errorMap = {};
 
-        let validator = this.getValidator(schema.type);
+        let validator = this.getValidator(getSchemaType(schema));
 
         if (validator)
             validator(this.schema, data, '');
@@ -38,6 +38,15 @@ export default function DataValidator(schema) {
                 break;
             case 'object':
                 func = this.validateObject;
+                break;
+            case 'allOf':
+                func = this.validateAllOf;
+                break;
+            case 'oneOf':
+                func = this.validateOneOf;
+                break;
+            case 'anyOf':
+                func = this.validateAnyOf;
                 break;
             case 'string':
                 func = this.validateString;
@@ -179,6 +188,40 @@ export default function DataValidator(schema) {
                 return;
             }
         }
+
+        if (schema.hasOwnProperty('allOf'))
+            this.validateAllOf(schema, data, coords);
+    };
+
+    this.validateAllOf = function(schema, data, coords) {
+        /* Currently, we only support allOf inside object
+        so we assume the given type to be an object.
+        */
+
+        let newSchema = {type: 'object', properties: {}};
+
+        // combine subschemas
+        for (let i = 0; i < schema.allOf.length; i++) {
+            let subschema = schema.allOf[i];
+
+            if (subschema.hasOwnProperty('$ref'))
+                subschema = this.getRef(subschema.$ref);
+
+            let fields = getKeyword(subschema, 'properties', 'keys', {});
+
+            for (let field in fields)
+                newSchema.properties[field] = fields[field];
+        }
+
+        this.validateObject(newSchema, data, coords);
+    };
+
+    this.validateOneOf = function(schema, data, coords) {
+        // :TODO:
+    };
+
+    this.validateAnyOf = function(schema, data, coords) {
+        // :TODO:
     };
 
     this.validateString = function(schema, data, coords) {

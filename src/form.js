@@ -1,6 +1,6 @@
 import React from 'react';
-import {getArrayFormRow, getObjectFormRow} from './ui';
-import {EditorContext, joinCoords, splitCoords} from './util';
+import {getArrayFormRow, getObjectFormRow, getOneOfFormRow, getAnyOfFormRow, getAllOfFormRow} from './ui';
+import {EditorContext, joinCoords, splitCoords, getSchemaType} from './util';
 import {FIELD_NAME_PREFIX} from './constants';
 import EditorState from './editorState';
 
@@ -36,12 +36,7 @@ export default class ReactJSONForm extends React.Component {
         let schema = this.props.editorState.getSchema();
         let formGroups = [];
 
-        let type = schema.type;
-
-        if (type === 'list')
-            type = 'array';
-        else if (type === 'dict')
-            type = 'object';
+        let type = getSchemaType(schema);
 
         let args = {
             data: data,
@@ -57,11 +52,16 @@ export default class ReactJSONForm extends React.Component {
             errorMap: this.props.errorMap || {}
         };
 
-        if (type === 'array') {
+        if (type === 'array')
             return getArrayFormRow(args);
-        } else if (type === 'object') {
+        else if (type === 'object')
             return getObjectFormRow(args);
-        }
+        else if (type === 'oneOf')
+            return getOneOfFormRow(args);
+        else if (type === 'anyOf')
+            return getAnyOfFormRow(args);
+        else if (type === 'allOf')
+            return getAllOfFormRow(args);
 
         return formGroups;
     }

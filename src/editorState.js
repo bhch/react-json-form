@@ -34,7 +34,7 @@ export default class EditorState {
                 data = getSyncedData(data, schema, (ref) => EditorState.getRef(ref, schema));
             } catch (error) {
                 console.error("Error while creating EditorState: Schema and data structure don't match");
-                console.error(error);
+                throw error;
             }
         }
 

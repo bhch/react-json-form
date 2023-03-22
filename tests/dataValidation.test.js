@@ -270,6 +270,97 @@ test('additionalProperties ref', () => {
     expect(validator.validate(data).isValid).toBe(true);
 });
 
+test('allOf at top level', () => {
+    let schema = {
+        'allOf': [
+            {
+                'type': 'object',
+                'properties': {
+                    'name': {'type': 'string'}
+                }
+            },
+            {
+                'type': 'object',
+                'properties': {
+                    'age': {'type': 'number'}
+                }
+            }
+        ]
+    };
+    let wrong_data = {'name': 'john', 'age': 'invalid'};
+    let data = {'name': 'john', 'age': 1};
+    let validator = new DataValidator(schema);
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    expect(validator.validate(data).isValid).toBe(true);
+});
+
+test('allOf inside object', () => {
+    let schema = {
+        'type': 'object',
+        'properties': {
+            'name': {'type': 'string'}
+        },
+        'allOf': [
+            {
+                'type': 'object',
+                'properties': {
+                    'age': {'type': 'number'}
+                }
+            }
+        ]
+    };
+    let wrong_data = {'name': 'john', 'age': 'invalid'};
+    let data = {'name': 'john', 'age': 1};
+    let validator = new DataValidator(schema);
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    expect(validator.validate(data).isValid).toBe(true);
+});
+
+test.skip('oneOf top level', () => {
+    let schema = {
+        'oneOf': [
+            {
+                'properties': {
+                    'name': {'type': 'string'}
+                }
+            },
+            {
+                'type': 'array',
+                'items': {'type': 'number'}
+            }
+        ]
+    };
+    let wrong_data_1 = {'name': 1}; // invalid type
+    let wrong_data_2 = ['1', '2']; // invalid type
+    let data_1 = {'name': 'john'};
+    let data_2 = [1, 2];
+    let validator = new DataValidator(schema);
+    expect(validator.validate(wrong_data_1).isValid).toBe(false);
+    expect(validator.validate(wrong_data_2).isValid).toBe(false);
+    expect(validator.validate(data_1).isValid).toBe(true);
+    expect(validator.validate(data_2).isValid).toBe(true);
+});
+
+test.skip('oneOf at object level', () => {
+    // :TODO:
+});
+
+test.skip('oneOf in object property', () => {
+    // :TODO:
+});
+
+test.skip('anyOf at top level', () => {
+    // :TODO:
+});
+
+test.skip('anyOf at object level', () => {
+    // :TODO:
+});
+
+test.skip('anyOf in object property', () => {
+    // :TODO:
+});
+
 test('validateString method', () => {
     let schema = {
         'type': 'object',

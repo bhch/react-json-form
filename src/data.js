@@ -1,4 +1,5 @@
-import {normalizeKeyword, getKeyword} from './util';
+import {normalizeKeyword, getKeyword, getSchemaType, actualType,
+    isEqualset, isSubset} from './util';
 import {FILLER} from './constants';
 
 
@@ -115,16 +116,48 @@ export function getBlankArray(schema, getRef) {
 }
 
 
+export function getBlankAllOf(schema, getRef) {
+    // currently, we support allOf only inside an object
+    return getBlankObject(schema, getRef);
+}
+
+
+export function getBlankOneOf(schema, getRef) {
+    // for blank data, we always return the first option
+    let nextSchema = schema.oneOf[0];
+
+    let type = getSchemaType(nextSchema);
+
+    return getBlankData(nextSchema, getRef);
+}
+
+
+export function getBlankAnyOf(schema, getRef) {
+    // for blank data, we always return the first option
+    let nextSchema = schema.anyOf[0];
+
+    let type = getSchemaType(nextSchema);
+
+    return getBlankData(nextSchema, getRef);
+}
+
+
 export function getBlankData(schema, getRef) {
     if (schema.hasOwnProperty('$ref'))
         schema = getRef(schema['$ref']);
 
-    let type = normalizeKeyword(schema.type);
+    let type = getSchemaType(schema);
 
     if (type === 'array')
         return getBlankArray(schema, getRef);
     else if (type === 'object')
         return getBlankObject(schema, getRef);
+    else if (type === 'allOf')
+        return getBlankAllOf(schema, getRef);
+    else if (type === 'oneOf')
+        return getBlankOneOf(schema, getRef);
+    else if (type === 'anyOf')
+        return getBlankAnyOf(schema, getRef);
     else if (type === 'boolean')
         return schema.default === false ? false : (schema.default || null);
     else if (type === 'integer' || type === 'number')
@@ -135,6 +168,9 @@ export function getBlankData(schema, getRef) {
 
 
 function getSyncedArray(data, schema, getRef) {
+    if (actualType(data) !== 'array')
+        throw new Error("Schema expected an 'array' but the data type was '" + actualType(data) + "'");
+
     let newData = JSON.parse(JSON.stringify(data));
 
     if (schema.items.hasOwnProperty('$ref')) {
@@ -177,14 +213,20 @@ function getSyncedArray(data, schema, getRef) {
 
 
 function getSyncedObject(data, schema, getRef) {
+    if (actualType(data) !== 'object')
+        throw new Error("Schema expected an 'object' but the data type was '" + actualType(data) + "'");
+
     let newData = JSON.parse(JSON.stringify(data));
 
     let schema_keys = getKeyword(schema, 'keys', 'properties', {});
 
-
     if (schema.hasOwnProperty('allOf')) {
         for (let i = 0; i < schema.allOf.length; i++) {
-            schema_keys = {...schema_keys, ...getBlankObject(schema.allOf[i])};
+            // ignore items in allOf which are not object
+            if (getSchemaType(schema.allOf[i]) !== 'object')
+                continue;
+
+            schema_keys = {...schema_keys, ...getKeyword(schema.allOf[i], 'properties', 'keys', {})};
         }
     }
 
@@ -199,7 +241,7 @@ function getSyncedObject(data, schema, getRef) {
         if (isRef)
             schemaValue = getRef(schemaValue['$ref']);
 
-        let type = normalizeKeyword(schemaValue.type);
+        let type = getSchemaType(schemaValue, data.key);
       
         if (!data.hasOwnProperty(key)) {
             if (type === 'array')
@@ -235,19 +277,200 @@ function getSyncedObject(data, schema, getRef) {
 }
 
 
+export function getSyncedAllOf(data, schema, getRef) {
+    // currently we only support allOf inside an object
+    // so, we'll treat the curent schema and data to be an object
+
+    return getSyncedObject(data, schema, getRef);
+}
+
+
+export function getSyncedOneOf(data, schema, getRef) {
+    let index = findMatchingSubschemaIndex(data, schema, getRef, 'oneOf');
+    let subschema = schema['oneOf'][index];
+
+    let syncFunc = getSyncFunc(getSchemaType(subschema));
+
+    if (syncFunc)
+        return syncFunc(data, subschema, getRef);
+
+    return data;
+}
+
+
+export function getSyncedAnyOf(data, schema, getRef) {
+    let index = findMatchingSubschemaIndex(data, schema, getRef, 'anyOf');
+    let subschema = schema['anyOf'][index];
+
+    let syncFunc = getSyncFunc(getSchemaType(subschema));
+
+    if (syncFunc)
+        return syncFunc(data, subschema, getRef);
+
+    return data;
+}
+
+
 export function getSyncedData(data, schema, getRef) {
     // adds those keys to data which are in schema but not in data
-
     if (schema.hasOwnProperty('$ref'))
         schema = getRef(schema['$ref']);
 
-    let type = normalizeKeyword(schema.type);
 
-    if (type === 'array') {
-        return getSyncedArray(data, schema, getRef);
-    } else if (type === 'object') {
-        return getSyncedObject(data, schema, getRef);
-    }
+    let type = getSchemaType(schema);
+
+    let syncFunc = getSyncFunc(type);
+
+    if (syncFunc)
+        return syncFunc(data, schema, getRef);
 
     return data;
+}
+
+
+function getSyncFunc(type) {
+    if (type === 'array')
+        return getSyncedArray;
+    else if (type === 'object')
+        return getSyncedObject;
+    else if (type === 'allOf')
+        return getSyncedAllOf;
+    else if (type === 'oneOf')
+        return getSyncedOneOf;
+    else if (type === 'anyOf')
+        return getSyncedAnyOf;
+
+    return null;
+}
+
+
+export function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
+    let dataType = actualType(data);
+    let subschemas = schema[schemaName];
+
+    let index = null;
+
+    for (let i = 0; i < subschemas.length; i++) {
+        let subschema = subschemas[i];
+    
+        if (subschema.hasOwnProperty('$ref'))
+            subschema = getRef(subschema['$ref']);
+
+        let subType = getSchemaType(subschema);
+
+        if (dataType === 'object') {
+            // check if all keys match
+            if (dataObjectMatchesSchema(data, subschema)) {
+                index = i;
+                break;
+            }
+        } else if (dataType === 'array') {
+            // check if item types match
+            if (dataArrayMatchesSchema(data, subschema)) {
+                index = i;
+                break;
+            }
+        } else if (dataType === subType) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index === null) {
+        // no exact match found
+        // so we'll just return the first schema that matches the data type
+        for (let i = 0; i < subschemas.length; i++) {
+            let subschema = subschemas[i];
+        
+            if (subschema.hasOwnProperty('$ref'))
+                subschema = getRef(subschema['$ref']);
+
+            let subType = getSchemaType(subschema);
+
+            if (dataType === subType) {
+                index = i;
+                break;
+            }
+        }
+    }
+
+    return index;
+}
+
+export function dataObjectMatchesSchema(data, subschema) {
+    let dataType = actualType(data);
+    let subType = getSchemaType(subschema);
+
+    if (subType !== dataType)
+        return false;
+
+    let subSchemaKeys = getKeyword(subschema, 'properties', 'keys', {});
+
+    // check if all keys in the schema are present in the data
+    keyset1 = new Set(Object.keys(data));
+    keyset2 = new Set(Object.keys(subSchemaKeys));
+
+    if (subschema.hasOwnProperty('additionalProperties')) {
+        // subSchemaKeys must be a subset of data
+        if (!isSubset(keyset2, keyset1))
+            return false;
+    } else {
+        // subSchemaKeys must be equal to data
+        if (!isEqualset(keyset2, keyset1))
+            return false;
+    }
+
+    for (let key in subSchemaKeys) {
+        if (!subSchemaKeys.hasOwnProperty(key))
+            continue;
+
+        if (!data.hasOwnProperty(key))
+            return false;
+
+
+        let keyType = normalizeKeyword(subSchemaKeys[key].type);
+        let dataValueType = actualType(data[key]);
+
+        if (keyType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (keyType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (keyType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (keyType === 'string' && dataValueType !== 'string') {
+            return false;
+        }
+    }
+
+    // if here, all checks have passed
+    return true;
+}
+
+
+export function dataArrayMatchesSchema(data, subschema) {
+    let dataType = actualType(data);
+    let subType = getSchemaType(subschema);
+
+    if (subType !== dataType)
+        return false;
+
+    let itemsType = subschema.items.type; // Temporary. Nested subschemas inside array.items won't work.
+
+    // check each item in data conforms to array items.type
+    for (let i = 0; i < data.length; i++) {
+        dataValueType = actualType(data[i]);
+
+        if (itemsType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (itemsType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (itemsType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+            return false;
+        } else if (itemsType === 'string' && dataValueType !== 'string') {
+            return false;
+        }
+    }
+
+    // if here, all checks have passed
+    return true;
 }

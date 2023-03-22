@@ -1,22 +1,31 @@
-import {normalizeKeyword} from './util';
+import {normalizeKeyword, getSchemaType} from './util';
 
 
 export function validateSchema(schema) {
     if (!(schema instanceof Object))
         return {isValid: false, msg: "Schema must be an object"};
 
-    let type = normalizeKeyword(schema.type);
+    let type = getSchemaType(schema);
 
     let validation = {isValid: true, msg: ""};
     if (type === 'object')
         validation = validateObject(schema);
     else if (type === 'array')
         validation = validateArray(schema);
-    else
-        validation = {
-            isValid: false,
-            msg: "Outermost schema can only be of type array, list, object or dict"
-        };
+    else {
+        if (schema.hasOwnProperty('allOf')) {
+            validation = validateAllOf(schema);
+        } else if (schema.hasOwnProperty('oneOf')) {
+            validation = validateOneOf(schema);
+        } else if (schema.hasOwnProperty('anyOf')) {
+            validation = validateAnyOf(schema);
+        } else {
+            validation = {
+                isValid: false,
+                msg: "Outermost schema can only be of type array, list, object or dict"
+            };
+        }
+    }
 
     if (!validation.isValid || !schema.hasOwnProperty('$defs'))
         return validation;
@@ -238,7 +247,28 @@ export function validateAnyOf(schema) {
 
 
 export function validateAllOf(schema) {
-    return validateSubschemas(schema, 'allOf');
+    let validation = validateSubschemas(schema, 'allOf');
+    if (!validation.isValid)
+        return validation;
+
+    // currently, we only support anyOf inside an object
+    // so, we'll check if all subschemas are objects or not
+
+    let subschemas = schema['allOf'];
+
+    for (let i = 0; i < subschemas.length; i++) {
+        let subschema = subschemas[i];
+        let subType = getSchemaType(subschema);
+
+        if (subType !== 'object') {
+            return {
+                isValid: false,
+                msg: "Possible conflict in 'allOf' subschemas. Currently, we only support subschemas listed in 'allOf' to be of type 'object'."
+            }
+        }
+    }
+
+    return validation
 }
 
 
@@ -278,25 +308,4 @@ function validateSubschemas(schema, keyword) {
     }
 
     return {isValid: true, msg: ""};
-}
-
-
-/* Utility functions */
-
-function getSchemaType(schema) {
-    /* Returns type of the given schema */
-    let type = normalizeKeyword(schema.type);
-
-
-    if (!type) {
-        if (schema.hasOwnProperty('properties') ||
-            schema.hasOwnProperty('keys')
-        ) {
-            type = 'object';
-        } else {
-            type = 'string';
-        }
-    }
-
-    return type;
 }
