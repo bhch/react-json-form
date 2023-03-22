@@ -87,6 +87,19 @@ function actualType(value) {
 
   return type;
 }
+function getSchemaType(schema) {
+  /* Returns type of the given schema.
+      If schema.type is not present, it tries to guess the type.
+      If data is given, it will try to use that to guess the type.
+  */
+  let type = normalizeKeyword(schema.type);
+
+  if (!type) {
+    if (schema.hasOwnProperty('properties') || schema.hasOwnProperty('keys')) type = 'object';else if (schema.hasOwnProperty('items')) type = 'array';else if (schema.hasOwnProperty('allOf')) type = 'allOf';else if (schema.hasOwnProperty('oneOf')) type = 'oneOf';else if (schema.hasOwnProperty('anyOf')) type = 'anyOf';else type = 'string';
+  }
+
+  return type;
+}
 function getVerboseName(name) {
   if (name === undefined || name === null) return '';
   name = name.replace(/_/g, ' ');
@@ -254,14 +267,31 @@ function getBlankArray(schema, getRef) {
 
   return items;
 }
+function getBlankAllOf(schema, getRef) {
+  // currently, we support allOf only inside an object
+  return getBlankObject(schema, getRef);
+}
+function getBlankOneOf(schema, getRef) {
+  // for blank data, we always return the first option
+  let nextSchema = schema.oneOf[0];
+  getSchemaType(nextSchema);
+  return getBlankData(nextSchema, getRef);
+}
+function getBlankAnyOf(schema, getRef) {
+  // for blank data, we always return the first option
+  let nextSchema = schema.anyOf[0];
+  getSchemaType(nextSchema);
+  return getBlankData(nextSchema, getRef);
+}
 function getBlankData(schema, getRef) {
   if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
-  let type = normalizeKeyword(schema.type);
-  if (type === 'array') return getBlankArray(schema, getRef);else if (type === 'object') return getBlankObject(schema, getRef);else if (type === 'boolean') return schema.default === false ? false : schema.default || null;else if (type === 'integer' || type === 'number') return schema.default === 0 ? 0 : schema.default || null;else // string, etc.
+  let type = getSchemaType(schema);
+  if (type === 'array') return getBlankArray(schema, getRef);else if (type === 'object') return getBlankObject(schema, getRef);else if (type === 'allOf') return getBlankAllOf(schema, getRef);else if (type === 'oneOf') return getBlankOneOf(schema, getRef);else if (type === 'anyOf') return getBlankAnyOf(schema, getRef);else if (type === 'boolean') return schema.default === false ? false : schema.default || null;else if (type === 'integer' || type === 'number') return schema.default === 0 ? 0 : schema.default || null;else // string, etc.
     return schema.default || '';
 }
 
 function getSyncedArray(data, schema, getRef) {
+  if (actualType(data) !== 'array') throw new Error("Schema expected an 'array' but the data type was '" + actualType(data) + "'");
   let newData = JSON.parse(JSON.stringify(data));
 
   if (schema.items.hasOwnProperty('$ref')) {
@@ -295,12 +325,15 @@ function getSyncedArray(data, schema, getRef) {
 }
 
 function getSyncedObject(data, schema, getRef) {
+  if (actualType(data) !== 'object') throw new Error("Schema expected an 'object' but the data type was '" + actualType(data) + "'");
   let newData = JSON.parse(JSON.stringify(data));
   let schema_keys = getKeyword(schema, 'keys', 'properties', {});
 
   if (schema.hasOwnProperty('allOf')) {
     for (let i = 0; i < schema.allOf.length; i++) {
-      schema_keys = _extends({}, schema_keys, getBlankObject(schema.allOf[i]));
+      // ignore items in allOf which are not object
+      if (getSchemaType(schema.allOf[i]) !== 'object') continue;
+      schema_keys = _extends({}, schema_keys, getKeyword(schema.allOf[i], 'properties', 'keys', {}));
     }
   }
 
@@ -311,7 +344,7 @@ function getSyncedObject(data, schema, getRef) {
     let schemaValue = schema_keys[key];
     let isRef = schemaValue.hasOwnProperty('$ref');
     if (isRef) schemaValue = getRef(schemaValue['$ref']);
-    let type = normalizeKeyword(schemaValue.type);
+    let type = getSchemaType(schemaValue);
 
     if (!data.hasOwnProperty(key)) {
       if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'boolean') newData[key] = schemaValue.default === false ? false : schemaValue.default || null;else if (type === 'integer' || type === 'number') newData[key] = schemaValue.default === 0 ? 0 : schemaValue.default || null;else newData[key] = schemaValue.default || '';
@@ -329,18 +362,144 @@ function getSyncedObject(data, schema, getRef) {
   return newData;
 }
 
+function getSyncedAllOf(data, schema, getRef) {
+  // currently we only support allOf inside an object
+  // so, we'll treat the curent schema and data to be an object
+  return getSyncedObject(data, schema, getRef);
+}
+function getSyncedOneOf(data, schema, getRef) {
+  let index = findMatchingSubschemaIndex(data, schema, getRef, 'oneOf');
+  let subschema = schema['oneOf'][index];
+  let syncFunc = getSyncFunc(getSchemaType(subschema));
+  if (syncFunc) return syncFunc(data, subschema, getRef);
+  return data;
+}
+function getSyncedAnyOf(data, schema, getRef) {
+  let index = findMatchingSubschemaIndex(data, schema, getRef, 'anyOf');
+  let subschema = schema['anyOf'][index];
+  let syncFunc = getSyncFunc(getSchemaType(subschema));
+  if (syncFunc) return syncFunc(data, subschema, getRef);
+  return data;
+}
 function getSyncedData(data, schema, getRef) {
   // adds those keys to data which are in schema but not in data
   if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
-  let type = normalizeKeyword(schema.type);
+  let type = getSchemaType(schema);
+  let syncFunc = getSyncFunc(type);
+  if (syncFunc) return syncFunc(data, schema, getRef);
+  return data;
+}
 
-  if (type === 'array') {
-    return getSyncedArray(data, schema, getRef);
-  } else if (type === 'object') {
-    return getSyncedObject(data, schema, getRef);
+function getSyncFunc(type) {
+  if (type === 'array') return getSyncedArray;else if (type === 'object') return getSyncedObject;else if (type === 'allOf') return getSyncedAllOf;else if (type === 'oneOf') return getSyncedOneOf;else if (type === 'anyOf') return getSyncedAnyOf;
+  return null;
+}
+
+function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
+  let dataType = actualType(data);
+  let subschemas = schema[schemaName];
+  let index = null;
+
+  for (let i = 0; i < subschemas.length; i++) {
+    let subschema = subschemas[i];
+    if (subschema.hasOwnProperty('$ref')) subschema = getRef(subschema['$ref']);
+    let subType = getSchemaType(subschema);
+
+    if (dataType === 'object') {
+      // check if all keys match
+      if (dataObjectMatchesSchema(data, subschema)) {
+        index = i;
+        break;
+      }
+    } else if (dataType === 'array') {
+      // check if item types match
+      if (dataArrayMatchesSchema(data, subschema)) {
+        index = i;
+        break;
+      }
+    } else if (dataType === subType) {
+      index = i;
+      break;
+    }
   }
 
-  return data;
+  if (index === null) {
+    // no exact match found
+    // so we'll just return the first schema that matches the data type
+    for (let i = 0; i < subschemas.length; i++) {
+      let subschema = subschemas[i];
+      if (subschema.hasOwnProperty('$ref')) subschema = getRef(subschema['$ref']);
+      let subType = getSchemaType(subschema);
+
+      if (dataType === subType) {
+        index = i;
+        break;
+      }
+    }
+  }
+
+  return index;
+}
+function dataObjectMatchesSchema(data, subschema) {
+  let dataType = actualType(data);
+  let subType = getSchemaType(subschema);
+  if (subType !== dataType) return false;
+  let subSchemaKeys = getKeyword(subschema, 'properties', 'keys', {}); // check if all keys in the schema are present in the data
+
+  keyset1 = new Set(Object.keys(data));
+  keyset2 = new Set(Object.keys(subSchemaKeys));
+
+  if (subschema.hasOwnProperty('additionalProperties')) {
+    // subSchemaKeys must be a subset of data
+    if (!isSubset(keyset2, keyset1)) return false;
+  } else {
+    // subSchemaKeys must be equal to data
+    if (!isEqualset(keyset2, keyset1)) return false;
+  }
+
+  for (let key in subSchemaKeys) {
+    if (!subSchemaKeys.hasOwnProperty(key)) continue;
+    if (!data.hasOwnProperty(key)) return false;
+    let keyType = normalizeKeyword(subSchemaKeys[key].type);
+    let dataValueType = actualType(data[key]);
+
+    if (keyType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (keyType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (keyType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (keyType === 'string' && dataValueType !== 'string') {
+      return false;
+    }
+  } // if here, all checks have passed
+
+
+  return true;
+}
+function dataArrayMatchesSchema(data, subschema) {
+  let dataType = actualType(data);
+  let subType = getSchemaType(subschema);
+  if (subType !== dataType) return false;
+  let itemsType = subschema.items.type; // Temporary. Nested subschemas inside array.items won't work.
+  // check each item in data conforms to array items.type
+
+  for (let i = 0; i < data.length; i++) {
+    dataValueType = actualType(data[i]);
+
+    if (itemsType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (itemsType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (itemsType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
+      return false;
+    } else if (itemsType === 'string' && dataValueType !== 'string') {
+      return false;
+    }
+  } // if here, all checks have passed
+
+
+  return true;
 }
 
 const _excluded$2 = ["className", "alterClassName"];
@@ -2602,83 +2761,112 @@ function getObjectFormRow(args) {
 
   return rows;
 }
+function getOneOfFormRow(args) {
+  /* For top-level oneOf when type is not provided.
+   This will try to find appropriate option for the given data.
+  */
+  return /*#__PURE__*/React__default["default"].createElement(OneOfTopLevel, {
+    args: args
+  });
+}
+function getAnyOfFormRow(args) {
+  /* For top-level oneOf when type is not provided */
+  return /*#__PURE__*/React__default["default"].createElement(OneOfTopLevel, {
+    args: args,
+    schemaName: "anyOf"
+  });
+}
+function getAllOfFormRow(args) {
+  /* For top-level oneOf when type is not provided */
+  // currently we only suuport allOf inside an object.
+  // so we'll render it as an object
+  return getObjectFormRow(args);
+}
 
-function getSchemaType$1(schema) {
-  /* Returns type of the given schema */
-  let type = normalizeKeyword(schema.type);
+class OneOfTopLevel extends React__default["default"].Component {
+  constructor(props) {
+    super(props);
 
-  if (!type) {
-    if (schema.hasOwnProperty('properties') || schema.hasOwnProperty('keys')) {
-      type = 'object';
+    this.findSelectedOption = () => {
+      /* Returns index of currently selected option.
+       * It's a hard problem to reliably find the selected option for
+       * the given data.
+      */
+      actualType(this.props.args.data);
+      return findMatchingSubschemaIndex(this.props.args.data, this.props.args.schema, this.props.args.getRef, this.schemaName);
+    };
+
+    this.getOptions = () => {
+      return this.props.args.schema[this.schemaName].map((option, index) => {
+        return {
+          label: option.title || 'Option ' + (index + 1),
+          value: index
+        };
+      });
+    };
+
+    this.getSchema = index => {
+      if (index === undefined) index = this.state.option;
+      let schema = this.props.args.schema[this.schemaName][index];
+      let isRef = schema.hasOwnProperty('$ref');
+      if (isRef) schema = this.props.args.getRef(schema['$ref']);
+      return schema;
+    };
+
+    this.handleChange = e => {
+      this.updateData(this.getSchema(), this.getSchema(e.target.value));
+      this.setState({
+        option: e.target.value
+      });
+    };
+
+    this.schemaName = this.props.schemaName || 'oneOf';
+    this.state = {
+      option: this.findSelectedOption()
+    };
+  }
+
+  updateData(oldSchema, newSchema) {
+    getSchemaType(oldSchema);
+    getSchemaType(newSchema);
+    this.props.args.onChange(this.props.args.name, getBlankData(newSchema, this.props.args.getRef));
+  }
+
+  render() {
+    let schema = this.getSchema();
+    let type = getSchemaType(schema);
+    let args = this.props.args;
+    let rowFunc;
+
+    if (type === 'object') {
+      rowFunc = getObjectFormRow;
+    } else if (type === 'array') {
+      rowFunc = getArrayFormRow;
     } else {
-      type = 'string';
+      rowFunc = getStringFormRow;
+      args.removable = false;
+      args.onMoveUp = null;
+      args.onMoveDown = null;
+      if (Array.isArray(args.data) || typeof args.data === 'object') args.data = null;
     }
+
+    let rows = rowFunc(_extends({}, args, {
+      schema: schema
+    }));
+    let selectorLabel = this.props.args.schema.title || null;
+    return /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "rjf-form-group rjf-oneof-group rjf-oneof-group-top-level"
+    }, /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "rjf-oneof-selector"
+    }, /*#__PURE__*/React__default["default"].createElement(FormSelectInput, {
+      value: this.state.option,
+      options: this.getOptions(),
+      onChange: this.handleChange,
+      className: "rjf-oneof-selector-input",
+      label: selectorLabel
+    })), rows);
   }
 
-  return type;
-}
-
-function dataObjectMatchesSchema(data, subschema) {
-  let dataType = actualType(data);
-  let subType = getSchemaType$1(subschema);
-  if (subType !== dataType) return false;
-  let subSchemaKeys = getKeyword(subschema, 'properties', 'keys', {}); // check if all keys in the schema are present in the data
-
-  keyset1 = new Set(Object.keys(data));
-  keyset2 = new Set(Object.keys(subSchemaKeys));
-
-  if (subschema.hasOwnProperty('additionalProperties')) {
-    // subSchemaKeys must be a subset of data
-    if (!isSubset(keyset2, keyset1)) return false;
-  } else {
-    // subSchemaKeys must be equal to data
-    if (!isEqualset(keyset2, keyset1)) return false;
-  }
-
-  for (let key in subSchemaKeys) {
-    if (!subSchemaKeys.hasOwnProperty(key)) continue;
-    if (!data.hasOwnProperty(key)) return false;
-    let keyType = normalizeKeyword(subSchemaKeys[key].type);
-    let dataValueType = actualType(data[key]);
-
-    if (keyType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
-      return false;
-    } else if (keyType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
-      return false;
-    } else if (keyType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
-      return false;
-    } else if (keyType === 'string' && dataValueType !== 'string') {
-      return false;
-    }
-  } // if here, all checks have passed
-
-
-  return true;
-}
-
-function dataArrayMatchesSchema(data, subschema) {
-  let dataType = actualType(data);
-  let subType = getSchemaType$1(subschema);
-  if (subType !== dataType) return false;
-  let itemsType = subschema.items.type; // Temporary. Nested subschemas inside array.items won't work.
-  // check each item in data conforms to array items.type
-
-  for (let i = 0; i < data.length; i++) {
-    dataValueType = actualType(data[i]);
-
-    if (itemsType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
-      return false;
-    } else if (itemsType === 'integer' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
-      return false;
-    } else if (itemsType === 'boolean' && ['boolean', 'null'].indexOf(dataValueType) === -1) {
-      return false;
-    } else if (itemsType === 'string' && dataValueType !== 'string') {
-      return false;
-    }
-  } // if here, all checks have passed
-
-
-  return true;
 }
 
 class OneOf extends React__default["default"].Component {
@@ -2691,7 +2879,6 @@ class OneOf extends React__default["default"].Component {
        * the given data.
       */
       let index = 0;
-      this.getParentType();
 
       if (this.props.nextArgs) {
         let dataType = actualType(this.props.nextArgs.data);
@@ -2699,7 +2886,7 @@ class OneOf extends React__default["default"].Component {
 
         for (let i = 0; i < subschemas.length; i++) {
           let subschema = subschemas[i];
-          let subType = getSchemaType$1(subschema);
+          let subType = getSchemaType(subschema);
 
           if (dataType === 'number') {
             if (subType === 'number' || subType === 'integer') {
@@ -2734,7 +2921,7 @@ class OneOf extends React__default["default"].Component {
 
         for (let i = 0; i < subschemas.length; i++) {
           let subschema = subschemas[i];
-          let subType = getSchemaType$1(subschema);
+          let subType = getSchemaType(subschema);
           if (subType !== dataType) continue;
 
           if (dataType === 'object') {
@@ -2814,7 +3001,7 @@ class OneOf extends React__default["default"].Component {
     };
 
     this.getParentType = () => {
-      return getSchemaType$1(this.props.parentArgs.schema);
+      return getSchemaType(this.props.parentArgs.schema);
     };
 
     this.handleChange = e => {
@@ -2856,7 +3043,8 @@ class OneOf extends React__default["default"].Component {
     if (parentType === 'object' && !this.props.nextArgs) {
       let name = this.props.parentArgs.name;
       let schema = newSchema;
-      let data = this.props.parentArgs.data; // keys to remove
+      let data = this.props.parentArgs.data;
+      let schemaProperties = getKeyword(schema, 'properties', 'keys', {}); // keys to remove
 
       let remove = [...Object.keys(getKeyword(oldSchema, 'properties', 'keys'))]; // keys to add
 
@@ -2870,7 +3058,7 @@ class OneOf extends React__default["default"].Component {
       }
 
       add.forEach((key, index) => {
-        newData[key] = getBlankData(schema.properties[key], this.props.parentArgs.getRef);
+        newData[key] = getBlankData(schemaProperties[key], this.props.parentArgs.getRef);
       });
       this.props.parentArgs.onChange(name, newData);
     } else if (parentType === 'array' || this.props.nextArgs) {
@@ -2882,7 +3070,7 @@ class OneOf extends React__default["default"].Component {
 
   render() {
     let schema = this.getSchema();
-    let type = getSchemaType$1(schema);
+    let type = getSchemaType(schema);
     let args = this.props.nextArgs ? this.props.nextArgs : this.props.parentArgs;
     let rowFunc;
 
@@ -2957,15 +3145,25 @@ function validateSchema(schema) {
     isValid: false,
     msg: "Schema must be an object"
   };
-  let type = normalizeKeyword(schema.type);
+  let type = getSchemaType(schema);
   let validation = {
     isValid: true,
     msg: ""
   };
-  if (type === 'object') validation = validateObject(schema);else if (type === 'array') validation = validateArray(schema);else validation = {
-    isValid: false,
-    msg: "Outermost schema can only be of type array, list, object or dict"
-  };
+  if (type === 'object') validation = validateObject(schema);else if (type === 'array') validation = validateArray(schema);else {
+    if (schema.hasOwnProperty('allOf')) {
+      validation = validateAllOf(schema);
+    } else if (schema.hasOwnProperty('oneOf')) {
+      validation = validateOneOf(schema);
+    } else if (schema.hasOwnProperty('anyOf')) {
+      validation = validateAnyOf(schema);
+    } else {
+      validation = {
+        isValid: false,
+        msg: "Outermost schema can only be of type array, list, object or dict"
+      };
+    }
+  }
   if (!validation.isValid || !schema.hasOwnProperty('$defs')) return validation; // validate $defs
   // :TODO: validate $defs nested inside objects/arrays
 
@@ -3139,7 +3337,25 @@ function validateAnyOf(schema) {
   return validateSubschemas(schema, 'anyOf');
 }
 function validateAllOf(schema) {
-  return validateSubschemas(schema, 'allOf');
+  let validation = validateSubschemas(schema, 'allOf');
+  if (!validation.isValid) return validation; // currently, we only support anyOf inside an object
+  // so, we'll check if all subschemas are objects or not
+
+  let subschemas = schema['allOf'];
+
+  for (let i = 0; i < subschemas.length; i++) {
+    let subschema = subschemas[i];
+    let subType = getSchemaType(subschema);
+
+    if (subType !== 'object') {
+      return {
+        isValid: false,
+        msg: "Possible conflict in 'allOf' subschemas. Currently, we only support subschemas listed in 'allOf' to be of type 'object'."
+      };
+    }
+  }
+
+  return validation;
 }
 
 function validateSubschemas(schema, keyword) {
@@ -3176,23 +3392,6 @@ function validateSubschemas(schema, keyword) {
     msg: ""
   };
 }
-/* Utility functions */
-
-
-function getSchemaType(schema) {
-  /* Returns type of the given schema */
-  let type = normalizeKeyword(schema.type);
-
-  if (!type) {
-    if (schema.hasOwnProperty('properties') || schema.hasOwnProperty('keys')) {
-      type = 'object';
-    } else {
-      type = 'string';
-    }
-  }
-
-  return type;
-}
 
 class EditorState {
   /* Not for public consumption */
@@ -3219,7 +3418,7 @@ class EditorState {
         data = getSyncedData(data, schema, ref => EditorState.getRef(ref, schema));
       } catch (error) {
         console.error("Error while creating EditorState: Schema and data structure don't match");
-        console.error(error);
+        throw error;
       }
     }
 
@@ -3302,8 +3501,7 @@ class ReactJSONForm extends React__default["default"].Component {
       let data = this.props.editorState.getData();
       let schema = this.props.editorState.getSchema();
       let formGroups = [];
-      let type = schema.type;
-      if (type === 'list') type = 'array';else if (type === 'dict') type = 'object';
+      let type = getSchemaType(schema);
       let args = {
         data: data,
         schema: schema,
@@ -3317,13 +3515,7 @@ class ReactJSONForm extends React__default["default"].Component {
         getRef: this.getRef,
         errorMap: this.props.errorMap || {}
       };
-
-      if (type === 'array') {
-        return getArrayFormRow(args);
-      } else if (type === 'object') {
-        return getObjectFormRow(args);
-      }
-
+      if (type === 'array') return getArrayFormRow(args);else if (type === 'object') return getObjectFormRow(args);else if (type === 'oneOf') return getOneOfFormRow(args);else if (type === 'anyOf') return getAnyOfFormRow(args);else if (type === 'allOf') return getAllOfFormRow(args);
       return formGroups;
     };
 
@@ -3463,7 +3655,7 @@ function DataValidator(schema) {
     // reset errorMap so that this validator object
     // can be reused for same schema
     this.errorMap = {};
-    let validator = this.getValidator(schema.type);
+    let validator = this.getValidator(getSchemaType(schema));
     if (validator) validator(this.schema, data, '');else this.addError('', 'Invalid schema type: "' + schema.type + '"');
     let validation = {
       isValid: true,
@@ -3484,6 +3676,18 @@ function DataValidator(schema) {
 
       case 'object':
         func = this.validateObject;
+        break;
+
+      case 'allOf':
+        func = this.validateAllOf;
+        break;
+
+      case 'oneOf':
+        func = this.validateOneOf;
+        break;
+
+      case 'anyOf':
+        func = this.validateAnyOf;
         break;
 
       case 'string':
@@ -3597,6 +3801,34 @@ function DataValidator(schema) {
         return;
       }
     }
+
+    if (schema.hasOwnProperty('allOf')) this.validateAllOf(schema, data, coords);
+  };
+
+  this.validateAllOf = function (schema, data, coords) {
+    /* Currently, we only support allOf inside object
+    so we assume the given type to be an object.
+    */
+    let newSchema = {
+      type: 'object',
+      properties: {}
+    }; // combine subschemas
+
+    for (let i = 0; i < schema.allOf.length; i++) {
+      let subschema = schema.allOf[i];
+      if (subschema.hasOwnProperty('$ref')) subschema = this.getRef(subschema.$ref);
+      let fields = getKeyword(subschema, 'properties', 'keys', {});
+
+      for (let field in fields) newSchema.properties[field] = fields[field];
+    }
+
+    this.validateObject(newSchema, data, coords);
+  };
+
+  this.validateOneOf = function (schema, data, coords) {// :TODO:
+  };
+
+  this.validateAnyOf = function (schema, data, coords) {// :TODO:
   };
 
   this.validateString = function (schema, data, coords) {
