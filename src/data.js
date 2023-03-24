@@ -79,12 +79,12 @@ export function getBlankArray(schema, getRef) {
     let type = normalizeKeyword(schema.items.type);
 
     if (!type) {
-        if (schema.items.hasOwnProperty['oneOf'])
-            type = schema.items.oneOf[0];
-        else if (schema.items.hasOwnProperty['anyOf'])
-            type = schema.items.anyOf[0];
-        else if (schema.items.hasOwnProperty['allOf'])
-            type = schema.items.allOf[0];
+        if (Array.isArray(schema.items['oneOf']))
+            type = getSchemaType(schema.items.oneOf[0]);
+        else if (Array.isArray(schema.items['anyOf']))
+            type = getSchemaType(schema.items.anyOf[0]);
+        else if (Array.isArray(schema.items['allOf']))
+            type = getSchemaType(schema.items.allOf[0]);
     }
 
     if (type === 'array') {
@@ -94,6 +94,14 @@ export function getBlankArray(schema, getRef) {
     } else if (type === 'object') {
         while (items.length < minItems)
             items.push(getBlankObject(schema.items, getRef));
+        return items;
+    } else if (type === 'oneOf') {
+        while (items.length < minItems)
+            items.push(getBlankOneOf(schema.items, getRef));
+        return items;
+    } else if (type === 'anyOf') {
+        while (items.length < minItems)
+            items.push(getBlankOneOf(schema.items, getRef));
         return items;
     }
 
