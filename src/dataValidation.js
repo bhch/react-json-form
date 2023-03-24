@@ -128,6 +128,17 @@ export default function DataValidator(schema) {
 
         let next_validator = this.getValidator(next_type);
 
+        if (!next_validator) {
+            if (next_schema.hasOwnProperty('oneOf')) {
+                next_validator = this.validateOneOf;
+            } else if (next_schema.hasOwnProperty('anyOf')) {
+                next_validator = this.validateAnyOf;
+            } else if (next_schema.hasOwnProperty('anyOf')) {
+                // currently allOf is not supported in array items
+                // next_validator = this.validateAllOf;
+            }
+        }
+
         if (next_validator) {
             for (let i = 0; i < data.length; i++)
                 next_validator(next_schema, data[i], this.joinCoords([coords, i]));

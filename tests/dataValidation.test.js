@@ -361,6 +361,96 @@ test.skip('anyOf in object property', () => {
     // :TODO:
 });
 
+test('test oneOf in array items', () => {
+    let schema = {
+        "type": "array",
+        "items": {
+            "oneOf": [
+                {
+                    "properties": {
+                        "name": {"type": "string", "required": true}
+                    }
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        }
+    };
+
+    let wrong_data;
+    let data;
+    let validator = new DataValidator(schema);
+
+    /* :TODO: uncommen this block when oneOf validation has been implemented.
+
+    // 1. wrong type
+    wrong_data = [1, 2];
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+
+    // 2. empty object required key
+    wrong_data = [{'name': ''}];
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+
+    // 3. wrong object key type
+    wrong_data = [{'name': 123}];
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    */
+
+    // 2. object items
+    data = [{'name': 'john'}];
+    expect(validator.validate(data).isValid).toBe(true);
+
+    // 3. string items
+    data = ['hello'];
+    expect(validator.validate(data).isValid).toBe(true);
+});
+
+test('test anyOf in array items', () => {
+    let schema = {
+        "type": "array",
+        "items": {
+            "anyOf": [
+                {
+                    "properties": {
+                        "name": {"type": "string", "required": true}
+                    }
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        }
+    };
+
+    let wrong_data;
+    let data;
+    let validator = new DataValidator(schema);
+
+    /* :TODO: uncommen this block when oneOf validation has been implemented.
+
+    // 1. wrong type
+    wrong_data = [1, 2];
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+
+    // 2. empty object required key
+    wrong_data = [{'name': ''}];
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+
+    // 3. wrong object key type
+    wrong_data = [{'name': 123}];
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    */
+
+    // 2. object items
+    data = [{'name': 'john'}];
+    expect(validator.validate(data).isValid).toBe(true);
+
+    // 3. string items
+    data = ['hello'];
+    expect(validator.validate(data).isValid).toBe(true);
+});
+
 test('validateString method', () => {
     let schema = {
         'type': 'object',
