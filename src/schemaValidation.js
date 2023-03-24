@@ -188,7 +188,7 @@ export function validateArray(schema) {
             !schema.items.hasOwnProperty('anyOf') &&
             !schema.items.hasOwnProperty('allOf')
         )
-            return {isValid: false, msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf' or 'allOf'"};
+            return {isValid: false, msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf'"};
     }
 
     if (schema.items.hasOwnProperty('oneOf')) {
@@ -204,9 +204,11 @@ export function validateArray(schema) {
     }
 
     if (schema.items.hasOwnProperty('allOf')) {
-        validation = validateAllOf(schema.items);
-        if (!validation.isValid)
-            return validation;
+        // we don't support allOf inside array yet
+        return {
+            isValid: false,
+            msg: "Currently, 'allOf' inside array items is not supported"
+        }
     }
 
     return {isValid: true, msg: ""};
