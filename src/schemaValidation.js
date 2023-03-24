@@ -191,19 +191,19 @@ export function validateArray(schema) {
             return {isValid: false, msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf' or 'allOf'"};
     }
 
-    if (schema.hasOwnProperty('oneOf')) {
+    if (schema.items.hasOwnProperty('oneOf')) {
         validation = validateOneOf(schema.items);
         if (!validation.isValid)
             return validation;
     }
 
-    if (schema.hasOwnProperty('anyOf')) {
+    if (schema.items.hasOwnProperty('anyOf')) {
         validation = validateAnyOf(schema.items);
         if (!validation.isValid)
             return validation;
     }
 
-    if (schema.hasOwnProperty('allOf')) {
+    if (schema.items.hasOwnProperty('allOf')) {
         validation = validateAllOf(schema.items);
         if (!validation.isValid)
             return validation;
@@ -282,7 +282,8 @@ function validateSubschemas(schema, keyword) {
 
       Validation:
       1. Must be an array
-      2. If directly inside an object, each subschema in array must have 'properties' or 'keys keyword
+      2. Must have at least one subschema
+      3. If directly inside an object, each subschema in array must have 'properties' or 'keys keyword
     */
     let subschemas = schema[keyword];
 
@@ -290,6 +291,12 @@ function validateSubschemas(schema, keyword) {
         return {
             isValid: false,
             msg: "'" + keyword + "' property must be an array"
+        };
+
+    if (!subschemas.length)
+        return {
+            isValid: false,
+            msg: "'" + keyword + "' must contain at least one subschema"
         };
 
     for (let i = 0; i < subschemas.length; i++) {
