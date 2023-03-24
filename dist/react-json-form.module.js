@@ -235,7 +235,7 @@ function getBlankArray(schema, getRef) {
   let type = normalizeKeyword(schema.items.type);
 
   if (!type) {
-    if (schema.items.hasOwnProperty['oneOf']) type = schema.items.oneOf[0];else if (schema.items.hasOwnProperty['anyOf']) type = schema.items.anyOf[0];else if (schema.items.hasOwnProperty['allOf']) type = schema.items.allOf[0];
+    if (Array.isArray(schema.items['oneOf'])) type = getSchemaType(schema.items.oneOf[0]);else if (Array.isArray(schema.items['anyOf'])) type = getSchemaType(schema.items.anyOf[0]);else if (Array.isArray(schema.items['allOf'])) type = getSchemaType(schema.items.allOf[0]);
   }
 
   if (type === 'array') {
@@ -244,6 +244,14 @@ function getBlankArray(schema, getRef) {
     return items;
   } else if (type === 'object') {
     while (items.length < minItems) items.push(getBlankObject(schema.items, getRef));
+
+    return items;
+  } else if (type === 'oneOf') {
+    while (items.length < minItems) items.push(getBlankOneOf(schema.items, getRef));
+
+    return items;
+  } else if (type === 'anyOf') {
+    while (items.length < minItems) items.push(getBlankOneOf(schema.items, getRef));
 
     return items;
   }
@@ -3282,23 +3290,26 @@ function validateArray(schema) {
   } else {
     if (!schema.items.hasOwnProperty('oneOf') && !schema.items.hasOwnProperty('anyOf') && !schema.items.hasOwnProperty('allOf')) return {
       isValid: false,
-      msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf' or 'allOf'"
+      msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf'"
     };
   }
 
-  if (schema.hasOwnProperty('oneOf')) {
+  if (schema.items.hasOwnProperty('oneOf')) {
     validation = validateOneOf(schema.items);
     if (!validation.isValid) return validation;
   }
 
-  if (schema.hasOwnProperty('anyOf')) {
+  if (schema.items.hasOwnProperty('anyOf')) {
     validation = validateAnyOf(schema.items);
     if (!validation.isValid) return validation;
   }
 
-  if (schema.hasOwnProperty('allOf')) {
-    validation = validateAllOf(schema.items);
-    if (!validation.isValid) return validation;
+  if (schema.items.hasOwnProperty('allOf')) {
+    // we don't support allOf inside array yet
+    return {
+      isValid: false,
+      msg: "Currently, 'allOf' inside array items is not supported"
+    };
   }
 
   return {
@@ -3360,12 +3371,17 @@ function validateSubschemas(schema, keyword) {
       keyword: one of 'oneOf' or 'anyOf' or 'allOf'
      Validation:
     1. Must be an array
-    2. If directly inside an object, each subschema in array must have 'properties' or 'keys keyword
+    2. Must have at least one subschema
+    3. If directly inside an object, each subschema in array must have 'properties' or 'keys keyword
   */
   let subschemas = schema[keyword];
   if (!Array.isArray(subschemas)) return {
     isValid: false,
     msg: "'" + keyword + "' property must be an array"
+  };
+  if (!subschemas.length) return {
+    isValid: false,
+    msg: "'" + keyword + "' must contain at least one subschema"
   };
 
   for (let i = 0; i < subschemas.length; i++) {
@@ -3751,6 +3767,14 @@ function DataValidator(schema) {
     }
 
     let next_validator = this.getValidator(next_type);
+
+    if (!next_validator) {
+      if (next_schema.hasOwnProperty('oneOf')) {
+        next_validator = this.validateOneOf;
+      } else if (next_schema.hasOwnProperty('anyOf')) {
+        next_validator = this.validateAnyOf;
+      } else if (next_schema.hasOwnProperty('anyOf')) ;
+    }
 
     if (next_validator) {
       for (let i = 0; i < data.length; i++) next_validator(next_schema, data[i], this.joinCoords([coords, i]));
