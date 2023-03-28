@@ -184,6 +184,7 @@ test('object has all the keys that are in schema', () => {
 });
 
 test('object required properties', () => {
+    // 1.
     let schema = {
         'type': 'object',
         'properties': {'a': {'type': 'string'}},
@@ -193,6 +194,49 @@ test('object required properties', () => {
     let data = {'a': 'hello'};
     let validator = new DataValidator(schema);
     expect(validator.validate(wrong_data).isValid).toBe(false);
+    expect(validator.validate(data).isValid).toBe(true);
+
+    // 2. Nested
+    schema = {
+        'properties': {
+            'object1': {
+                'type': 'object',
+                'properties': {
+                    'prop1':{'type': 'string'}
+                },
+                'required':['prop1'],
+            },
+            'object2': {
+                'type': 'object',
+                'properties': {
+                    'prop3': {
+                        'type': 'string'
+                    },
+                    'object3': {
+                        'type': 'object',
+                        'properties': {
+                            'prop4': {'type': 'string'}
+                        },
+                        'required': ['prop4']
+                    }
+                },
+                'required': ['prop3', 'object3']
+            }
+        },
+       'required': ['object1'],
+    }
+
+    let wrong_data_1 = {'object1': {'prop1': ''}, 'object2': {'prop3': '', 'object3': {'prop4': ''}}}
+    let wrong_data_2 = {'object1': {'prop1': 'x'}, 'object2': {'prop3': '', 'object3': {'prop4': ''}}}
+    let wrong_data_3 = {'object1': {'prop1': 'x'}, 'object2': {'prop3': 'x', 'object3': {'prop4': ''}}}
+    let wrong_data_4 = {'object1': {'prop1': ''}, 'object2': {'prop3': 'x', 'object3': {'prop4': 'x'}}}
+    data = {'object1': {'prop1': 'x'}, 'object2': {'prop3': 'x', 'object3': {'prop4': 'x'}}}
+
+    validator = new DataValidator(schema);
+    expect(validator.validate(wrong_data_1).isValid).toBe(false);
+    expect(validator.validate(wrong_data_2).isValid).toBe(false);
+    expect(validator.validate(wrong_data_3).isValid).toBe(false);
+    expect(validator.validate(wrong_data_4).isValid).toBe(false);
     expect(validator.validate(data).isValid).toBe(true);
 });
 

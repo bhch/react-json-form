@@ -184,7 +184,7 @@ export default function DataValidator(schema) {
                 next_schema = this.getRef(next_schema.$ref);
 
             if (schema.hasOwnProperty('required') && Array.isArray(schema.required)) {
-                if (schema.required.indexOf(key) > -1)
+                if (schema.required.indexOf(key) > -1 && !next_schema.hasOwnProperty('required'))
                     next_schema['required'] = true;
             }
 
