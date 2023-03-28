@@ -3815,7 +3815,7 @@ function DataValidator(schema) {
       if (next_schema.hasOwnProperty('$ref')) next_schema = this.getRef(next_schema.$ref);
 
       if (schema.hasOwnProperty('required') && Array.isArray(schema.required)) {
-        if (schema.required.indexOf(key) > -1) next_schema['required'] = true;
+        if (schema.required.indexOf(key) > -1 && !next_schema.hasOwnProperty('required')) next_schema['required'] = true;
       }
 
       let next_type = normalizeKeyword(next_schema.type);
