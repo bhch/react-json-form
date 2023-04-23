@@ -567,6 +567,9 @@ button.rjf-add-button:hover {
     display: table;
     width: 100%;
 }
+.rjf-form-row-hidden {
+    display: none;
+}
 .rjf-form-row-inner {
     display: table;
     width: 100%;

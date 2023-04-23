@@ -292,18 +292,28 @@ const DEMOS = [
     },
 
     {
-        name: 'Readonly inputs',
-        slug: 'readonly-inputs',
+        name: 'Readonly & Hidden inputs',
+        slug: 'readonly-hidden-inputs',
         schema: {
             type: 'object',
             keys: {
-                name: {
+                first_name: {
                     type: 'string',
                     placeholder: 'Readonly input',
                     readonly: true
+                },
+                last_name: {
+                    type: 'string',
+                    widget: 'hidden'
                 }
             }
-        }
+        },
+        description: () => (
+            <div>
+                The following schema has two inputs.
+                <code>first_name</code> is readonly and <code>last_name</code> is hidden so it's not visible.
+            </div>
+        )
     },
 
     {
