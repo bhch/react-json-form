@@ -859,7 +859,11 @@ function FormInput(_ref) {
   if (props.type === 'string') props.type = 'text';
   if (inputRef) props.ref = inputRef;
   if (props.value === null) props.value = '';
-  return /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement(Label, {
+  let wrapperProps = {};
+  if (props.type == 'hidden') wrapperProps['style'] = {
+    display: 'none'
+  };
+  return /*#__PURE__*/React__default["default"].createElement("div", wrapperProps, /*#__PURE__*/React__default["default"].createElement(Label, {
     label: label,
     required: props.required
   }), /*#__PURE__*/React__default["default"].createElement("div", {
@@ -1893,8 +1897,10 @@ function FormRowControls(props) {
   }, /*#__PURE__*/React__default["default"].createElement("span", null, "\xD7")));
 }
 function FormRow(props) {
+  let className = 'rjf-form-row';
+  if (props.hidden) className += ' rjf-form-row-hidden';
   return /*#__PURE__*/React__default["default"].createElement("div", {
-    className: "rjf-form-row"
+    className: className
   }, /*#__PURE__*/React__default["default"].createElement(FormRowControls, props), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "rjf-form-row-inner"
   }, props.children));
@@ -2366,7 +2372,9 @@ function FormField(props) {
   }
 
   if (props.schema.widget) {
-    if (props.schema.widget === 'multiselect' && props.parentType !== 'array') ; else {
+    if (props.schema.widget === 'multiselect' && props.parentType !== 'array') ; else if (props.schema.widget === 'hidden') {
+      type = 'string';
+    } else {
       type = props.schema.widget;
     }
   }
@@ -2387,6 +2395,8 @@ function FormField(props) {
         }
 
         inputProps.type = props.schema.format;
+      } else if (props.schema.widget === 'hidden') {
+        inputProps.type = 'hidden';
       } else {
         inputProps.type = 'text';
       }
@@ -2482,7 +2492,8 @@ function getStringFormRow(args) {
     key: name,
     onRemove: removable ? e => onRemove(name) : null,
     onMoveUp: onMoveUp,
-    onMoveDown: onMoveDown
+    onMoveDown: onMoveDown,
+    hidden: schema.widget === 'hidden'
   }, /*#__PURE__*/React__default["default"].createElement(FormField, _extends({
     data: data,
     schema: schema,
