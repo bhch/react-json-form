@@ -22,7 +22,7 @@ export function Label(props) {
 export function FormInput({label, help_text, error, inputRef, ...props}) {
 
     if (props.type === 'string')
-        props.type = 'text'
+        props.type = 'text';
 
     if (inputRef)
         props.ref = inputRef;
@@ -30,8 +30,12 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
     if (props.value === null)
         props.value = '';
 
+    let wrapperProps = {};
+    if (props.type == 'hidden')
+        wrapperProps['style'] = {display:  'none'};
+
     return (
-        <div>
+        <div {...wrapperProps}>
             <Label label={label} required={props.required} />
             <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                 <input {...props} />

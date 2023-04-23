@@ -108,8 +108,13 @@ export function FormRowControls(props) {
 }
 
 export function FormRow(props) {
+    let className = 'rjf-form-row';
+
+    if (props.hidden)
+        className += ' rjf-form-row-hidden';
+
     return (
-        <div className="rjf-form-row">
+        <div className={className}>
             <FormRowControls {...props} />
             <div className="rjf-form-row-inner">
                 {props.children}

@@ -58,6 +58,8 @@ function FormField(props) {
     if (props.schema.widget) {
          if (props.schema.widget === 'multiselect' && props.parentType !== 'array') {
             // pass
+         } else if (props.schema.widget === 'hidden') {
+            type = 'string';
          } else {
             type = props.schema.widget;
          }
@@ -79,6 +81,8 @@ function FormField(props) {
                     InputField = FormDateTimeInput;
                 }
                 inputProps.type = props.schema.format;
+            } else if (props.schema.widget === 'hidden') {
+                inputProps.type = 'hidden';
             } else {
                 inputProps.type = 'text';
             }
@@ -177,6 +181,7 @@ export function getStringFormRow(args) {
             onRemove={removable ? (e) => onRemove(name) : null}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
+            hidden={schema.widget === 'hidden'}
         >
             <FormField 
                 data={data}
