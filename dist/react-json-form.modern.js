@@ -2899,6 +2899,8 @@ class OneOf extends React$1.Component {
 
         for (let i = 0; i < subschemas.length; i++) {
           let subschema = subschemas[i];
+          let isRef = subschema.hasOwnProperty('$ref');
+          if (isRef) subschema = this.props.parentArgs.getRef(subschema['$ref']);
           let subType = getSchemaType(subschema);
 
           if (dataType === 'number') {
