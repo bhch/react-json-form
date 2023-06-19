@@ -519,9 +519,11 @@ class OneOfTopLevel extends React.Component {
 
         this.schemaName = this.props.schemaName || 'oneOf';
 
-        this.state = {
-            option: this.findSelectedOption(),
-        };
+        // Uncomment when caching is implemented
+        //
+        // this.state = {
+        //     option: this.findSelectedOption(),
+        // };
     }
 
     findSelectedOption = () => {
@@ -560,17 +562,17 @@ class OneOfTopLevel extends React.Component {
         return schema;
     }
 
-    handleChange = (e) => {
-        this.updateData(this.getSchema(), this.getSchema(e.target.value));
-        this.setState({
-            option: e.target.value
-        });
+    handleOptionChange = (e) => {
+        this.updateData(this.getSchema(e.target.value));
+
+        // Uncomment when caching is reimplemented
+        //
+        // this.setState({
+        //     option: e.target.value
+        // });
     }
 
-    updateData(oldSchema, newSchema) {
-        let oldType = getSchemaType(oldSchema);
-        let newType = getSchemaType(newSchema);
-
+    updateData(newSchema) {
         this.props.args.onChange(
             this.props.args.name,
             getBlankData(newSchema, this.props.args.getRef)
@@ -578,7 +580,17 @@ class OneOfTopLevel extends React.Component {
     }
 
     render() {
-        let schema = this.getSchema();
+        /* Perfomance note:
+         *
+         * In order to resolve https://github.com/bhch/react-json-form/issues/67,
+         * we will not cache the selected option. Instead, we'll recalculate the
+         * selected option on every render.
+         *
+         * If there're serious performance issues, we'll reconsider caching.
+        */
+        let selectedOption = this.findSelectedOption();
+
+        let schema = this.getSchema(selectedOption);
         let type = getSchemaType(schema);
         let args = this.props.args;
         let rowFunc;
@@ -605,9 +617,9 @@ class OneOfTopLevel extends React.Component {
             <div className="rjf-form-group rjf-oneof-group rjf-oneof-group-top-level">
                 <div className="rjf-oneof-selector">
                     <FormSelectInput
-                        value={this.state.option}
+                        value={selectedOption}
                         options={this.getOptions()}
-                        onChange={this.handleChange}
+                        onChange={this.handleOptionChange}
                         className="rjf-oneof-selector-input"
                         label={selectorLabel}
                     />
@@ -625,10 +637,14 @@ class OneOf extends React.Component {
 
         this.schemaName = this.props.schemaName || 'oneOf';
 
-        this.state = {
-            option: this.findSelectedOption(),
-        };
+        // Uncomment when caching is implemented
+        //
+        // this.state = {
+        //     option: this.findSelectedOption(),
+        // };
     }
+
+    /* Uncomment when caching is implemente
 
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.nextArgs || this.props.nextArgs) {
@@ -643,6 +659,7 @@ class OneOf extends React.Component {
                 this.setState({option: this.findSelectedOption()});
         }
     }
+    */
 
     findSelectedOption = () => {
         /* Returns index of currently selected option.
@@ -788,11 +805,13 @@ class OneOf extends React.Component {
         return getSchemaType(this.props.parentArgs.schema);
     }
 
-    handleChange = (e) => {
-        this.updateData(this.getSchema(), this.getSchema(e.target.value));
-        this.setState({
-            option: e.target.value
-        });
+    handleOptionChange = (e, selectedOption) => {
+        this.updateData(this.getSchema(selectedOption), this.getSchema(e.target.value));
+        // Uncomment when caching is implemented
+        //
+        // this.setState({
+        //     option: e.target.value
+        // });
     }
 
     updateData(oldSchema, newSchema) {
@@ -847,7 +866,17 @@ class OneOf extends React.Component {
     }
 
     render() {
-        let schema = this.getSchema();
+        /* Perfomance note:
+         *
+         * In order to resolve https://github.com/bhch/react-json-form/issues/67,
+         * we will not cache the selected option. Instead, we'll recalculate the
+         * selected option on every render.
+         *
+         * If there're serious performance issues, we'll reconsider caching.
+        */
+        let selectedOption = this.findSelectedOption();
+
+        let schema = this.getSchema(selectedOption);
         let type = getSchemaType(schema);
         let args = this.props.nextArgs ? this.props.nextArgs : this.props.parentArgs;
         let rowFunc;
@@ -881,9 +910,9 @@ class OneOf extends React.Component {
             <div className="rjf-form-group rjf-oneof-group">
                 <div className="rjf-oneof-selector">
                     <FormSelectInput
-                        value={this.state.option}
+                        value={selectedOption}
                         options={this.getOptions()}
-                        onChange={this.handleChange}
+                        onChange={(e) => this.handleOptionChange(e, selectedOption)}
                         className="rjf-oneof-selector-input"
                         label={selectorLabel}
                     />
