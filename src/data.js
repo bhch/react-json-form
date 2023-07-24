@@ -1,5 +1,5 @@
 import {normalizeKeyword, getKeyword, getSchemaType, actualType,
-    isEqualset, isSubset} from './util';
+    isEqualset, isSubset, valueInChoices} from './util';
 import {FILLER} from './constants';
 
 
@@ -205,6 +205,10 @@ function getSyncedArray(data, schema, getRef) {
                 item = {};
             newData[i] = getSyncedObject(item, schema.items, getRef);
         } else {
+            // if the current value is not in choices, we reset to blank
+            if (!valueInChoices(schema.items, newData[i]))
+                item = FILLER;
+
             if (item === FILLER) {
                 if (type === 'integer' || type === 'number')
                     newData[i] = schema.items.default === 0 ? 0 : (schema.items.default || null);
@@ -268,11 +272,17 @@ function getSyncedObject(data, schema, getRef) {
             else if (type === 'object')
                 newData[key] = getSyncedObject(data[key], schemaValue, getRef);
             else {
+                // if the current value is not in choices, we reset to blank
+                if (!valueInChoices(schemaValue, data[key]))
+                    data[key] = '';
+
                 if (data[key] === '') {
                     if (type === 'integer' || type === 'number')
                         newData[key] = schemaValue.default === 0 ? 0 : (schemaValue.default || null);
                     else if (type === 'boolean')
                         newData[key] = schemaValue.default === false ? false : (schemaValue.default || null);
+                    else
+                        newData[key] = schemaValue.default || '';
                 } else {
                     newData[key] = data[key];
                 }

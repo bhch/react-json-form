@@ -182,6 +182,26 @@ export function getKey(obj, key, default_value) {
 }
 
 
+export function valueInChoices(schema, value) {
+    /* Checks whether the given value is in schema choices or not.
+       If schema doesn't have choices, returns true.
+    */
+
+    let choices = getKeyword(schema, 'choices', 'enum');
+    if (!choices)
+        return true;
+
+    let found = choices.find((choice) => {
+        if (typeof choice == 'object')
+            choice = choice.value;
+
+        return value == choice;
+    })
+
+    return found !== undefined ? true : false;
+}
+
+
 /* Set operations */
 
 export function isEqualset(a, b) {

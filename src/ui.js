@@ -271,6 +271,7 @@ export function getArrayFormRow(args) {
                 } else if (schema.items.hasOwnProperty('anyOf')) {
                     groups.push(<AnyOf parentArgs={args} nextArgs={{...nextArgs}} key={"anyOf_" + name + '_' + i} />);
                 } else {
+                    console.log(nextArgs)
                     rows.push(getStringFormRow(nextArgs));
                 }
             } 

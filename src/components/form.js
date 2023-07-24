@@ -118,7 +118,7 @@ export function FormSelectInput({label, help_text, error, value, options, ...pro
             <Label label={label} required={props.required} />
             <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
                 <select value={value} {...props}>
-                    <option disabled value="" key={'__placehlder'}>Select...</option>
+                    <option disabled value="" key={'__placeholder'}>Select...</option>
                     {options.map((option, i) => {
                         let title, inputValue;
                         if (typeof option === 'object') {
