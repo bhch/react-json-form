@@ -1,4 +1,4 @@
-import {normalizeKeyword, getKeyword, getKey, joinCoords, getSchemaType} from './util';
+import {normalizeKeyword, getKeyword, getKey, joinCoords, getSchemaType, valueInChoices} from './util';
 import {JOIN_SYMBOL} from './constants';
 import EditorState from './editorState';
 
@@ -255,10 +255,14 @@ export default function DataValidator(schema) {
         if ((schema.maxLength || schema.maxLength == 0) && data.length > parseInt(schema.maxLength))
             this.addError(coords, 'This value may not be longer than ' + schema.maxLength + ' characters.');
 
+        if (!valueInChoices(schema, data)) {
+            this.addError(coords, 'Invalid choice "' + data + '"');
+            return;
+        }
+
         let format = normalizeKeyword(schema.format);
         let format_invalid = false;
         let format_validator;
-
 
         switch (format) {
             case 'email':
@@ -340,6 +344,11 @@ export default function DataValidator(schema) {
 
         if ((schema.multipleOf || schema.multipleOf === 0) && ((data * 100) % (schema.multipleOf * 100)) / 100)
             this.addError(coords, 'This value must be a multiple of ' + schema.multipleOf);
+
+        if (!valueInChoices(schema, data)) {
+            this.addError(coords, 'Invalid choice "' + data + '"');
+            return;
+        }
     };
 
     this.validateEmail = function(schema, data, coords) {

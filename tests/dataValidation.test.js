@@ -542,6 +542,13 @@ test('validateString method', () => {
     schema['properties']['a']['required'] = false;
     data = {'a': ''}
     expect(validator.validate(data).isValid).toBe(true);
+
+    // 8. test invalid choice
+    schema['properties']['a']['choices'] = ['one', 'two'];
+    wrong_data = {'a': 'xxx'};
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    data = {'a': 'two'};
+    expect(validator.validate(data).isValid).toBe(true);
 });
 
 /* :TODO: Enable these tests later after writing format validations.
@@ -748,6 +755,16 @@ test('validateInteger method', () => {
     validator = new DataValidator(schema);
     expect(validator.validate(wrong_data).isValid).toBe(false);
     expect(validator.validate(data).isValid).toBe(true);
+
+    // 11. test invalid choice
+    delete schema['properties']['a']['exclusiveMinimum'];
+    delete schema['properties']['a']['exclusiveMaximum'];
+    delete schema['properties']['a']['multipleOf'];
+    schema['properties']['a']['choices'] = [1, 2];
+    wrong_data = {'a': 3};
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    data = {'a': 1};
+    expect(validator.validate(data).isValid).toBe(true);
 });
 
 test('validateNumber method', () => {
@@ -867,5 +884,15 @@ test('validateNumber method', () => {
     data = {'a': 4.0};
     validator = new DataValidator(schema);
     expect(validator.validate(wrong_data).isValid).toBe(false);
+    expect(validator.validate(data).isValid).toBe(true);
+
+    // 10. test invalid choice
+    delete schema['properties']['a']['exclusiveMinimum'];
+    delete schema['properties']['a']['exclusiveMaximum'];
+    delete schema['properties']['a']['multipleOf'];
+    schema['properties']['a']['choices'] = [1, 2];
+    wrong_data = {'a': 3};
+    expect(validator.validate(wrong_data).isValid).toBe(false);
+    data = {'a': 1};
     expect(validator.validate(data).isValid).toBe(true);
 });
