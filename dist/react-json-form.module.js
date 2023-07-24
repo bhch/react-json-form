@@ -143,6 +143,8 @@ function debounce(func, wait) {
 }
 function normalizeKeyword(kw) {
   /* Converts custom supported keywords to standard JSON schema keywords */
+  if (Array.isArray(kw)) kw = kw[0];
+
   switch (kw) {
     case 'list':
       return 'array';
@@ -2375,7 +2377,7 @@ function FormField(props) {
   if (typeof inputProps.error === 'string') inputProps.error = [inputProps.error];
   if (props.schema.placeholder) inputProps.placeholder = props.schema.placeholder;
   if (props.schema.handler) inputProps.handler = props.schema.handler;
-  let type = props.schema.type;
+  let type = normalizeKeyword(props.schema.type);
   let choices = getKeyword(props.schema, 'choices', 'enum');
 
   if (choices) {
