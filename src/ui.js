@@ -47,7 +47,7 @@ function FormField(props) {
     if (props.schema.handler)
         inputProps.handler = props.schema.handler;
 
-    let type = props.schema.type;
+    let type = normalizeKeyword(props.schema.type);
     let choices = getKeyword(props.schema, 'choices', 'enum');
 
     if (choices) {

@@ -157,6 +157,9 @@ export function debounce(func, wait) {
 export function normalizeKeyword(kw) {
     /* Converts custom supported keywords to standard JSON schema keywords */
 
+    if (Array.isArray(kw))
+        kw = kw[0];
+
     switch (kw) {
         case 'list': return 'array';
         case 'dict': return 'object';
