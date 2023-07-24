@@ -180,6 +180,18 @@ function getKey(obj, key, default_value) {
   let val = obj[key];
   return typeof val !== 'undefined' ? val : default_value;
 }
+function valueInChoices(schema, value) {
+  /* Checks whether the given value is in schema choices or not.
+     If schema doesn't have choices, returns true.
+  */
+  let choices = getKeyword(schema, 'choices', 'enum');
+  if (!choices) return true;
+  let found = choices.find(choice => {
+    if (typeof choice == 'object') choice = choice.value;
+    return value == choice;
+  });
+  return found !== undefined ? true : false;
+}
 /* Set operations */
 
 function isEqualset(a, b) {
@@ -323,6 +335,9 @@ function getSyncedArray(data, schema, getRef) {
       if (item === FILLER) item = {};
       newData[i] = getSyncedObject(item, schema.items, getRef);
     } else {
+      // if the current value is not in choices, we reset to blank
+      if (!valueInChoices(schema.items, newData[i])) item = FILLER;
+
       if (item === FILLER) {
         if (type === 'integer' || type === 'number') newData[i] = schema.items.default === 0 ? 0 : schema.items.default || null;else if (type === 'boolean') newData[i] = schema.items.default === false ? false : schema.items.default || null;else newData[i] = schema.items.default || '';
       }
@@ -358,8 +373,11 @@ function getSyncedObject(data, schema, getRef) {
       if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'boolean') newData[key] = schemaValue.default === false ? false : schemaValue.default || null;else if (type === 'integer' || type === 'number') newData[key] = schemaValue.default === 0 ? 0 : schemaValue.default || null;else newData[key] = schemaValue.default || '';
     } else {
       if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue, getRef);else {
+        // if the current value is not in choices, we reset to blank
+        if (!valueInChoices(schemaValue, data[key])) data[key] = '';
+
         if (data[key] === '') {
-          if (type === 'integer' || type === 'number') newData[key] = schemaValue.default === 0 ? 0 : schemaValue.default || null;else if (type === 'boolean') newData[key] = schemaValue.default === false ? false : schemaValue.default || null;
+          if (type === 'integer' || type === 'number') newData[key] = schemaValue.default === 0 ? 0 : schemaValue.default || null;else if (type === 'boolean') newData[key] = schemaValue.default === false ? false : schemaValue.default || null;else newData[key] = schemaValue.default || '';
         } else {
           newData[key] = data[key];
         }
@@ -964,7 +982,7 @@ function FormSelectInput(_ref4) {
   }, props), /*#__PURE__*/React__default["default"].createElement("option", {
     disabled: true,
     value: "",
-    key: '__placehlder'
+    key: '__placeholder'
   }, "Select..."), options.map((option, i) => {
     let title, inputValue;
 
@@ -3906,6 +3924,12 @@ function DataValidator(schema) {
       return;
     if (schema.minLength && data.length < parseInt(schema.minLength)) this.addError(coords, 'This value must be at least ' + schema.minLength + ' characters long.');
     if ((schema.maxLength || schema.maxLength == 0) && data.length > parseInt(schema.maxLength)) this.addError(coords, 'This value may not be longer than ' + schema.maxLength + ' characters.');
+
+    if (!valueInChoices(schema, data)) {
+      this.addError(coords, 'Invalid choice "' + data + '"');
+      return;
+    }
+
     let format = normalizeKeyword(schema.format);
     let format_validator;
 
@@ -3981,6 +4005,11 @@ function DataValidator(schema) {
     if ((schema.exclusiveMinimum || schema.exclusiveMinimum === 0) && data <= schema.exclusiveMinimum) this.addError(coords, 'This value must be greater than ' + schema.exclusiveMinimum);
     if ((schema.exclusiveMaximum || schema.exclusiveMaximum === 0) && data >= schema.exclusiveMaximum) this.addError(coords, 'This value must be less than ' + schema.exclusiveMaximum);
     if ((schema.multipleOf || schema.multipleOf === 0) && data * 100 % (schema.multipleOf * 100) / 100) this.addError(coords, 'This value must be a multiple of ' + schema.multipleOf);
+
+    if (!valueInChoices(schema, data)) {
+      this.addError(coords, 'Invalid choice "' + data + '"');
+      return;
+    }
   };
 
   this.validateEmail = function (schema, data, coords) {
