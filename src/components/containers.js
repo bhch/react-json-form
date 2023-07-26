@@ -18,6 +18,14 @@ export function GroupTitle(props) {
 }
 
 
+export function GroupDescription(props) {
+    if (!props.children)
+        return null;
+
+    return <div className="rjf-form-group-description">{props.children}</div>;
+}
+
+
 function animate(e, animation, callback) {
     let el = e.target.parentElement.parentElement;
     let prevEl = el.previousElementSibling;
@@ -134,8 +142,10 @@ export function FormGroup(props) {
     return (
         <div className="rjf-form-group">
             {props.level === 0 && <GroupTitle editable={props.editable} onEdit={props.onEdit}>{props.schema.title}</GroupTitle>}
+            {props.level === 0 && <GroupDescription>{props.schema.description}</GroupDescription>}
             <div className={innerClassName}>
                 {props.level > 0 && <GroupTitle editable={props.editable} onEdit={props.onEdit}>{props.schema.title}</GroupTitle>}
+                {props.level > 0 && <GroupDescription>{props.schema.description}</GroupDescription>}
                 {props.children}
                 {props.addable && 
                 <Button
