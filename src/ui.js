@@ -378,6 +378,7 @@ export function getObjectFormRow(args) {
         let value = data[key];
         let childName = joinCoords(name, key);
         let schemaValue = schema_keys.hasOwnProperty(key) ? {...schema_keys[key]} : undefined;
+        let isAdditionalProperty = schema_keys.hasOwnProperty(key) ? false : true;
 
         if (typeof schemaValue === 'undefined') {
             // for keys added through additionalProperties
@@ -394,8 +395,12 @@ export function getObjectFormRow(args) {
 
         let type = normalizeKeyword(schemaValue.type);
 
-        if (!schemaValue.title || (isRef && schema.additionalProperties)) // for additionalProperty refs, use the key as the title
-            schemaValue.title = getVerboseName(key);
+        if (!schemaValue.title) {
+            if (isAdditionalProperty)
+                schemaValue.title = key;
+            else
+                schemaValue.title = getVerboseName(key);
+        }
 
         let removable = false;
         if (schema_keys[key] === undefined)
