@@ -589,6 +589,15 @@ button.rjf-add-button:hover {
     margin-bottom: 15px;
     color: #666;
 }
+.rjf-form-group-description {
+    font-size: 88%;
+    color: #777;
+    display: block;
+    margin-bottom: 15px;
+}
+.rjf-form-group-title + .rjf-form-group-description {
+    margin-top: -10px;
+}
 .rjf-form-group {
     margin-bottom: 15px;
     position: relative;
