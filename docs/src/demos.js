@@ -5,6 +5,7 @@ const DEMOS = [
         schema: {
             type: 'array',
             title: 'Shopping list',
+            description: 'Add items to your shopping list',
             items: {
                 type: 'string'
             },
@@ -19,6 +20,7 @@ const DEMOS = [
         slug: 'object-dict',
         schema: {
             type: 'object',
+            description: 'Fill in your personal details',
             keys: {
                 first_name: {type: 'string'},
                 last_name: {type: 'string'},
