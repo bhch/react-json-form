@@ -1837,6 +1837,12 @@ function GroupTitle(props) {
     title: "Edit"
   }, "Edit")) : props.children);
 }
+function GroupDescription(props) {
+  if (!props.children) return null;
+  return /*#__PURE__*/React$1.createElement("div", {
+    className: "rjf-form-group-description"
+  }, props.children);
+}
 
 function animate(e, animation, callback) {
   let el = e.target.parentElement.parentElement;
@@ -1927,12 +1933,12 @@ function FormGroup(props) {
   }, props.level === 0 && /*#__PURE__*/React$1.createElement(GroupTitle, {
     editable: props.editable,
     onEdit: props.onEdit
-  }, props.schema.title), /*#__PURE__*/React$1.createElement("div", {
+  }, props.schema.title), props.level === 0 && /*#__PURE__*/React$1.createElement(GroupDescription, null, props.schema.description), /*#__PURE__*/React$1.createElement("div", {
     className: innerClassName
   }, props.level > 0 && /*#__PURE__*/React$1.createElement(GroupTitle, {
     editable: props.editable,
     onEdit: props.onEdit
-  }, props.schema.title), props.children, props.addable && /*#__PURE__*/React$1.createElement(Button, {
+  }, props.schema.title), props.level > 0 && /*#__PURE__*/React$1.createElement(GroupDescription, null, props.schema.description), props.children, props.addable && /*#__PURE__*/React$1.createElement(Button, {
     className: "add",
     onClick: e => props.onAdd(),
     title: props.schema.type === 'object' ? 'Add new key' : 'Add new item'
@@ -2685,6 +2691,7 @@ function getObjectFormRow(args) {
     let value = data[key];
     let childName = joinCoords(name, key);
     let schemaValue = schema_keys.hasOwnProperty(key) ? _extends({}, schema_keys[key]) : undefined;
+    let isAdditionalProperty = schema_keys.hasOwnProperty(key) ? false : true;
 
     if (typeof schemaValue === 'undefined') {
       // for keys added through additionalProperties
@@ -2696,8 +2703,11 @@ function getObjectFormRow(args) {
     let isRef = schemaValue.hasOwnProperty('$ref');
     if (isRef) schemaValue = args.getRef(schemaValue['$ref']);
     let type = normalizeKeyword(schemaValue.type);
-    if (!schemaValue.title || isRef && schema.additionalProperties) // for additionalProperty refs, use the key as the title
-      schemaValue.title = getVerboseName(key);
+
+    if (!schemaValue.title) {
+      if (isAdditionalProperty) schemaValue.title = key;else schemaValue.title = getVerboseName(key);
+    }
+
     let removable = false;
     if (schema_keys[key] === undefined) removable = true;
 
