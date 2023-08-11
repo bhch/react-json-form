@@ -204,14 +204,16 @@ export function getArrayFormRow(args) {
     let rows = [];
     let groups = [];
 
+    let isReadonly = getKeyword(schema, 'readonly', 'readOnly', false);
+
     let removable = true;
     let min_items = getKeyword(schema, 'min_items', 'minItems') || 0;
-    if (data.length <= min_items)
+    if (data.length <= min_items || isReadonly)
         removable = false;
 
     let addable = true;
     let max_items = getKeyword(schema, 'max_items', 'maxItems') || 100;
-    if (data.length >= max_items)
+    if (data.length >= max_items || isReadonly)
         addable = false;
 
     let isRef = schema.items.hasOwnProperty('$ref');
@@ -236,6 +238,9 @@ export function getArrayFormRow(args) {
         errorMap: args.errorMap,
     };
 
+    if (isReadonly)
+        nextArgs.schema.readOnly = true;
+
     if (nextArgs.schema.widget === 'multiselect') {
         nextArgs.data = data;
         nextArgs.name = name;
@@ -250,12 +255,12 @@ export function getArrayFormRow(args) {
             nextArgs.data = data[i];
             nextArgs.name = joinCoords(name, i);
 
-            if (i === 0)
+            if (i === 0 || isReadonly)
                 nextArgs.onMoveUp = null;
             else
                 nextArgs.onMoveUp = (e) => onMove(joinCoords(name, i), joinCoords(name, i - 1));
 
-            if (i === data.length - 1)
+            if (i === data.length - 1 || isReadonly)
                 nextArgs.onMoveDown = null;
             else
                 nextArgs.onMoveDown = (e) => onMove(joinCoords(name, i), joinCoords(name, i + 1));
@@ -328,8 +333,8 @@ export function getArrayFormRow(args) {
                             <div className="rjf-form-group-wrapper" key={'group_wrapper_' + name + '_' + index}>
                                 <FormRowControls
                                     onRemove={removable ? (e) => onRemove(joinCoords(name, index)) : null}
-                                    onMoveUp={index > 0 ? (e) => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null}
-                                    onMoveDown={index < groups.length - 1 ? (e) => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null}
+                                    onMoveUp={index > 0 && !isReadonly ? (e) => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null}
+                                    onMoveDown={index < groups.length - 1 && !isReadonly ? (e) => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null}
                                 />
                                 {i}
                             </div>
@@ -358,6 +363,8 @@ export function getObjectFormRow(args) {
     let {data, schema, name, onChange, onAdd, onRemove, onMove, onEdit, level} = args;
 
     let rows = [];
+
+    let isReadonly = getKeyword(schema, 'readonly', 'readOnly', false);
 
     let schema_keys = getKeyword(schema, 'keys', 'properties', {});
 
@@ -392,6 +399,9 @@ export function getObjectFormRow(args) {
 
         if (isRef)
             schemaValue = args.getRef(schemaValue['$ref']);
+
+        if (isReadonly)
+            schemaValue.readOnly = true;
 
         let type = normalizeKeyword(schemaValue.type);
 
