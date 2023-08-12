@@ -476,7 +476,7 @@ export function getObjectFormRow(args) {
             <FormGroup
                 level={level}
                 schema={schema}
-                addable={schema.additionalProperties}
+                addable={schema.additionalProperties && !isReadonly}
                 onAdd={() => handleKeyValueAdd(data, coords, onAdd, schema.additionalProperties, args.getRef)}
                 editable={args.editable}
                 onEdit={args.onKeyEdit}
