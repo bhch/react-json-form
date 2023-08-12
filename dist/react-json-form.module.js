@@ -882,7 +882,7 @@ function FormInput(_ref) {
     required: props.required
   }), /*#__PURE__*/React$1.createElement("div", {
     className: error ? "rjf-input-group has-error" : "rjf-input-group"
-  }, /*#__PURE__*/React$1.createElement("input", props), error && error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
+  }, props.children || /*#__PURE__*/React$1.createElement("input", props), error && error.map((error, i) => /*#__PURE__*/React$1.createElement("span", {
     className: "rjf-error-text",
     key: i
   }, error)), help_text && /*#__PURE__*/React$1.createElement("span", {
@@ -944,6 +944,7 @@ function FormRadioInput(_ref3) {
     }
 
     return /*#__PURE__*/React$1.createElement("label", {
+      className: "rjf-radio-option",
       key: title + '_' + inputValue + '_' + i
     }, /*#__PURE__*/React$1.createElement("input", _extends({}, props, {
       value: inputValue,
@@ -1059,15 +1060,15 @@ class FormMultiSelectInput extends React$1.Component {
       className: "rjf-multiselect-field"
     }, /*#__PURE__*/React$1.createElement(FormInput, {
       label: this.props.label,
-      type: "text",
-      value: this.props.value.length ? this.props.value.length + ' selected' : 'Select...',
       help_text: this.props.help_text,
-      error: this.props.error,
-      onClick: this.toggleOptions,
-      readOnly: true,
+      error: this.props.error
+    }, /*#__PURE__*/React$1.createElement(FormMultiSelectInputField, {
       inputRef: this.input,
-      className: "rjf-multiselect-field-input"
-    }), this.state.showOptions && /*#__PURE__*/React$1.createElement(FormMultiSelectInputOptions, {
+      onClick: this.toggleOptions,
+      value: this.props.value,
+      onChange: this.handleChange,
+      disabled: this.props.readOnly
+    })), this.state.showOptions && /*#__PURE__*/React$1.createElement(FormMultiSelectInputOptions, {
       options: this.props.options,
       value: this.props.value,
       hideOptions: this.hideOptions,
@@ -1077,6 +1078,43 @@ class FormMultiSelectInput extends React$1.Component {
       disabled: this.props.readOnly,
       hasHelpText: (this.props.help_text || this.props.error) && 1
     }));
+  }
+
+}
+
+class FormMultiSelectInputField extends React$1.Component {
+  constructor(...args) {
+    super(...args);
+
+    this.handleRemove = (e, index) => {
+      e.stopPropagation(); // we create a fake event object for the onChange handler
+
+      let event = {
+        target: {
+          value: this.props.value[index],
+          checket: false
+        }
+      };
+      this.props.onChange(event);
+    };
+  }
+
+  render() {
+    return /*#__PURE__*/React$1.createElement("div", {
+      className: "rjf-multiselect-field-input",
+      onClick: this.props.onClick,
+      ref: this.props.inputRef,
+      tabIndex: 0
+    }, this.props.value.length ? this.props.value.map((item, index) => /*#__PURE__*/React$1.createElement("span", {
+      className: "rjf-multiselect-field-input-item",
+      key: item + '_' + index
+    }, /*#__PURE__*/React$1.createElement("span", null, item), this.props.disabled || /*#__PURE__*/React$1.createElement("button", {
+      title: "Remove",
+      type: "button",
+      onClick: e => this.handleRemove(e, index)
+    }, "\xD7"))) : /*#__PURE__*/React$1.createElement("span", {
+      className: "rjf-multiselect-field-input-placeholder"
+    }, "Select..."));
   }
 
 }
@@ -2539,12 +2577,13 @@ function getArrayFormRow(args) {
   } = args;
   let rows = [];
   let groups = [];
+  let isReadonly = getKeyword(schema, 'readonly', 'readOnly', false);
   let removable = true;
   let min_items = getKeyword(schema, 'min_items', 'minItems') || 0;
-  if (data.length <= min_items) removable = false;
+  if (data.length <= min_items || isReadonly) removable = false;
   let addable = true;
   let max_items = getKeyword(schema, 'max_items', 'maxItems') || 100;
-  if (data.length >= max_items) addable = false;
+  if (data.length >= max_items || isReadonly) addable = false;
   let isRef = schema.items.hasOwnProperty('$ref');
   if (isRef) schema.items = args.getRef(schema.items['$ref']);
   let type = normalizeKeyword(schema.items.type);
@@ -2562,6 +2601,7 @@ function getArrayFormRow(args) {
     getRef: args.getRef,
     errorMap: args.errorMap
   };
+  if (isReadonly) nextArgs.schema.readOnly = true;
 
   if (nextArgs.schema.widget === 'multiselect') {
     nextArgs.data = data;
@@ -2575,8 +2615,8 @@ function getArrayFormRow(args) {
     for (let i = 0; i < data.length; i++) {
       nextArgs.data = data[i];
       nextArgs.name = joinCoords(name, i);
-      if (i === 0) nextArgs.onMoveUp = null;else nextArgs.onMoveUp = e => onMove(joinCoords(name, i), joinCoords(name, i - 1));
-      if (i === data.length - 1) nextArgs.onMoveDown = null;else nextArgs.onMoveDown = e => onMove(joinCoords(name, i), joinCoords(name, i + 1));
+      if (i === 0 || isReadonly) nextArgs.onMoveUp = null;else nextArgs.onMoveUp = e => onMove(joinCoords(name, i), joinCoords(name, i - 1));
+      if (i === data.length - 1 || isReadonly) nextArgs.onMoveDown = null;else nextArgs.onMoveDown = e => onMove(joinCoords(name, i), joinCoords(name, i + 1));
 
       if (type === 'array') {
         groups.push(getArrayFormRow(nextArgs));
@@ -2606,6 +2646,13 @@ function getArrayFormRow(args) {
   let coords = name; // coordinates for insertion and deletion
 
   if (rows.length || !rows.length && !groups.length) {
+    let rowError;
+
+    if (!groups.length) {
+      rowError = args.errorMap[getCoordsFromName(coords)];
+      if (typeof rowError === 'string') rowError = [rowError];
+    }
+
     rows = /*#__PURE__*/React$1.createElement(FormGroup, {
       level: level,
       schema: schema,
@@ -2614,7 +2661,10 @@ function getArrayFormRow(args) {
       editable: args.editable,
       onEdit: args.onKeyEdit,
       key: 'row_group_' + name
-    }, rows);
+    }, rowError && rowError.map((error, i) => /*#__PURE__*/React$1.createElement("div", {
+      className: "rjf-error-text",
+      key: i
+    }, error)), rows);
 
     if (args.parentType === 'object' && args.removable) {
       rows = /*#__PURE__*/React$1.createElement("div", {
@@ -2626,10 +2676,9 @@ function getArrayFormRow(args) {
     }
   }
 
-  let groupError = args.errorMap[getCoordsFromName(coords)];
-  if (typeof groupError === 'string') groupError = [groupError];
-
   if (groups.length) {
+    let groupError = args.errorMap[getCoordsFromName(coords)];
+    if (typeof groupError === 'string') groupError = [groupError];
     let groupTitle = schema.title ? /*#__PURE__*/React$1.createElement(GroupTitle, {
       editable: args.editable,
       onEdit: args.onKeyEdit
@@ -2651,8 +2700,8 @@ function getArrayFormRow(args) {
       key: 'group_wrapper_' + name + '_' + index
     }, /*#__PURE__*/React$1.createElement(FormRowControls, {
       onRemove: removable ? e => onRemove(joinCoords(name, index)) : null,
-      onMoveUp: index > 0 ? e => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null,
-      onMoveDown: index < groups.length - 1 ? e => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null
+      onMoveUp: index > 0 && !isReadonly ? e => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null,
+      onMoveDown: index < groups.length - 1 && !isReadonly ? e => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null
     }), i)), addable && /*#__PURE__*/React$1.createElement(Button, {
       className: "add",
       onClick: e => onAdd(getBlankData(schema.items, args.getRef), coords),
@@ -2675,6 +2724,7 @@ function getObjectFormRow(args) {
     level
   } = args;
   let rows = [];
+  let isReadonly = getKeyword(schema, 'readonly', 'readOnly', false);
   let schema_keys = getKeyword(schema, 'keys', 'properties', {});
 
   if (schema.hasOwnProperty('allOf')) {
@@ -2702,6 +2752,7 @@ function getObjectFormRow(args) {
 
     let isRef = schemaValue.hasOwnProperty('$ref');
     if (isRef) schemaValue = args.getRef(schemaValue['$ref']);
+    if (isReadonly) schemaValue.readOnly = true;
     let type = normalizeKeyword(schemaValue.type);
 
     if (!schemaValue.title) {
@@ -2782,7 +2833,7 @@ function getObjectFormRow(args) {
     rows = /*#__PURE__*/React$1.createElement(FormGroup, {
       level: level,
       schema: schema,
-      addable: schema.additionalProperties,
+      addable: schema.additionalProperties && !isReadonly,
       onAdd: () => handleKeyValueAdd(data, coords, onAdd, schema.additionalProperties, args.getRef),
       editable: args.editable,
       onEdit: args.onKeyEdit,
@@ -3591,6 +3642,7 @@ class ReactJSONForm extends React$1.Component {
         getRef: this.getRef,
         errorMap: this.props.errorMap || {}
       };
+      if (this.props.readonly) args.schema.readOnly = true;
       if (type === 'array') return getArrayFormRow(args);else if (type === 'object') return getObjectFormRow(args);else if (type === 'oneOf') return getOneOfFormRow(args);else if (type === 'anyOf') return getAnyOfFormRow(args);else if (type === 'allOf') return getAllOfFormRow(args);
       return formGroups;
     };
@@ -4049,6 +4101,7 @@ function FormInstance(config) {
   this.errorMap = config.errorMap;
   this.fileHandler = config.fileHandler;
   this.fileHandlerArgs = config.fileHandlerArgs || {};
+  this.readonly = config.readonly || false;
   this.eventListeners = null;
   this._dataSynced = false;
 
@@ -4083,7 +4136,8 @@ function FormInstance(config) {
         errorMap: this.errorMap,
         fileHandler: this.fileHandler,
         fileHandlerArgs: this.fileHandlerArgs,
-        onChange: this.onChange
+        onChange: this.onChange,
+        readonly: this.readonly
       }), document.getElementById(this.containerId));
     } catch (error) {
       ReactDOM.render( /*#__PURE__*/React$1.createElement(ErrorReporter, {
@@ -4182,7 +4236,8 @@ class FormContainer extends React$1.Component {
       onChange: this.handleChange,
       fileHandler: this.props.fileHandler,
       fileHandlerArgs: this.props.fileHandlerArgs,
-      errorMap: this.props.errorMap
+      errorMap: this.props.errorMap,
+      readonly: this.props.readonly
     });
   }
 
