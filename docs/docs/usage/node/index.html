@@ -122,8 +122,10 @@ replace it with a new one).</li>
 <li><code>fileHandlerArgs</code> (<em>Optional</em>): Key-value pairs which will be sent via querystring to the <code>fileHandler</code> URL.</li>
 <li><code>errorMap</code>: An object containing error messages for input fields. <a href="#data-validation">See data validation section</a>
 for more.</li>
+<li><code>readonly</code>: A boolean. If <code>true</code>, the whole form will be read-only.</li>
 </ul>
-<p><em>Changed in version 2.1</em>: <code>errorMap</code> prop was added.</p>
+<p><em>Changed in version 2.1</em>: <code>errorMap</code> prop was added.<br>
+<em>Changed in version 2.10</em>: <code>readonly</code> prop was added.</p>
 <h2 id="editorstate-api-reference" tabindex="-1"><code>EditorState</code> API reference <a class="header-anchor" href="#editorstate-api-reference">#</a></h2>
 <p><code>EditorState</code> must be treated as an immutable object. If you want to make any
 changes to the state, such as updating the schema, or changing the data, you

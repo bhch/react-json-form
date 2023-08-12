@@ -450,10 +450,10 @@ label {
     width: auto;
     float: none;
 }
-input, textarea, select {
+input, textarea, select, .rjf-multiselect-field-input {
     display: block;
     width: 100%;
-    min-width: 8rem;
+    min-width: 12rem;
     padding: .25rem .5rem;
     font-size: inherit;
     font-weight: 400;
@@ -465,7 +465,7 @@ input, textarea, select {
     border-radius: .25rem;
     transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
-input:focus, textarea:focus, select:focus {
+input:focus, textarea:focus, select:focus, .rjf-multiselect-field-input:focus {
     color: #495057;
     background-color: #fff;
     border-color: #f0f;
@@ -965,6 +965,35 @@ button.rjf-add-button:hover {
     background-repeat: no-repeat;
     background-position: right 6px center;
     background-size: 16px 12px;
+}
+.rjf-multiselect-field-input-item {
+    display: inline-block;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    background-color: #eee;
+    border-radius: 4px;
+    line-height: 1;
+}
+.rjf-multiselect-field-input-item > span {
+    display: inline-block;
+    vertical-align: middle;
+    color: #000;
+    padding: 3px 6px;
+    line-height: 1;
+}
+.rjf-multiselect-field-input-item > button {
+    display: inline-block;
+    vertical-align: middle;
+    background-color: transparent;
+    border: 0;
+    font-size: 1rem;
+    padding: 3px 6px;
+    line-height: 1;
+    border-radius: 0 4px 4px 0;
+}
+.rjf-multiselect-field-input-item > button:hover {
+    color: #ee0038;
+    background-color: #ffdbe0;
 }
 .rjf-multiselect-field-options-container {
     position: absolute;

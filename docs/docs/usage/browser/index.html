@@ -136,9 +136,11 @@ which may contain these keys:</p>
 <li><code>fileHandler</code> <em>(Optional)</em>: URL for the common file handler endpoint for all file fields.</li>
 <li><code>fileHandlerArgs</code> <em>(Optional)</em>: Key-value pairs which will be sent via querystring to the <code>fileHandler</code> URL.</li>
 <li><code>errorMap</code> <em>(Optional)</em>: An object containing error messages for fields.</li>
+<li><code>readonly</code> <em>(Optional)</em>: A boolean. If <code>true</code>, the whole form will be read-only.</li>
 </ul>
-<p><em>Changed in version 2.1</em>: <code>errorMap</code> option was added.
-<em>Changed in version 2.2</em>: <code>fileHandlerArgs</code> option was added.</p>
+<p><em>Changed in version 2.1</em>: <code>errorMap</code> option was added.<br>
+<em>Changed in version 2.2</em>: <code>fileHandlerArgs</code> option was added.<br>
+<em>Changed in version 2.10</em>: <code>readonly</code> option was added.</p>
 <h5 id="reactjsonform.getforminstance(containerid)" tabindex="-1"><code>reactJsonForm.getFormInstance(containerId)</code> <a class="header-anchor" href="#reactjsonform.getforminstance(containerid)">#</a></h5>
 <p>Call this function to get a previously created form instance.</p>
 <p>If you've earlier created an instance in a scoped function, then to get
