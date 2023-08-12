@@ -71,9 +71,11 @@ class MyComponent extends React.Component {
  - `fileHandler`: A URL to a common file handler endpoint for all file input fields.
  - `fileHandlerArgs` (*Optional*): Key-value pairs which will be sent via querystring to the `fileHandler` URL.
  - `errorMap`: An object containing error messages for input fields. [See data validation section](#data-validation)
- for more.  
+ for more.
+ - `readonly`: A boolean. If `true`, the whole form will be read-only.
 
-*Changed in version 2.1*: `errorMap` prop was added.
+*Changed in version 2.1*: `errorMap` prop was added.  
+*Changed in version 2.10*: `readonly` prop was added.
 
 ## `EditorState` API reference
 

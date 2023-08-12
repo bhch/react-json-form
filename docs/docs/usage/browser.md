@@ -100,9 +100,11 @@ which may contain these keys:
  - `fileHandler` *(Optional)*: URL for the common file handler endpoint for all file fields.
  - `fileHandlerArgs` *(Optional)*: Key-value pairs which will be sent via querystring to the `fileHandler` URL.
  - `errorMap` *(Optional)*: An object containing error messages for fields.
+ - `readonly` *(Optional)*: A boolean. If `true`, the whole form will be read-only.
 
-*Changed in version 2.1*: `errorMap` option was added.
-*Changed in version 2.2*: `fileHandlerArgs` option was added.
+*Changed in version 2.1*: `errorMap` option was added.  
+*Changed in version 2.2*: `fileHandlerArgs` option was added.  
+*Changed in version 2.10*: `readonly` option was added.
 
 
 ##### `reactJsonForm.getFormInstance(containerId)`
