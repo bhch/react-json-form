@@ -250,6 +250,7 @@ class FormMultiSelectInputField extends React.Component {
                 className="rjf-multiselect-field-input"
                 onClick={this.props.onClick}
                 ref={this.props.inputRef}
+                tabIndex={0}
             >
             {
                 this.props.value.length ?
