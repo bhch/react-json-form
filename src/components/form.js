@@ -38,7 +38,7 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
         <div {...wrapperProps}>
             <Label label={label} required={props.required} />
             <div className={error ? "rjf-input-group has-error" : "rjf-input-group"}>
-                <input {...props} />
+                {props.children || <input {...props} />}
                 {error && error.map((error, i) => <span className="rjf-error-text" key={i}>{error}</span>)}
                 {help_text && <span className="rjf-help-text">{help_text}</span>}
             </div>
@@ -201,15 +201,17 @@ export class FormMultiSelectInput extends React.Component {
             <div className="rjf-multiselect-field">
                 <FormInput
                     label={this.props.label}
-                    type="text"
-                    value={this.props.value.length ? this.props.value.length + ' selected' : 'Select...'}
                     help_text={this.props.help_text}
                     error={this.props.error}
-                    onClick={this.toggleOptions}
-                    readOnly={true}
-                    inputRef={this.input}
-                    className="rjf-multiselect-field-input"
-                />
+                >
+                    <FormMultiSelectInputField
+                        inputRef={this.input}
+                        onClick={this.toggleOptions}
+                        value={this.props.value}
+                        onChange={this.handleChange}
+                        disabled={this.props.readOnly}
+                    />
+                </FormInput>
                 {this.state.showOptions &&
                     <FormMultiSelectInputOptions
                         options={this.props.options}
@@ -224,6 +226,45 @@ export class FormMultiSelectInput extends React.Component {
                 }
             </div>
         )
+    }
+}
+
+class FormMultiSelectInputField extends React.Component {
+    handleRemove = (e, index) => {
+        e.stopPropagation();
+
+        // we create a fake event object for the onChange handler
+        let event = {
+            target: {
+                value: this.props.value[index],
+                checket: false
+            }
+        };
+
+        this.props.onChange(event);
+    }
+
+    render() {
+        return (
+            <div
+                className="rjf-multiselect-field-input"
+                onClick={this.props.onClick}
+                ref={this.props.inputRef}
+            >
+            {
+                this.props.value.length ?
+                this.props.value.map((item, index) => (
+                    <span className="rjf-multiselect-field-input-item" key={item + '_' + index}>
+                        <span>{item}</span>
+                        {this.props.disabled || <button title="Remove" type="button" onClick={(e) => this.handleRemove(e, index)}>&times;</button>}
+                    </span>
+                    )
+                )
+                :
+                <span className="rjf-multiselect-field-input-placeholder">Select...</span>
+            }
+            </div>
+        );
     }
 }
 
