@@ -285,6 +285,14 @@ export function getArrayFormRow(args) {
     let coords = name; // coordinates for insertion and deletion
 
     if (rows.length || (!rows.length && !groups.length)) {
+        let rowError;
+
+        if (!groups.length) {
+            rowError = args.errorMap[getCoordsFromName(coords)];
+            if (typeof rowError === 'string')
+                rowError = [rowError];
+        }
+
         rows = (
             <FormGroup
                 level={level}
@@ -295,6 +303,7 @@ export function getArrayFormRow(args) {
                 onEdit={args.onKeyEdit}
                 key={'row_group_' + name}
             >
+                {rowError && rowError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
                 {rows}
             </FormGroup>
         );
@@ -311,11 +320,11 @@ export function getArrayFormRow(args) {
         }
     }
 
-    let groupError = args.errorMap[getCoordsFromName(coords)];
-    if (typeof groupError === 'string')
-        groupError = [groupError];
-
     if (groups.length) {
+        let groupError = args.errorMap[getCoordsFromName(coords)];
+        if (typeof groupError === 'string')
+            groupError = [groupError];
+
         let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onKeyEdit}>{schema.title}</GroupTitle> : null;
 
         groups = (
