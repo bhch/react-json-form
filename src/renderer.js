@@ -14,6 +14,7 @@ export function FormInstance(config) {
     this.errorMap = config.errorMap;
     this.fileHandler = config.fileHandler;
     this.fileHandlerArgs = config.fileHandlerArgs || {};
+    this.readonly = config.readonly || false;
 
     this.eventListeners = null;
 
@@ -59,6 +60,7 @@ export function FormInstance(config) {
                     fileHandler={this.fileHandler}
                     fileHandlerArgs={this.fileHandlerArgs}
                     onChange={this.onChange}
+                    readonly={this.readonly}
                 />,
                 document.getElementById(this.containerId)
             );
@@ -175,6 +177,7 @@ export class FormContainer extends React.Component {
                 fileHandler={this.props.fileHandler}
                 fileHandlerArgs={this.props.fileHandlerArgs}
                 errorMap={this.props.errorMap}
+                readonly={this.props.readonly}
             />
         );
     }

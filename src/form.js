@@ -52,6 +52,9 @@ export default class ReactJSONForm extends React.Component {
             errorMap: this.props.errorMap || {}
         };
 
+        if (this.props.readonly)
+            args.schema.readOnly = true;
+
         if (type === 'array')
             return getArrayFormRow(args);
         else if (type === 'object')
