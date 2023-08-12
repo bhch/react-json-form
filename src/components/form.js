@@ -94,7 +94,7 @@ export function FormRadioInput({label, help_text, error, value, options, ...prop
                 }
 
                 return (
-                    <label key={title + '_' + inputValue + '_' + i}>
+                    <label className="rjf-radio-option" key={title + '_' + inputValue + '_' + i}>
                         <input {...props} value={inputValue} checked={inputValue === value} /> {title}
                     </label>
                 );
