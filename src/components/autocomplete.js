@@ -130,6 +130,7 @@ export default class AutoCompleteInput extends React.Component {
                     help_text={this.props.help_text}
                     error={this.props.error}
                     readOnly={true}
+                    disabled={this.props.readOnly || false}
                     onClick={this.toggleOptions}
                     inputRef={this.input}
                     placeholder={this.props.placeholder}

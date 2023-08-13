@@ -34,6 +34,11 @@ export function FormInput({label, help_text, error, inputRef, ...props}) {
     if (props.type == 'hidden')
         wrapperProps['style'] = {display:  'none'};
 
+    // readonly inputs are automatically marked disabled
+    // if this is undesired, explicitly pass disabled=false
+    if (props.readOnly && (props.disabled === undefined || props.disabled === null))
+        props.disabled = true;
+
     return (
         <div {...wrapperProps}>
             <Label label={label} required={props.required} />
@@ -768,6 +773,7 @@ export class FormDateTimeInput extends React.Component {
                                 value={this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm}
                                 onFocus={this.showTimePicker}
                                 readOnly={true}
+                                disabled={this.props.readOnly || false}
                                 inputRef={this.timeInput}
                             />
                             <div ref={this.timePickerContainer}>
