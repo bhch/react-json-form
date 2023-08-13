@@ -198,7 +198,7 @@ export class FormMultiSelectInput extends React.Component {
 
     render() {
         return (
-            <div className="rjf-multiselect-field">
+            <div className={this.props.readOnly ? "rjf-multiselect-field readonly" : "rjf-multiselect-field"}>
                 <FormInput
                     label={this.props.label}
                     help_text={this.props.help_text}
