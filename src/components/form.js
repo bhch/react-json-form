@@ -743,7 +743,7 @@ export class FormDateTimeInput extends React.Component {
     }
 
     showTimePicker = () => {
-        this.setState({showTimePicker: true});
+        this.setState({showTimePicker: !this.props.readOnly && true});
     }
 
     render() {
@@ -751,13 +751,14 @@ export class FormDateTimeInput extends React.Component {
             <div className={this.props.error ? "rjf-datetime-field has-error" : "rjf-datetime-field"}>
                 <Label label={this.props.label} required={this.props.required} />
                 <div className="rjf-datetime-field-inner">
-                    <div className="rjf-datetime-field-inputs">
+                    <div className={this.props.readOnly ? "rjf-datetime-field-inputs readonly" : "rjf-datetime-field-inputs"}>
                         <div className="rjf-datetime-field-date">
                             <FormInput
                                 label='Date'
                                 type='date'
                                 value={this.state.date}
                                 onChange={this.handleDateChange}
+                                readOnly={this.props.readOnly}
                             />
                         </div>
                         <div className="rjf-datetime-field-time">
