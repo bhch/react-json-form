@@ -882,7 +882,10 @@ function FormInput(_ref) {
   let wrapperProps = {};
   if (props.type == 'hidden') wrapperProps['style'] = {
     display: 'none'
-  };
+  }; // readonly inputs are automatically marked disabled
+  // if this is undesired, explicitly pass disabled=false
+
+  if (props.readOnly && (props.disabled === undefined || props.disabled === null)) props.disabled = true;
   return /*#__PURE__*/React__default["default"].createElement("div", wrapperProps, /*#__PURE__*/React__default["default"].createElement(Label, {
     label: label,
     required: props.required
@@ -1063,7 +1066,7 @@ class FormMultiSelectInput extends React__default["default"].Component {
 
   render() {
     return /*#__PURE__*/React__default["default"].createElement("div", {
-      className: "rjf-multiselect-field"
+      className: this.props.readOnly ? "rjf-multiselect-field readonly" : "rjf-multiselect-field"
     }, /*#__PURE__*/React__default["default"].createElement(FormInput, {
       label: this.props.label,
       help_text: this.props.help_text,
@@ -1544,7 +1547,7 @@ class FormDateTimeInput extends React__default["default"].Component {
 
     this.showTimePicker = () => {
       this.setState({
-        showTimePicker: true
+        showTimePicker: !this.props.readOnly && true
       });
     };
 
@@ -1590,14 +1593,15 @@ class FormDateTimeInput extends React__default["default"].Component {
     }), /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-datetime-field-inner"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
-      className: "rjf-datetime-field-inputs"
+      className: this.props.readOnly ? "rjf-datetime-field-inputs readonly" : "rjf-datetime-field-inputs"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-datetime-field-date"
     }, /*#__PURE__*/React__default["default"].createElement(FormInput, {
       label: "Date",
       type: "date",
       value: this.state.date,
-      onChange: this.handleDateChange
+      onChange: this.handleDateChange,
+      readOnly: this.props.readOnly
     })), /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-datetime-field-time"
     }, /*#__PURE__*/React__default["default"].createElement(FormInput, {
@@ -1606,6 +1610,7 @@ class FormDateTimeInput extends React__default["default"].Component {
       value: this.state.hh + ':' + this.state.mm + ':' + this.state.ss + ' ' + this.state.ampm,
       onFocus: this.showTimePicker,
       readOnly: true,
+      disabled: this.props.readOnly || false,
       inputRef: this.timeInput
     }), /*#__PURE__*/React__default["default"].createElement("div", {
       ref: this.timePickerContainer
@@ -1758,6 +1763,7 @@ class AutoCompleteInput extends React__default["default"].Component {
       help_text: this.props.help_text,
       error: this.props.error,
       readOnly: true,
+      disabled: this.props.readOnly || false,
       onClick: this.toggleOptions,
       inputRef: this.input,
       placeholder: this.props.placeholder,
