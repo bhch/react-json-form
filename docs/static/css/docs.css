@@ -474,7 +474,9 @@ input:focus, textarea:focus, select:focus, .rjf-multiselect-field-input:focus {
 }
 input:disabled, input[readonly],
 textarea:disabled, textarea[readonly],
-select:disabled, select[readonly] {
+select:disabled, select[readonly],
+.rjf-multiselect-field.readonly .rjf-multiselect-field-input,
+.rjf-datetime-field-inputs.readonly .rjf-datetime-field-time input[readonly] { 
     background-color: #f2f2f2;
     opacity: 1;
 }
@@ -960,7 +962,7 @@ button.rjf-add-button:hover {
 .rjf-multiselect-field-input {
     cursor: pointer;
     padding-right: 28px !important;
-    background-color: #fff !important;
+    background-color: #fff;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23777777' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 6px center;
@@ -973,6 +975,9 @@ button.rjf-add-button:hover {
     background-color: #eee;
     border-radius: 4px;
     line-height: 1;
+}
+.rjf-multiselect-field.readonly .rjf-multiselect-field-input-item {
+    background-color: #e2e2e2;
 }
 .rjf-multiselect-field-input-item > span {
     display: inline-block;
