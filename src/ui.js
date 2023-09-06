@@ -2,7 +2,7 @@ import React from 'react';
 import {getBlankData, findMatchingSubschemaIndex, dataObjectMatchesSchema,
     dataArrayMatchesSchema} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
-    FormFileInput, FormRow, FormGroup, GroupTitle, FormRowControls, FormTextareaInput,
+    FormFileInput, FormRow, FormGroup, GroupTitle, GroupDescription, FormRowControls, FormTextareaInput,
     FormDateTimeInput, FormMultiSelectInput, FileUploader, AutoCompleteInput} from './components';
 import {getVerboseName, convertType, getCoordsFromName, getKeyword, normalizeKeyword,
     joinCoords, splitCoords, actualType, getSchemaType, isEqualset, isSubset} from './util';
@@ -326,6 +326,7 @@ export function getArrayFormRow(args) {
             groupError = [groupError];
 
         let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onKeyEdit}>{schema.title}</GroupTitle> : null;
+        let groupDescription = schema.description ? <GroupDescription>{schema.description}</GroupDescription> : null;
 
         groups = (
             <div key={'group_' + name} className="rjf-form-group-wrapper">
@@ -337,6 +338,7 @@ export function getArrayFormRow(args) {
                 <div className="rjf-form-group">
                     <div className={level > 0 ? "rjf-form-group-inner" : ""}>
                         {groupTitle}
+                        {groupDescription}
                         {groupError && groupError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
                         {groups.map((i, index) => (
                             <div className="rjf-form-group-wrapper" key={'group_wrapper_' + name + '_' + index}>
