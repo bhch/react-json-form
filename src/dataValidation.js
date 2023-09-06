@@ -334,7 +334,7 @@ export default function DataValidator(schema) {
             this.addError(coords, 'This value must not be less than ' + schema.minimum);
         
         if ((schema.maximum || schema.maximum === 0) && data > schema.maximum)
-            this.addError(coords, 'This value must not be greater than ' + schema.minimum);
+            this.addError(coords, 'This value must not be greater than ' + schema.maximum);
     
         if ((schema.exclusiveMinimum || schema.exclusiveMinimum === 0) && data <= schema.exclusiveMinimum)
             this.addError(coords, 'This value must be greater than ' + schema.exclusiveMinimum);
