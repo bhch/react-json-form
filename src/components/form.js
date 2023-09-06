@@ -589,6 +589,11 @@ export class FormTextareaInput extends React.Component {
         props.ref = inputRef || this.inputRef;
         props.onChange = this.handleChange;
 
+        // readonly inputs are automatically marked disabled
+        // if this is undesired, explicitly pass disabled=false
+        if (props.readOnly && (props.disabled === undefined || props.disabled === null))
+            props.disabled = true;
+
         return (
             <div>
                 <Label label={label} required={props.required} />
