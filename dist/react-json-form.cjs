@@ -1427,7 +1427,10 @@ class FormTextareaInput extends React__default["default"].Component {
 
     delete props.type;
     props.ref = inputRef || this.inputRef;
-    props.onChange = this.handleChange;
+    props.onChange = this.handleChange; // readonly inputs are automatically marked disabled
+    // if this is undesired, explicitly pass disabled=false
+
+    if (props.readOnly && (props.disabled === undefined || props.disabled === null)) props.disabled = true;
     return /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement(Label, {
       label: label,
       required: props.required
@@ -2695,6 +2698,7 @@ function getArrayFormRow(args) {
       editable: args.editable,
       onEdit: args.onKeyEdit
     }, schema.title) : null;
+    let groupDescription = schema.description ? /*#__PURE__*/React__default["default"].createElement(GroupDescription, null, schema.description) : null;
     groups = /*#__PURE__*/React__default["default"].createElement("div", {
       key: 'group_' + name,
       className: "rjf-form-group-wrapper"
@@ -2704,7 +2708,7 @@ function getArrayFormRow(args) {
       className: "rjf-form-group"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
       className: level > 0 ? "rjf-form-group-inner" : ""
-    }, groupTitle, groupError && groupError.map((error, i) => /*#__PURE__*/React__default["default"].createElement("div", {
+    }, groupTitle, groupDescription, groupError && groupError.map((error, i) => /*#__PURE__*/React__default["default"].createElement("div", {
       className: "rjf-error-text",
       key: i
     }, error)), groups.map((i, index) => /*#__PURE__*/React__default["default"].createElement("div", {
@@ -4071,7 +4075,7 @@ function DataValidator(schema) {
     }
 
     if ((schema.minimum || schema.minimum === 0) && data < schema.minimum) this.addError(coords, 'This value must not be less than ' + schema.minimum);
-    if ((schema.maximum || schema.maximum === 0) && data > schema.maximum) this.addError(coords, 'This value must not be greater than ' + schema.minimum);
+    if ((schema.maximum || schema.maximum === 0) && data > schema.maximum) this.addError(coords, 'This value must not be greater than ' + schema.maximum);
     if ((schema.exclusiveMinimum || schema.exclusiveMinimum === 0) && data <= schema.exclusiveMinimum) this.addError(coords, 'This value must be greater than ' + schema.exclusiveMinimum);
     if ((schema.exclusiveMaximum || schema.exclusiveMaximum === 0) && data >= schema.exclusiveMaximum) this.addError(coords, 'This value must be less than ' + schema.exclusiveMaximum);
     if ((schema.multipleOf || schema.multipleOf === 0) && data * 100 % (schema.multipleOf * 100) / 100) this.addError(coords, 'This value must be a multiple of ' + schema.multipleOf);
