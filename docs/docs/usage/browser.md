@@ -8,7 +8,7 @@ In the browser, the library will be available under `reactJsonForm` variable.
 ## Creating the form
 
 Use the [`reactJsonForm.createForm()`](#reactjsonform.createform(config)) function to
-create the from from your schema.
+create the form from your schema.
 
 You'll also need to have a `textarea` where the form will save the data.
 

@@ -119,7 +119,7 @@ instance.
 This method is only for updating data. It doesn't do any validations to keep 
 updates as fast as possible.
 
-If you want to update the schema, you must create a new state using
+If you want to validate the schema, you must create a new state using
 `EditorState.create()` method as that will also validate the schema and the data.
 
 
@@ -145,7 +145,7 @@ This method returns the schema.
 
 *New in version 2.1*
 
-**React JSON Form** comes with some basic data validator called [`DataValidator`](#datavalidator-api-reference).
+**React JSON Form** comes with a basic data validator called [`DataValidator`](#datavalidator-api-reference).
 But you are free to validate the data however you want.
 
 After the validation, you may also want to display error messages below the
