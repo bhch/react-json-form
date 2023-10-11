@@ -215,6 +215,7 @@ export class FormMultiSelectInput extends React.Component {
                         value={this.props.value}
                         onChange={this.handleChange}
                         disabled={this.props.readOnly}
+                        placeholder={this.props.placeholder}
                     />
                 </FormInput>
                 {this.state.showOptions &&
@@ -234,7 +235,7 @@ export class FormMultiSelectInput extends React.Component {
     }
 }
 
-class FormMultiSelectInputField extends React.Component {
+export class FormMultiSelectInputField extends React.Component {
     handleRemove = (e, index) => {
         e.stopPropagation();
 
@@ -242,7 +243,7 @@ class FormMultiSelectInputField extends React.Component {
         let event = {
             target: {
                 value: this.props.value[index],
-                checket: false
+                checked: false
             }
         };
 
@@ -267,14 +268,14 @@ class FormMultiSelectInputField extends React.Component {
                     )
                 )
                 :
-                <span className="rjf-multiselect-field-input-placeholder">Select...</span>
+                <span className="rjf-multiselect-field-input-placeholder">{this.props.placeholder || 'Select...'}</span>
             }
             </div>
         );
     }
 }
 
-class FormMultiSelectInputOptions extends React.Component {
+export class FormMultiSelectInputOptions extends React.Component {
     componentDidMount() {
         document.addEventListener('mousedown', this.handleClickOutside);
     }

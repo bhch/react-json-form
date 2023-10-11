@@ -140,6 +140,10 @@ function FormField(props) {
         case 'autocomplete':
             InputField = AutoCompleteInput;
             break;
+        case 'multiselect-autocomplete':
+            InputField = AutoCompleteInput;
+            inputProps.multiselect = true;
+            break;
         case 'textarea':
             InputField = FormTextareaInput;
 
@@ -241,7 +245,7 @@ export function getArrayFormRow(args) {
     if (isReadonly)
         nextArgs.schema.readOnly = true;
 
-    if (nextArgs.schema.widget === 'multiselect') {
+    if (nextArgs.schema.widget === 'multiselect' || nextArgs.schema.widget === 'multiselect-autocomplete') {
         nextArgs.data = data;
         nextArgs.name = name;
         nextArgs.removable = false;

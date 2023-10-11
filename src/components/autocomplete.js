@@ -1,5 +1,5 @@
 import React from 'react';
-import {FormInput} from './form';
+import {FormInput, FormMultiSelectInputField} from './form';
 import Loader from './loaders';
 import Button from './buttons';
 import Icon from './icons';
@@ -16,7 +16,7 @@ export default class AutoCompleteInput extends React.Component {
             searchInputValue: '',
             showOptions: false,
             options: [],
-            loading: false
+            loading: false,
         };
 
         this.optionsContainer = React.createRef();
@@ -24,6 +24,8 @@ export default class AutoCompleteInput extends React.Component {
         this.input = React.createRef();
 
         this.debouncedFetchOptions = debounce(this.fetchOptions, 500);
+
+        this.defaultEmptyValue = props.multiselect ? [] : '';
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -34,6 +36,13 @@ export default class AutoCompleteInput extends React.Component {
     }
 
     handleSelect = (value) => {
+        if (this.props.multiselect) {
+            if (Array.isArray(this.props.value))
+                value = this.props.value.concat([value]);
+            else
+                value = [value];
+        }
+
         let event = {
             target: {
                 type: this.props.type,
@@ -42,12 +51,40 @@ export default class AutoCompleteInput extends React.Component {
             }
         };
 
-        this.hideOptions();
+        if (!this.props.multiselect)
+            this.hideOptions();
+
+        this.props.onChange(event);
+    }
+
+    handleMultiselectRemove = (val) => {
+        let value = this.props.value.filter((item) => {
+            return item !== val;
+        });
+
+        let event = {
+            target: {
+                type: this.props.type,
+                value: value,
+                name: this.props.name
+            }
+        };
+
         this.props.onChange(event);
     }
 
     clearValue = (e) => {
-        this.handleSelect('');
+        this.handleSelect(this.defaultEmptyValue);
+    }
+
+    hasValue = () => {
+        if (Array.isArray(this.props.value) && !this.props.value.length)
+            return false;
+
+        if (this.props.value === '' || this.props.value === null)
+            return false;
+
+        return true;
     }
 
     handleSearchInputChange = (e) => {
@@ -69,7 +106,7 @@ export default class AutoCompleteInput extends React.Component {
 
         if (!endpoint) {
             console.error(
-                "Error: No 'handler' endpoing provided for autocomplete input."
+                "Error: No 'handler' endpoint provided for autocomplete input."
             );
 
             this.setState({loading: false});
@@ -123,22 +160,38 @@ export default class AutoCompleteInput extends React.Component {
     render() {
         return (
             <div className={this.props.label ? 'rjf-autocomplete-field has-label' : 'rjf-autocomplete-field'}>
-                <FormInput
-                    label={this.props.label}
-                    type="text"
-                    value={this.props.value}
-                    help_text={this.props.help_text}
-                    error={this.props.error}
-                    readOnly={true}
-                    disabled={this.props.readOnly || false}
-                    onClick={this.toggleOptions}
-                    inputRef={this.input}
-                    placeholder={this.props.placeholder}
-                    name={this.props.name}
-                    className="rjf-autocomplete-field-input"
-                />
-                
-                {this.props.value && !this.props.readOnly &&
+                {this.props.multiselect ?
+                    <FormInput
+                        label={this.props.label}
+                        help_text={this.props.help_text}
+                        error={this.props.error}
+                    >
+                        <FormMultiSelectInputField
+                            inputRef={this.input}
+                            onClick={this.toggleOptions}
+                            onChange={(e) => this.handleMultiselectRemove(e.target.value)}
+                            value={this.props.value}
+                            placeholder={this.props.placeholder || ' '}
+                            disabled={this.props.readOnly || false}
+                        />
+                    </FormInput>
+                    :
+                    <React.Fragment>
+                    <FormInput
+                        label={this.props.label}
+                        type="text"
+                        value={this.props.value}
+                        help_text={this.props.help_text}
+                        error={this.props.error}
+                        readOnly={true}
+                        disabled={this.props.readOnly || false}
+                        onClick={this.toggleOptions}
+                        inputRef={this.input}
+                        placeholder={this.props.placeholder}
+                        name={this.props.name}
+                        className="rjf-autocomplete-field-input"
+                    />
+                    {this.hasValue() && !this.props.readOnly &&
                     <Button
                         className="autocomplete-field-clear"
                         title="Clear"
@@ -146,6 +199,8 @@ export default class AutoCompleteInput extends React.Component {
                     >
                         <Icon name="x-circle" /> <span>Clear</span>
                     </Button>
+                    }
+                    </React.Fragment>
                 }
 
                 {this.state.showOptions && !this.props.readOnly &&
@@ -161,6 +216,7 @@ export default class AutoCompleteInput extends React.Component {
                         inputRef={this.input}
                         loading={this.state.loading}
                         hasHelpText={(this.props.help_text || this.props.error) && 1}
+                        multiselect={this.props.multiselect}
                     />
                 }
             </div>
@@ -207,6 +263,7 @@ class AutoCompletePopup extends React.Component {
                             onSelect={this.props.onSelect}
                             loading={this.props.loading}
                             hasHelpText={this.props.hasHelpText}
+                            multiselect={this.props.multiselect}
                         />
                     }
                 </div>
@@ -252,7 +309,12 @@ function AutocompleteOptions(props) {
                     inputValue = option;
                 }
 
-                let selected = props.value === inputValue;
+                let selected = false;
+
+                if (Array.isArray(props.value))
+                    selected = props.value.indexOf(inputValue) > -1;
+                else
+                    selected = props.value === inputValue;
 
                 let optionClassName = 'rjf-autocomplete-field-option';
                 if (selected)
@@ -264,7 +326,7 @@ function AutocompleteOptions(props) {
                         className={optionClassName}
                         tabIndex={0}
                         role="button"
-                        onClick={() => props.onSelect(inputValue)}
+                        onClick={() => props.multiselect && selected ? null : props.onSelect(inputValue)}
                     >
                         {title}
                     </div>
