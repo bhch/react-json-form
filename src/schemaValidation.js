@@ -148,6 +148,8 @@ function validateKeys(keys) {
             validation = validateAnyOf(value);
         } else if (value.hasOwnProperty('allOf')) {
             validation = validateAllOf(value);
+        } else if (value.hasOwnProperty('const')) {
+            validation = validateConst(value);
         } else {
             validation = {isValid: false, msg: "Key '" + key + "' must have a 'type' or a '$ref"};
         }
@@ -186,7 +188,8 @@ export function validateArray(schema) {
     } else {
         if (!schema.items.hasOwnProperty('oneOf') &&
             !schema.items.hasOwnProperty('anyOf') &&
-            !schema.items.hasOwnProperty('allOf')
+            !schema.items.hasOwnProperty('allOf') &&
+            !schema.items.hasOwnProperty('const')
         )
             return {isValid: false, msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf'"};
     }
@@ -209,6 +212,12 @@ export function validateArray(schema) {
             isValid: false,
             msg: "Currently, 'allOf' inside array items is not supported"
         }
+    }
+
+    if (schema.items.hasOwnProperty('const')) {
+        validation = validateConst(schema.items);
+        if (!validation.isValid)
+            return validation;
     }
 
     return {isValid: true, msg: ""};
@@ -271,6 +280,11 @@ export function validateAllOf(schema) {
     }
 
     return validation
+}
+
+
+function validateConst(schema) {
+    return {isValid: true, msg: ""};
 }
 
 

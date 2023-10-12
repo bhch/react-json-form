@@ -24,6 +24,10 @@ export function getBlankObject(schema, getRef) {
                 value =  value.oneOf[0];
             else if (value.hasOwnProperty('anyOf'))
                 value =  value.anyOf[0];
+            else if (value.hasOwnProperty('const')) {
+                value.default = value.const;
+                value.type = actualType(value.const);
+            }
 
             type = normalizeKeyword(value.type);
         }
@@ -85,6 +89,11 @@ export function getBlankArray(schema, getRef) {
             type = getSchemaType(schema.items.anyOf[0]);
         else if (Array.isArray(schema.items['allOf']))
             type = getSchemaType(schema.items.allOf[0]);
+        else if (schema.items.hasOwnProperty('const')) {
+            type = actualType(schema.items.const);
+            schema.items.type = type;
+            schema.items.default = schema.items.const;
+        }
     }
 
     if (type === 'array') {
@@ -154,6 +163,11 @@ export function getBlankData(schema, getRef) {
     if (schema.hasOwnProperty('$ref'))
         schema = getRef(schema['$ref']);
 
+    if (schema.hasOwnProperty('const')) {
+        schema.type = actualType(schema.const);
+        schema.default = schema.const;
+    }
+
     let type = getSchemaType(schema);
 
     if (type === 'array')
@@ -187,6 +201,11 @@ function getSyncedArray(data, schema, getRef) {
         schema.items = getRef(schema.items['$ref'])
     }
 
+    if (schema.items.hasOwnProperty('const')) {
+        schema.items.default = schema.items.const;
+        schema.items.type = actualType(schema.items.const);
+    }
+
     let type = normalizeKeyword(schema.items.type);
     let minItems = schema.minItems || schema.min_items || 0;
 
@@ -218,6 +237,9 @@ function getSyncedArray(data, schema, getRef) {
                     newData[i] = schema.items.default || '';
             }
         }
+
+        if (schema.items.hasOwnProperty('const'))
+            newData[i] = schema.items.const;
     }
 
     return newData;
@@ -253,7 +275,12 @@ function getSyncedObject(data, schema, getRef) {
         if (isRef)
             schemaValue = getRef(schemaValue['$ref']);
 
-        let type = getSchemaType(schemaValue, data.key);
+        if (schemaValue.hasOwnProperty('const')) {
+            schemaValue.default = schemaValue.const;
+            schemaValue.type = actualType(schemaValue.const);
+        }
+
+        let type = getSchemaType(schemaValue);
       
         if (!data.hasOwnProperty(key)) {
             if (type === 'array')
@@ -288,6 +315,9 @@ function getSyncedObject(data, schema, getRef) {
                 }
             }
         }
+
+        if (schemaValue.hasOwnProperty('const'))
+            newData[key] = schemaValue.const;
         
     }
 
@@ -445,6 +475,10 @@ export function dataObjectMatchesSchema(data, subschema) {
         if (!data.hasOwnProperty(key))
             return false;
 
+        if (subSchemaKeys[key].hasOwnProperty('const')) {
+            if (subSchemaKeys[key].const !== data[key])
+                return false;
+        }
 
         let keyType = normalizeKeyword(subSchemaKeys[key].type);
         let dataValueType = actualType(data[key]);
@@ -458,6 +492,8 @@ export function dataObjectMatchesSchema(data, subschema) {
         } else if (keyType === 'string' && dataValueType !== 'string') {
             return false;
         }
+
+        // TODO: also check minimum, maximum, etc. keywords
     }
 
     // if here, all checks have passed
@@ -477,6 +513,11 @@ export function dataArrayMatchesSchema(data, subschema) {
     // check each item in data conforms to array items.type
     for (let i = 0; i < data.length; i++) {
         dataValueType = actualType(data[i]);
+
+        if (subschema.items.hasOwnProperty('const')) {
+            if (subschema.items.const !== data[i])
+                return false;
+        }
 
         if (itemsType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
             return false;

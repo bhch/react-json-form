@@ -55,6 +55,9 @@ function FormField(props) {
         type = 'select';
     }
 
+    if (props.schema.hasOwnProperty('const'))
+        inputProps.readOnly = true;
+
     if (props.schema.widget) {
          if (props.schema.widget === 'multiselect' && props.parentType !== 'array') {
             // pass
@@ -710,6 +713,15 @@ class OneOf extends React.Component {
                     subschema = this.props.parentArgs.getRef(subschema['$ref']);
 
                 let subType = getSchemaType(subschema);
+
+                if (subschema.hasOwnProperty('const')) {
+                    if (subschema.const === this.props.nextArgs.data) {
+                        index = 1;
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
 
                 if (dataType === 'number') {
                     if (subType === 'number' || subType === 'integer') {
