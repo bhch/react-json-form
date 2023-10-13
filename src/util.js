@@ -65,7 +65,12 @@ export function getSchemaType(schema) {
 
        If data is given, it will try to use that to guess the type.
     */
-    let type = normalizeKeyword(schema.type);
+    let type;
+
+    if (schema.hasOwnProperty('const'))
+        type = actualType(schema.const);
+    else
+        type = normalizeKeyword(schema.type);
 
     if (!type) {
         if (schema.hasOwnProperty('properties') ||

@@ -12,6 +12,7 @@ export function getBlankObject(schema, getRef) {
         let value = schema_keys[key];
 
         let isRef = value.hasOwnProperty('$ref');
+        let isConst = value.hasOwnProperty('const');
         
         if (isRef)
             value = getRef(value['$ref']);
@@ -24,12 +25,15 @@ export function getBlankObject(schema, getRef) {
                 value =  value.oneOf[0];
             else if (value.hasOwnProperty('anyOf'))
                 value =  value.anyOf[0];
-            else if (value.hasOwnProperty('const')) {
-                value.default = value.const;
-                value.type = actualType(value.const);
-            }
 
             type = normalizeKeyword(value.type);
+        }
+
+        let default_ = value.default;
+
+        if (isConst) {
+            type = actualType(value.const);
+            default_ = value.const;
         }
 
         if (type === 'array')
@@ -37,11 +41,11 @@ export function getBlankObject(schema, getRef) {
         else if (type === 'object')
             keys[key] = getBlankObject(value, getRef);
         else if (type === 'boolean')
-            keys[key] = value.default === false ? false : (value.default || null);
+            keys[key] = default_ === false ? false : (default_ || null);
         else if (type === 'integer' || type === 'number')
-            keys[key] = value.default === 0 ? 0 : (value.default || null);
+            keys[key] = default_ === 0 ? 0 : (default_ || null);
         else
-            keys[key] = value.default || '';
+            keys[key] = default_ || '';
     }
 
     if (schema.hasOwnProperty('oneOf'))
@@ -75,7 +79,7 @@ export function getBlankArray(schema, getRef) {
         return items;
 
     if (schema.items.hasOwnProperty('$ref')) {
-        // :TODO: this will most probably mutate the original schema
+        // :TODO: this mutates the original schema
         // but i'll fix it later
         schema.items = getRef(schema.items['$ref']);
     }
@@ -89,11 +93,8 @@ export function getBlankArray(schema, getRef) {
             type = getSchemaType(schema.items.anyOf[0]);
         else if (Array.isArray(schema.items['allOf']))
             type = getSchemaType(schema.items.allOf[0]);
-        else if (schema.items.hasOwnProperty('const')) {
+        else if (schema.items.hasOwnProperty('const'))
             type = actualType(schema.items.const);
-            schema.items.type = type;
-            schema.items.default = schema.items.const;
-        }
     }
 
     if (type === 'array') {
@@ -117,16 +118,21 @@ export function getBlankArray(schema, getRef) {
     if (schema.items.widget === 'multiselect')
         return items;
 
+    let default_ = schema.items.default;
+
+    if (schema.items.hasOwnProperty('const'))
+        default_ = schema.items.const;
+
     if (type === 'boolean') {
         while (items.length < minItems)
-            items.push(schema.items.default === false ? false : (schema.items.default || null));
+            items.push(default_ === false ? false : (default_ || null));
     } else if (type === 'integer' || type === 'number') {
         while (items.length < minItems)
-            items.push(schema.items.default === 0 ? 0 : (schema.items.default || null));
+            items.push(default_ === 0 ? 0 : (default_ || null));
     } else {
         // string, etc.
         while (items.length < minItems)
-            items.push(schema.items.default || '');
+            items.push(default_ || '');
     }
 
     return items;
@@ -163,12 +169,14 @@ export function getBlankData(schema, getRef) {
     if (schema.hasOwnProperty('$ref'))
         schema = getRef(schema['$ref']);
 
-    if (schema.hasOwnProperty('const')) {
-        schema.type = actualType(schema.const);
-        schema.default = schema.const;
-    }
-
     let type = getSchemaType(schema);
+
+    let default_ = schema.default;
+
+    if (schema.hasOwnProperty('const')) {
+        type = actualType(schema.const);
+        default_ = schema.const;
+    }
 
     if (type === 'array')
         return getBlankArray(schema, getRef);
@@ -181,11 +189,11 @@ export function getBlankData(schema, getRef) {
     else if (type === 'anyOf')
         return getBlankAnyOf(schema, getRef);
     else if (type === 'boolean')
-        return schema.default === false ? false : (schema.default || null);
+        return default_ === false ? false : (default_ || null);
     else if (type === 'integer' || type === 'number')
-        return schema.default === 0 ? 0 : (schema.default || null);
+        return default_ === 0 ? 0 : (default_ || null);
     else // string, etc.
-        return schema.default || '';
+        return default_ || '';
 }
 
 
@@ -201,12 +209,17 @@ function getSyncedArray(data, schema, getRef) {
         schema.items = getRef(schema.items['$ref'])
     }
 
+    let type;
+    let default_;
+
     if (schema.items.hasOwnProperty('const')) {
-        schema.items.default = schema.items.const;
-        schema.items.type = actualType(schema.items.const);
+        type = actualType(schema.items.const);
+        default_ = schema.items.const;
+    } else {
+        type = normalizeKeyword(schema.items.type);
+        default_ = schema.items.defualt;
     }
 
-    let type = normalizeKeyword(schema.items.type);
     let minItems = schema.minItems || schema.min_items || 0;
 
     while (data.length < minItems)
@@ -230,11 +243,11 @@ function getSyncedArray(data, schema, getRef) {
 
             if (item === FILLER) {
                 if (type === 'integer' || type === 'number')
-                    newData[i] = schema.items.default === 0 ? 0 : (schema.items.default || null);
+                    newData[i] = default_ === 0 ? 0 : (default_ || null);
                 else if (type === 'boolean')
-                    newData[i] = schema.items.default === false ? false : (schema.items.default || null);
+                    newData[i] = default_ === false ? false : (default_ || null);
                 else
-                    newData[i] = schema.items.default || '';
+                    newData[i] = default_ || '';
             }
         }
 
@@ -275,12 +288,16 @@ function getSyncedObject(data, schema, getRef) {
         if (isRef)
             schemaValue = getRef(schemaValue['$ref']);
 
-        if (schemaValue.hasOwnProperty('const')) {
-            schemaValue.default = schemaValue.const;
-            schemaValue.type = actualType(schemaValue.const);
-        }
+        let type;
+        let default_;
 
-        let type = getSchemaType(schemaValue);
+        if (schemaValue.hasOwnProperty('const')) {
+            type = actualType(schemaValue.const);
+            default_ = schemaValue.const;
+        } else {
+            let type = getSchemaType(schemaValue);
+            default_ = schemaValue.default;
+        }
       
         if (!data.hasOwnProperty(key)) {
             if (type === 'array')
@@ -288,11 +305,11 @@ function getSyncedObject(data, schema, getRef) {
             else if (type === 'object')
                 newData[key] = getSyncedObject({}, schemaValue, getRef);
             else if (type === 'boolean')
-                newData[key] = schemaValue.default === false ? false : (schemaValue.default || null);
+                newData[key] = default_ === false ? false : (default_ || null);
             else if (type === 'integer' || type === 'number')
-                newData[key] = schemaValue.default === 0 ? 0 : (schemaValue.default || null);
+                newData[key] = default_ === 0 ? 0 : (default_ || null);
             else
-                newData[key] = schemaValue.default || '';
+                newData[key] = default_ || '';
         } else {
             if (type === 'array')
                 newData[key] = getSyncedArray(data[key], schemaValue, getRef);
@@ -305,11 +322,11 @@ function getSyncedObject(data, schema, getRef) {
 
                 if (data[key] === '') {
                     if (type === 'integer' || type === 'number')
-                        newData[key] = schemaValue.default === 0 ? 0 : (schemaValue.default || null);
+                        newData[key] = default_ === 0 ? 0 : (default_ || null);
                     else if (type === 'boolean')
-                        newData[key] = schemaValue.default === false ? false : (schemaValue.default || null);
+                        newData[key] = default_ === false ? false : (default_ || null);
                     else
-                        newData[key] = schemaValue.default || '';
+                        newData[key] = default_ || '';
                 } else {
                     newData[key] = data[key];
                 }

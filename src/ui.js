@@ -47,16 +47,21 @@ function FormField(props) {
     if (props.schema.handler)
         inputProps.handler = props.schema.handler;
 
-    let type = normalizeKeyword(props.schema.type);
+    let type;
+
+    if (props.schema.hasOwnProperty('const')) {
+        type = actualType(props.schema.const);
+        inputProps.readOnly = true;
+    } else {
+        type = normalizeKeyword(props.schema.type);
+    }
+
     let choices = getKeyword(props.schema, 'choices', 'enum');
 
     if (choices) {
         inputProps.options = choices;
         type = 'select';
     }
-
-    if (props.schema.hasOwnProperty('const'))
-        inputProps.readOnly = true;
 
     if (props.schema.widget) {
          if (props.schema.widget === 'multiselect' && props.parentType !== 'array') {
