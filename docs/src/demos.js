@@ -216,7 +216,7 @@ const DEMOS = [
 
     {
         name: 'Date & Time',
-        slug: 'data-time',
+        slug: 'date-time',
         schema: {
             type: 'object',
             keys: {
