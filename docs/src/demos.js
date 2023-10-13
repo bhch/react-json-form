@@ -243,13 +243,12 @@ const DEMOS = [
         schema: {
             type: 'object',
             keys: {
-                country: {type: 'string', widget: 'autocomplete', handler: '/'},
+                country: {type: 'string', widget: 'autocomplete', handler: 'https://run.mocky.io/v3/b4f1afe0-01a5-4218-988c-36b320a7373c'},
             }
         },
         description: () => (
             <div>
-                Autocomplete widget sends AJAX request to a server. Hence, this demo will
-                not show any options because there's no server.
+                This demo uses a placeholder JSON API to load data. Hence, autocompletion may not work as expected.
             </div>
         )
     },
