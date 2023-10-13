@@ -802,6 +802,11 @@ button.rjf-add-button:hover {
 .rjf-autocomplete-field-option:focus {
     background-color: #eee;
 }
+.rjf-autocomplete-field-option.selected,
+.rjf-autocomplete-field-option.selected:hover {
+    background-color: #fff8e2;
+    cursor: default;
+}
 .rjf-autocomplete-field-option.disabled {
     color: #999;
     cursor: default;
@@ -967,6 +972,9 @@ button.rjf-add-button:hover {
     background-repeat: no-repeat;
     background-position: right 6px center;
     background-size: 16px 12px;
+}
+.rjf-multiselect-field-input-placeholder {
+    white-space: pre-wrap;
 }
 .rjf-multiselect-field-input-item {
     display: inline-block;
