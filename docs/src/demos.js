@@ -455,6 +455,19 @@ const DEMOS = [
         )
 
     },
+
+    {
+        name: 'Constants',
+        slug: 'const',
+        schema: {
+            type: 'object',
+            title: 'Person',
+            properties: {
+                species: {const: 'Homo Sapiens'},
+                name: {type: 'string'}
+            },
+        },
+    },
 ];
 
 
