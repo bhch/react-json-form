@@ -163,7 +163,7 @@ export function normalizeKeyword(kw) {
     /* Converts custom supported keywords to standard JSON schema keywords */
 
     if (Array.isArray(kw))
-        kw = kw[0];
+        kw = kw.find((k) => k !== 'null') || 'null';
 
     switch (kw) {
         case 'list': return 'array';

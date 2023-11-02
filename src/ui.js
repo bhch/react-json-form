@@ -220,6 +220,7 @@ export function getArrayFormRow(args) {
 
     let removable = true;
     let min_items = getKeyword(schema, 'min_items', 'minItems') || 0;
+
     if (data.length <= min_items || isReadonly)
         removable = false;
 
@@ -398,7 +399,6 @@ export function getObjectFormRow(args) {
     }
 
     let keys = [...Object.keys(schema_keys)];
-
 
     if (schema.additionalProperties)
         keys = [...keys, ...Object.keys(data).filter((k) => keys.indexOf(k) === -1)];

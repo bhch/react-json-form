@@ -198,6 +198,9 @@ export function getBlankData(schema, getRef) {
 
 
 function getSyncedArray(data, schema, getRef) {
+    if (data === null)
+        data = [];
+
     if (actualType(data) !== 'array')
         throw new Error("Schema expected an 'array' but the data type was '" + actualType(data) + "'");
 
@@ -260,6 +263,9 @@ function getSyncedArray(data, schema, getRef) {
 
 
 function getSyncedObject(data, schema, getRef) {
+    if (data === null)
+        data = {};
+
     if (actualType(data) !== 'object')
         throw new Error("Schema expected an 'object' but the data type was '" + actualType(data) + "'");
 
