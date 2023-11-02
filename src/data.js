@@ -295,7 +295,7 @@ function getSyncedObject(data, schema, getRef) {
             type = actualType(schemaValue.const);
             default_ = schemaValue.const;
         } else {
-            let type = getSchemaType(schemaValue);
+            type = getSchemaType(schemaValue);
             default_ = schemaValue.default;
         }
       
