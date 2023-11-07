@@ -315,6 +315,8 @@ export function getArrayFormRow(args) {
                 editable={args.editable}
                 onEdit={args.onKeyEdit}
                 key={'row_group_' + name}
+                collapsible={data.length > 0}
+                childrenType="rows"
             >
                 {rowError && rowError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
                 {rows}
@@ -338,9 +340,6 @@ export function getArrayFormRow(args) {
         if (typeof groupError === 'string')
             groupError = [groupError];
 
-        let groupTitle = schema.title ? <GroupTitle editable={args.editable} onEdit={args.onKeyEdit}>{schema.title}</GroupTitle> : null;
-        let groupDescription = schema.description ? <GroupDescription>{schema.description}</GroupDescription> : null;
-
         groups = (
             <div key={'group_' + name} className="rjf-form-group-wrapper">
                 {args.parentType === 'object' && args.removable &&
@@ -348,35 +347,31 @@ export function getArrayFormRow(args) {
                         onRemove={(e) => onRemove(name)}
                     />
                 }
-                <div className="rjf-form-group">
-                    <div className={level > 0 ? "rjf-form-group-inner" : ""}>
-                        {groupTitle}
-                        {groupDescription}
-                        {groupError && groupError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
-                        {groups.map((i, index) => (
-                            <div className="rjf-form-group-wrapper" key={'group_wrapper_' + name + '_' + index}>
-                                <FormRowControls
-                                    onRemove={removable ? (e) => onRemove(joinCoords(name, index)) : null}
-                                    onMoveUp={index > 0 && !isReadonly ? (e) => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null}
-                                    onMoveDown={index < groups.length - 1 && !isReadonly ? (e) => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null}
-                                />
-                                {i}
-                            </div>
-                            )
-                        )}
-                        {addable && 
-                            <Button
-                                className="add"
-                                onClick={(e) => onAdd(getBlankData(schema.items, args.getRef), coords)}
-                                title="Add new item"
-                            >
-                                Add item
-                            </Button>
-                        }
-                    </div>
-                </div>
+                <FormGroup
+                    level={level}
+                    schema={schema}
+                    addable={addable}
+                    onAdd={() => onAdd(getBlankData(schema.items, args.getRef), coords)}
+                    editable={args.editable}
+                    onEdit={args.onKeyEdit}
+                    collapsible={data.length > 0}
+                    childrenType="groups"
+                >
+                    {groupError && groupError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
+                    {groups.map((i, index) => (
+                        <div className="rjf-form-group-wrapper" key={'group_wrapper_' + name + '_' + index}>
+                            <FormRowControls
+                                onRemove={removable ? (e) => onRemove(joinCoords(name, index)) : null}
+                                onMoveUp={index > 0 && !isReadonly ? (e) => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null}
+                                onMoveDown={index < groups.length - 1 && !isReadonly ? (e) => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null}
+                            />
+                            {i}
+                        </div>
+                        )
+                    )}
+                </FormGroup>
             </div>
-        )
+        );
     }
 
     return [...rows, ...groups];
@@ -504,6 +499,8 @@ export function getObjectFormRow(args) {
                 editable={args.editable}
                 onEdit={args.onKeyEdit}
                 key={'row_group_' + name}
+                collapsible={keys.length > 0}
+                childrenType="rows"
             >
                 {groupError && groupError.map((error, i) => <div className="rjf-error-text" key={i}>{error}</div>)}
                 {rows}

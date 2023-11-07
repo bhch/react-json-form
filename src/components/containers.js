@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from './buttons';
+import {getSchemaType} from '../util.js';
 
 
 export function GroupTitle(props) {
@@ -8,10 +9,24 @@ export function GroupTitle(props) {
 
     return (
         <div className="rjf-form-group-title">
-            {props.editable ?
-                <span>{props.children} <Button className="edit" onClick={props.onEdit} title="Edit">Edit</Button></span>
-                :
-                props.children
+            {props.children}
+
+            {props.editable &&
+                <React.Fragment>
+                    {' '}
+                    <Button className="edit" onClick={props.onEdit} title="Edit">
+                        Edit
+                    </Button>
+                </React.Fragment>
+            }
+
+            {props.collapsible &&
+                <React.Fragment>
+                    {' '}
+                    <Button className="collapse" onClick={props.onCollapse} title={props.collapsed ? "Expand" : "Collapse"}>
+                        {props.collapsed ? "[+]" : "[-]"}
+                    </Button>
+                </React.Fragment>
             }
         </div>
     );
@@ -133,28 +148,67 @@ export function FormRow(props) {
 
 
 export function FormGroup(props) {
+    const [collapsed, setCollapsed] = React.useState(false);
+
+    let type = getSchemaType(props.schema);
+
     let hasChildren = React.Children.count(props.children);
 
-    let innerClassName = props.level === 0 && !hasChildren
-        ? "" 
-        : "rjf-form-group-inner";
+    let innerClassName = props.level === 0 && props.childrenType === 'groups'
+        ? ''
+        : 'rjf-form-group-inner';
+
+    let addButtonText;
+    let addButtonTitle;
+
+    if (type === 'object') {
+        addButtonText = 'Add key';
+        addButtonTitle = 'Add new key';
+    } else {
+        addButtonText = 'Add item';
+        addButtonTitle = 'Add new item';
+    }
 
     return (
         <div className="rjf-form-group">
-            {props.level === 0 && <GroupTitle editable={props.editable} onEdit={props.onEdit}>{props.schema.title}</GroupTitle>}
-            {props.level === 0 && <GroupDescription>{props.schema.description}</GroupDescription>}
-            <div className={innerClassName}>
-                {props.level > 0 && <GroupTitle editable={props.editable} onEdit={props.onEdit}>{props.schema.title}</GroupTitle>}
-                {props.level > 0 && <GroupDescription>{props.schema.description}</GroupDescription>}
-                {props.children}
-                {props.addable && 
-                <Button
-                    className="add"
-                    onClick={(e) => props.onAdd()}
-                    title={props.schema.type === 'object' ? 'Add new key' : 'Add new item'}
+            {props.level === 0 &&
+                <GroupTitle
+                    editable={props.editable}
+                    onEdit={props.onEdit}
+                    collapsible={props.collapsible}
+                    onCollapse={() => setCollapsed(!collapsed)}
+                    collapsed={collapsed}
                 >
-                    {props.schema.type === 'object' ? 'Add key' : 'Add item'}
-                </Button>
+                    {props.schema.title}
+                </GroupTitle>
+            }
+
+            {props.level === 0 && <GroupDescription>{props.schema.description}</GroupDescription>}
+
+            <div className={innerClassName}>
+                {props.level > 0 &&
+                    <GroupTitle
+                        editable={props.editable}
+                        onEdit={props.onEdit}
+                        collapsible={props.collapsible}
+                        onCollapse={() => setCollapsed(!collapsed)}
+                        collapsed={collapsed}
+                    >
+                        {props.schema.title}
+                    </GroupTitle>
+                }
+
+                {props.level > 0 && <GroupDescription>{props.schema.description}</GroupDescription>}
+
+                {collapsed && <div className="rjf-collapsed-indicator"><span>Collapsed</span></div>}
+                <div className={collapsed ? "rjf-form-group-children rjf-collapsed" : "rjf-form-group-children"}>
+                    {props.children}
+                </div>
+
+                {!collapsed && props.addable &&
+                    <Button className="add" onClick={(e) => props.onAdd()} title={addButtonTitle}>
+                        {addButtonText}
+                    </Button>
                 }
             </div>
         </div>
