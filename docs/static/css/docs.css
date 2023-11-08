@@ -671,6 +671,32 @@ button.rjf-add-button:hover {
 .rjf-form-row-controls button span {
     pointer-events: none;
 }
+button.rjf-collapse-button {
+    font-size: 0.8rem;
+    color: #888;
+    padding-left: 3px;
+    padding-right: 3px;
+    border: 0;
+    background-color: transparent;
+}
+.rjf-collapsed {
+    display: none;
+}
+.rjf-collapsed-indicator {
+    text-align: center;
+    background-image: url('../img/collapsed-indicator-bg.svg');
+    background-repeat: repeat-x;
+    background-position: center;
+}
+.rjf-collapsed-indicator span {
+    display: inline-block;
+    font-style: italic;
+    padding: 2px 4px;
+    color: #aaa;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
 .rjf-oneof-group {
     border: 0;
     padding: 0;
