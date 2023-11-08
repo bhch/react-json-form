@@ -232,6 +232,7 @@ export class TabContent extends React.Component {
                                 fieldName='test_field'
                                 modelName='TestModel'
                                 errorMap={this.state.errorMap}
+                                key={this.props.activeTabIndex}
                             />
 
                             {this.getActiveTab().slug === 'validation' &&
