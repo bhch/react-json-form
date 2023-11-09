@@ -155,7 +155,7 @@ modify the given <code>editorState</code>. Instead, it creates and return a new 
 instance.</p>
 <p>This method is only for updating data. It doesn't do any validations to keep
 updates as fast as possible.</p>
-<p>If you want to update the schema, you must create a new state using
+<p>If you want to validate the schema, you must create a new state using
 <code>EditorState.create()</code> method as that will also validate the schema and the data.</p>
 <h3 id="instance-methods" tabindex="-1">Instance methods <a class="header-anchor" href="#instance-methods">#</a></h3>
 <p>The following methods are available on an instance of <code>EditorState</code>.</p>
@@ -167,7 +167,7 @@ declared in the schema.</p>
 <p>This method returns the schema.</p>
 <h4 id="data-validation" tabindex="-1">Data validation <a class="header-anchor" href="#data-validation">#</a></h4>
 <p><em>New in version 2.1</em></p>
-<p><strong>React JSON Form</strong> comes with some basic data validator called <a href="#datavalidator-api-reference"><code>DataValidator</code></a>.
+<p><strong>React JSON Form</strong> comes with a basic data validator called <a href="#datavalidator-api-reference"><code>DataValidator</code></a>.
 But you are free to validate the data however you want.</p>
 <p>After the validation, you may also want to display error messages below the
 input fields. For this purpose, the <code>ReactJSONForm</code> component accepts an <code>errorMap</code>
