@@ -86,7 +86,8 @@ function getSchemaType(schema) {
       If schema.type is not present, it tries to guess the type.
       If data is given, it will try to use that to guess the type.
   */
-  let type = normalizeKeyword(schema.type);
+  let type;
+  if (schema.hasOwnProperty('const')) type = actualType(schema.const);else type = normalizeKeyword(schema.type);
 
   if (!type) {
     if (schema.hasOwnProperty('properties') || schema.hasOwnProperty('keys')) type = 'object';else if (schema.hasOwnProperty('items')) type = 'array';else if (schema.hasOwnProperty('allOf')) type = 'allOf';else if (schema.hasOwnProperty('oneOf')) type = 'oneOf';else if (schema.hasOwnProperty('anyOf')) type = 'anyOf';else type = 'string';
@@ -143,7 +144,7 @@ function debounce(func, wait) {
 }
 function normalizeKeyword(kw) {
   /* Converts custom supported keywords to standard JSON schema keywords */
-  if (Array.isArray(kw)) kw = kw[0];
+  if (Array.isArray(kw)) kw = kw.find(k => k !== 'null') || 'null';
 
   switch (kw) {
     case 'list':
@@ -210,6 +211,7 @@ function getBlankObject(schema, getRef) {
   for (let key in schema_keys) {
     let value = schema_keys[key];
     let isRef = value.hasOwnProperty('$ref');
+    let isConst = value.hasOwnProperty('const');
     if (isRef) value = getRef(value['$ref']);
     let type = normalizeKeyword(value.type);
 
@@ -219,7 +221,14 @@ function getBlankObject(schema, getRef) {
       type = normalizeKeyword(value.type);
     }
 
-    if (type === 'array') keys[key] = isRef ? [] : getBlankArray(value, getRef);else if (type === 'object') keys[key] = getBlankObject(value, getRef);else if (type === 'boolean') keys[key] = value.default === false ? false : value.default || null;else if (type === 'integer' || type === 'number') keys[key] = value.default === 0 ? 0 : value.default || null;else keys[key] = value.default || '';
+    let default_ = value.default;
+
+    if (isConst) {
+      type = actualType(value.const);
+      default_ = value.const;
+    }
+
+    if (type === 'array') keys[key] = isRef ? [] : getBlankArray(value, getRef);else if (type === 'object') keys[key] = getBlankObject(value, getRef);else if (type === 'boolean') keys[key] = default_ === false ? false : default_ || null;else if (type === 'integer' || type === 'number') keys[key] = default_ === 0 ? 0 : default_ || null;else keys[key] = default_ || '';
   }
 
   if (schema.hasOwnProperty('oneOf')) keys = _extends({}, keys, getBlankObject(schema.oneOf[0]));
@@ -241,7 +250,7 @@ function getBlankArray(schema, getRef) {
   if (minItems === 0) return items;
 
   if (schema.items.hasOwnProperty('$ref')) {
-    // :TODO: this will most probably mutate the original schema
+    // :TODO: this mutates the original schema
     // but i'll fix it later
     schema.items = getRef(schema.items['$ref']);
   }
@@ -249,7 +258,7 @@ function getBlankArray(schema, getRef) {
   let type = normalizeKeyword(schema.items.type);
 
   if (!type) {
-    if (Array.isArray(schema.items['oneOf'])) type = getSchemaType(schema.items.oneOf[0]);else if (Array.isArray(schema.items['anyOf'])) type = getSchemaType(schema.items.anyOf[0]);else if (Array.isArray(schema.items['allOf'])) type = getSchemaType(schema.items.allOf[0]);
+    if (Array.isArray(schema.items['oneOf'])) type = getSchemaType(schema.items.oneOf[0]);else if (Array.isArray(schema.items['anyOf'])) type = getSchemaType(schema.items.anyOf[0]);else if (Array.isArray(schema.items['allOf'])) type = getSchemaType(schema.items.allOf[0]);else if (schema.items.hasOwnProperty('const')) type = actualType(schema.items.const);
   }
 
   if (type === 'array') {
@@ -271,14 +280,16 @@ function getBlankArray(schema, getRef) {
   }
 
   if (schema.items.widget === 'multiselect') return items;
+  let default_ = schema.items.default;
+  if (schema.items.hasOwnProperty('const')) default_ = schema.items.const;
 
   if (type === 'boolean') {
-    while (items.length < minItems) items.push(schema.items.default === false ? false : schema.items.default || null);
+    while (items.length < minItems) items.push(default_ === false ? false : default_ || null);
   } else if (type === 'integer' || type === 'number') {
-    while (items.length < minItems) items.push(schema.items.default === 0 ? 0 : schema.items.default || null);
+    while (items.length < minItems) items.push(default_ === 0 ? 0 : default_ || null);
   } else {
     // string, etc.
-    while (items.length < minItems) items.push(schema.items.default || '');
+    while (items.length < minItems) items.push(default_ || '');
   }
 
   return items;
@@ -302,11 +313,19 @@ function getBlankAnyOf(schema, getRef) {
 function getBlankData(schema, getRef) {
   if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
   let type = getSchemaType(schema);
-  if (type === 'array') return getBlankArray(schema, getRef);else if (type === 'object') return getBlankObject(schema, getRef);else if (type === 'allOf') return getBlankAllOf(schema, getRef);else if (type === 'oneOf') return getBlankOneOf(schema, getRef);else if (type === 'anyOf') return getBlankAnyOf(schema, getRef);else if (type === 'boolean') return schema.default === false ? false : schema.default || null;else if (type === 'integer' || type === 'number') return schema.default === 0 ? 0 : schema.default || null;else // string, etc.
-    return schema.default || '';
+  let default_ = schema.default;
+
+  if (schema.hasOwnProperty('const')) {
+    type = actualType(schema.const);
+    default_ = schema.const;
+  }
+
+  if (type === 'array') return getBlankArray(schema, getRef);else if (type === 'object') return getBlankObject(schema, getRef);else if (type === 'allOf') return getBlankAllOf(schema, getRef);else if (type === 'oneOf') return getBlankOneOf(schema, getRef);else if (type === 'anyOf') return getBlankAnyOf(schema, getRef);else if (type === 'boolean') return default_ === false ? false : default_ || null;else if (type === 'integer' || type === 'number') return default_ === 0 ? 0 : default_ || null;else // string, etc.
+    return default_ || '';
 }
 
 function getSyncedArray(data, schema, getRef) {
+  if (data === null) data = [];
   if (actualType(data) !== 'array') throw new Error("Schema expected an 'array' but the data type was '" + actualType(data) + "'");
   let newData = JSON.parse(JSON.stringify(data));
 
@@ -316,7 +335,17 @@ function getSyncedArray(data, schema, getRef) {
     schema.items = getRef(schema.items['$ref']);
   }
 
-  let type = normalizeKeyword(schema.items.type);
+  let type;
+  let default_;
+
+  if (schema.items.hasOwnProperty('const')) {
+    type = actualType(schema.items.const);
+    default_ = schema.items.const;
+  } else {
+    type = normalizeKeyword(schema.items.type);
+    default_ = schema.items.defualt;
+  }
+
   let minItems = schema.minItems || schema.min_items || 0;
 
   while (data.length < minItems) data.push(FILLER);
@@ -335,15 +364,18 @@ function getSyncedArray(data, schema, getRef) {
       if (!valueInChoices(schema.items, newData[i])) item = FILLER;
 
       if (item === FILLER) {
-        if (type === 'integer' || type === 'number') newData[i] = schema.items.default === 0 ? 0 : schema.items.default || null;else if (type === 'boolean') newData[i] = schema.items.default === false ? false : schema.items.default || null;else newData[i] = schema.items.default || '';
+        if (type === 'integer' || type === 'number') newData[i] = default_ === 0 ? 0 : default_ || null;else if (type === 'boolean') newData[i] = default_ === false ? false : default_ || null;else newData[i] = default_ || '';
       }
     }
+
+    if (schema.items.hasOwnProperty('const')) newData[i] = schema.items.const;
   }
 
   return newData;
 }
 
 function getSyncedObject(data, schema, getRef) {
+  if (data === null) data = {};
   if (actualType(data) !== 'object') throw new Error("Schema expected an 'object' but the data type was '" + actualType(data) + "'");
   let newData = JSON.parse(JSON.stringify(data));
   let schema_keys = getKeyword(schema, 'keys', 'properties', {});
@@ -363,22 +395,33 @@ function getSyncedObject(data, schema, getRef) {
     let schemaValue = schema_keys[key];
     let isRef = schemaValue.hasOwnProperty('$ref');
     if (isRef) schemaValue = getRef(schemaValue['$ref']);
-    let type = getSchemaType(schemaValue);
+    let type;
+    let default_;
+
+    if (schemaValue.hasOwnProperty('const')) {
+      type = actualType(schemaValue.const);
+      default_ = schemaValue.const;
+    } else {
+      type = getSchemaType(schemaValue);
+      default_ = schemaValue.default;
+    }
 
     if (!data.hasOwnProperty(key)) {
-      if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'boolean') newData[key] = schemaValue.default === false ? false : schemaValue.default || null;else if (type === 'integer' || type === 'number') newData[key] = schemaValue.default === 0 ? 0 : schemaValue.default || null;else newData[key] = schemaValue.default || '';
+      if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'boolean') newData[key] = default_ === false ? false : default_ || null;else if (type === 'integer' || type === 'number') newData[key] = default_ === 0 ? 0 : default_ || null;else newData[key] = default_ || '';
     } else {
       if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue, getRef);else {
         // if the current value is not in choices, we reset to blank
         if (!valueInChoices(schemaValue, data[key])) data[key] = '';
 
         if (data[key] === '') {
-          if (type === 'integer' || type === 'number') newData[key] = schemaValue.default === 0 ? 0 : schemaValue.default || null;else if (type === 'boolean') newData[key] = schemaValue.default === false ? false : schemaValue.default || null;else newData[key] = schemaValue.default || '';
+          if (type === 'integer' || type === 'number') newData[key] = default_ === 0 ? 0 : default_ || null;else if (type === 'boolean') newData[key] = default_ === false ? false : default_ || null;else newData[key] = default_ || '';
         } else {
           newData[key] = data[key];
         }
       }
     }
+
+    if (schemaValue.hasOwnProperty('const')) newData[key] = schemaValue.const;
   }
 
   return newData;
@@ -482,6 +525,11 @@ function dataObjectMatchesSchema(data, subschema) {
   for (let key in subSchemaKeys) {
     if (!subSchemaKeys.hasOwnProperty(key)) continue;
     if (!data.hasOwnProperty(key)) return false;
+
+    if (subSchemaKeys[key].hasOwnProperty('const')) {
+      if (subSchemaKeys[key].const !== data[key]) return false;
+    }
+
     let keyType = normalizeKeyword(subSchemaKeys[key].type);
     let dataValueType = actualType(data[key]);
 
@@ -493,7 +541,8 @@ function dataObjectMatchesSchema(data, subschema) {
       return false;
     } else if (keyType === 'string' && dataValueType !== 'string') {
       return false;
-    }
+    } // TODO: also check minimum, maximum, etc. keywords
+
   } // if here, all checks have passed
 
 
@@ -508,6 +557,10 @@ function dataArrayMatchesSchema(data, subschema) {
 
   for (let i = 0; i < data.length; i++) {
     dataValueType = actualType(data[i]);
+
+    if (subschema.items.hasOwnProperty('const')) {
+      if (subschema.items.const !== data[i]) return false;
+    }
 
     if (itemsType === 'number' && ['number', 'integer', 'null'].indexOf(dataValueType) === -1) {
       return false;
@@ -1070,7 +1123,8 @@ class FormMultiSelectInput extends React$1.Component {
       onClick: this.toggleOptions,
       value: this.props.value,
       onChange: this.handleChange,
-      disabled: this.props.readOnly
+      disabled: this.props.readOnly,
+      placeholder: this.props.placeholder
     })), this.state.showOptions && /*#__PURE__*/React$1.createElement(FormMultiSelectInputOptions, {
       options: this.props.options,
       value: this.props.value,
@@ -1084,7 +1138,6 @@ class FormMultiSelectInput extends React$1.Component {
   }
 
 }
-
 class FormMultiSelectInputField extends React$1.Component {
   constructor(...args) {
     super(...args);
@@ -1095,7 +1148,7 @@ class FormMultiSelectInputField extends React$1.Component {
       let event = {
         target: {
           value: this.props.value[index],
-          checket: false
+          checked: false
         }
       };
       this.props.onChange(event);
@@ -1117,11 +1170,10 @@ class FormMultiSelectInputField extends React$1.Component {
       onClick: e => this.handleRemove(e, index)
     }, "\xD7"))) : /*#__PURE__*/React$1.createElement("span", {
       className: "rjf-multiselect-field-input-placeholder"
-    }, "Select..."));
+    }, this.props.placeholder || 'Select...'));
   }
 
 }
-
 class FormMultiSelectInputOptions extends React$1.Component {
   constructor(...args) {
     super(...args);
@@ -1177,7 +1229,6 @@ class FormMultiSelectInputOptions extends React$1.Component {
   }
 
 }
-
 function dataURItoBlob(dataURI) {
   // Split metadata from data
   const splitted = dataURI.split(","); // Split params
@@ -1632,6 +1683,10 @@ class AutoCompleteInput extends React$1.Component {
     super(props);
 
     this.handleSelect = value => {
+      if (this.props.multiselect) {
+        if (Array.isArray(this.props.value)) value = this.props.value.concat([value]);else value = [value];
+      }
+
       let event = {
         target: {
           type: this.props.type,
@@ -1639,12 +1694,32 @@ class AutoCompleteInput extends React$1.Component {
           name: this.props.name
         }
       };
-      this.hideOptions();
+      if (!this.props.multiselect) this.hideOptions();
+      this.props.onChange(event);
+    };
+
+    this.handleMultiselectRemove = val => {
+      let value = this.props.value.filter(item => {
+        return item !== val;
+      });
+      let event = {
+        target: {
+          type: this.props.type,
+          value: value,
+          name: this.props.name
+        }
+      };
       this.props.onChange(event);
     };
 
     this.clearValue = e => {
-      this.handleSelect('');
+      this.handleSelect(this.defaultEmptyValue);
+    };
+
+    this.hasValue = () => {
+      if (Array.isArray(this.props.value) && !this.props.value.length) return false;
+      if (this.props.value === '' || this.props.value === null) return false;
+      return true;
     };
 
     this.handleSearchInputChange = e => {
@@ -1670,7 +1745,7 @@ class AutoCompleteInput extends React$1.Component {
       let endpoint = this.props.handler;
 
       if (!endpoint) {
-        console.error("Error: No 'handler' endpoing provided for autocomplete input.");
+        console.error("Error: No 'handler' endpoint provided for autocomplete input.");
         this.setState({
           loading: false
         });
@@ -1742,6 +1817,7 @@ class AutoCompleteInput extends React$1.Component {
     this.searchInputRef = /*#__PURE__*/React$1.createRef();
     this.input = /*#__PURE__*/React$1.createRef();
     this.debouncedFetchOptions = debounce(this.fetchOptions, 500);
+    this.defaultEmptyValue = props.multiselect ? [] : '';
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -1753,7 +1829,18 @@ class AutoCompleteInput extends React$1.Component {
   render() {
     return /*#__PURE__*/React$1.createElement("div", {
       className: this.props.label ? 'rjf-autocomplete-field has-label' : 'rjf-autocomplete-field'
-    }, /*#__PURE__*/React$1.createElement(FormInput, {
+    }, this.props.multiselect ? /*#__PURE__*/React$1.createElement(FormInput, {
+      label: this.props.label,
+      help_text: this.props.help_text,
+      error: this.props.error
+    }, /*#__PURE__*/React$1.createElement(FormMultiSelectInputField, {
+      inputRef: this.input,
+      onClick: this.toggleOptions,
+      onChange: e => this.handleMultiselectRemove(e.target.value),
+      value: this.props.value,
+      placeholder: this.props.placeholder || ' ',
+      disabled: this.props.readOnly || false
+    })) : /*#__PURE__*/React$1.createElement(React$1.Fragment, null, /*#__PURE__*/React$1.createElement(FormInput, {
       label: this.props.label,
       type: "text",
       value: this.props.value,
@@ -1766,13 +1853,13 @@ class AutoCompleteInput extends React$1.Component {
       placeholder: this.props.placeholder,
       name: this.props.name,
       className: "rjf-autocomplete-field-input"
-    }), this.props.value && !this.props.readOnly && /*#__PURE__*/React$1.createElement(Button, {
+    }), this.hasValue() && !this.props.readOnly && /*#__PURE__*/React$1.createElement(Button, {
       className: "autocomplete-field-clear",
       title: "Clear",
       onClick: this.clearValue
     }, /*#__PURE__*/React$1.createElement(Icon, {
       name: "x-circle"
-    }), " ", /*#__PURE__*/React$1.createElement("span", null, "Clear")), this.state.showOptions && !this.props.readOnly && /*#__PURE__*/React$1.createElement(AutoCompletePopup, {
+    }), " ", /*#__PURE__*/React$1.createElement("span", null, "Clear"))), this.state.showOptions && !this.props.readOnly && /*#__PURE__*/React$1.createElement(AutoCompletePopup, {
       options: this.state.options,
       value: this.props.value,
       hideOptions: this.hideOptions,
@@ -1783,7 +1870,8 @@ class AutoCompleteInput extends React$1.Component {
       searchInputRef: this.searchInputRef,
       inputRef: this.input,
       loading: this.state.loading,
-      hasHelpText: (this.props.help_text || this.props.error) && 1
+      hasHelpText: (this.props.help_text || this.props.error) && 1,
+      multiselect: this.props.multiselect
     }));
   }
 
@@ -1825,7 +1913,8 @@ class AutoCompletePopup extends React$1.Component {
       value: this.props.value,
       onSelect: this.props.onSelect,
       loading: this.props.loading,
-      hasHelpText: this.props.hasHelpText
+      hasHelpText: this.props.hasHelpText,
+      multiselect: this.props.multiselect
     })));
   }
 
@@ -1861,7 +1950,8 @@ function AutocompleteOptions(props) {
       inputValue = option;
     }
 
-    let selected = props.value === inputValue;
+    let selected = false;
+    if (Array.isArray(props.value)) selected = props.value.indexOf(inputValue) > -1;else selected = props.value === inputValue;
     let optionClassName = 'rjf-autocomplete-field-option';
     if (selected) optionClassName += ' selected';
     return /*#__PURE__*/React$1.createElement("div", {
@@ -1869,7 +1959,7 @@ function AutocompleteOptions(props) {
       className: optionClassName,
       tabIndex: 0,
       role: "button",
-      onClick: () => props.onSelect(inputValue)
+      onClick: () => props.multiselect && selected ? null : props.onSelect(inputValue)
     }, title);
   }));
 }
@@ -1878,11 +1968,15 @@ function GroupTitle(props) {
   if (!props.children) return null;
   return /*#__PURE__*/React$1.createElement("div", {
     className: "rjf-form-group-title"
-  }, props.editable ? /*#__PURE__*/React$1.createElement("span", null, props.children, " ", /*#__PURE__*/React$1.createElement(Button, {
+  }, props.children, props.editable && /*#__PURE__*/React$1.createElement(React$1.Fragment, null, ' ', /*#__PURE__*/React$1.createElement(Button, {
     className: "edit",
     onClick: props.onEdit,
     title: "Edit"
-  }, "Edit")) : props.children);
+  }, "Edit")), props.collapsible && /*#__PURE__*/React$1.createElement(React$1.Fragment, null, ' ', /*#__PURE__*/React$1.createElement(Button, {
+    className: "collapse",
+    onClick: props.onCollapse,
+    title: props.collapsed ? "Expand" : "Collapse"
+  }, props.collapsed ? "[+]" : "[-]")));
 }
 function GroupDescription(props) {
   if (!props.children) return null;
@@ -1973,23 +2067,46 @@ function FormRow(props) {
   }, props.children));
 }
 function FormGroup(props) {
-  let hasChildren = React$1.Children.count(props.children);
-  let innerClassName = props.level === 0 && !hasChildren ? "" : "rjf-form-group-inner";
+  const [collapsed, setCollapsed] = React$1.useState(false);
+  let type = getSchemaType(props.schema);
+  React$1.Children.count(props.children);
+  let innerClassName = props.level === 0 && props.childrenType === 'groups' ? '' : 'rjf-form-group-inner';
+  let addButtonText;
+  let addButtonTitle;
+
+  if (type === 'object') {
+    addButtonText = 'Add key';
+    addButtonTitle = 'Add new key';
+  } else {
+    addButtonText = 'Add item';
+    addButtonTitle = 'Add new item';
+  }
+
   return /*#__PURE__*/React$1.createElement("div", {
     className: "rjf-form-group"
   }, props.level === 0 && /*#__PURE__*/React$1.createElement(GroupTitle, {
     editable: props.editable,
-    onEdit: props.onEdit
+    onEdit: props.onEdit,
+    collapsible: props.collapsible,
+    onCollapse: () => setCollapsed(!collapsed),
+    collapsed: collapsed
   }, props.schema.title), props.level === 0 && /*#__PURE__*/React$1.createElement(GroupDescription, null, props.schema.description), /*#__PURE__*/React$1.createElement("div", {
     className: innerClassName
   }, props.level > 0 && /*#__PURE__*/React$1.createElement(GroupTitle, {
     editable: props.editable,
-    onEdit: props.onEdit
-  }, props.schema.title), props.level > 0 && /*#__PURE__*/React$1.createElement(GroupDescription, null, props.schema.description), props.children, props.addable && /*#__PURE__*/React$1.createElement(Button, {
+    onEdit: props.onEdit,
+    collapsible: props.collapsible,
+    onCollapse: () => setCollapsed(!collapsed),
+    collapsed: collapsed
+  }, props.schema.title), props.level > 0 && /*#__PURE__*/React$1.createElement(GroupDescription, null, props.schema.description), collapsed && /*#__PURE__*/React$1.createElement("div", {
+    className: "rjf-collapsed-indicator"
+  }, /*#__PURE__*/React$1.createElement("span", null, "Collapsed")), /*#__PURE__*/React$1.createElement("div", {
+    className: collapsed ? "rjf-form-group-children rjf-collapsed" : "rjf-form-group-children"
+  }, props.children), !collapsed && props.addable && /*#__PURE__*/React$1.createElement(Button, {
     className: "add",
     onClick: e => props.onAdd(),
-    title: props.schema.type === 'object' ? 'Add new key' : 'Add new item'
-  }, props.schema.type === 'object' ? 'Add key' : 'Add item')));
+    title: addButtonTitle
+  }, addButtonText)));
 }
 
 class FileUploader extends React$1.Component {
@@ -2430,7 +2547,15 @@ function FormField(props) {
   if (typeof inputProps.error === 'string') inputProps.error = [inputProps.error];
   if (props.schema.placeholder) inputProps.placeholder = props.schema.placeholder;
   if (props.schema.handler) inputProps.handler = props.schema.handler;
-  let type = normalizeKeyword(props.schema.type);
+  let type;
+
+  if (props.schema.hasOwnProperty('const')) {
+    type = actualType(props.schema.const);
+    inputProps.readOnly = true;
+  } else {
+    type = normalizeKeyword(props.schema.type);
+  }
+
   let choices = getKeyword(props.schema, 'choices', 'enum');
 
   if (choices) {
@@ -2515,6 +2640,11 @@ function FormField(props) {
 
     case 'autocomplete':
       InputField = AutoCompleteInput;
+      break;
+
+    case 'multiselect-autocomplete':
+      InputField = AutoCompleteInput;
+      inputProps.multiselect = true;
       break;
 
     case 'textarea':
@@ -2612,7 +2742,7 @@ function getArrayFormRow(args) {
   };
   if (isReadonly) nextArgs.schema.readOnly = true;
 
-  if (nextArgs.schema.widget === 'multiselect') {
+  if (nextArgs.schema.widget === 'multiselect' || nextArgs.schema.widget === 'multiselect-autocomplete') {
     nextArgs.data = data;
     nextArgs.name = name;
     nextArgs.removable = false;
@@ -2669,7 +2799,9 @@ function getArrayFormRow(args) {
       onAdd: () => onAdd(getBlankData(schema.items, args.getRef), coords),
       editable: args.editable,
       onEdit: args.onKeyEdit,
-      key: 'row_group_' + name
+      key: 'row_group_' + name,
+      collapsible: data.length > 0,
+      childrenType: "rows"
     }, rowError && rowError.map((error, i) => /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-error-text",
       key: i
@@ -2688,21 +2820,21 @@ function getArrayFormRow(args) {
   if (groups.length) {
     let groupError = args.errorMap[getCoordsFromName(coords)];
     if (typeof groupError === 'string') groupError = [groupError];
-    let groupTitle = schema.title ? /*#__PURE__*/React$1.createElement(GroupTitle, {
-      editable: args.editable,
-      onEdit: args.onKeyEdit
-    }, schema.title) : null;
-    let groupDescription = schema.description ? /*#__PURE__*/React$1.createElement(GroupDescription, null, schema.description) : null;
     groups = /*#__PURE__*/React$1.createElement("div", {
       key: 'group_' + name,
       className: "rjf-form-group-wrapper"
     }, args.parentType === 'object' && args.removable && /*#__PURE__*/React$1.createElement(FormRowControls, {
       onRemove: e => onRemove(name)
-    }), /*#__PURE__*/React$1.createElement("div", {
-      className: "rjf-form-group"
-    }, /*#__PURE__*/React$1.createElement("div", {
-      className: level > 0 ? "rjf-form-group-inner" : ""
-    }, groupTitle, groupDescription, groupError && groupError.map((error, i) => /*#__PURE__*/React$1.createElement("div", {
+    }), /*#__PURE__*/React$1.createElement(FormGroup, {
+      level: level,
+      schema: schema,
+      addable: addable,
+      onAdd: () => onAdd(getBlankData(schema.items, args.getRef), coords),
+      editable: args.editable,
+      onEdit: args.onKeyEdit,
+      collapsible: data.length > 0,
+      childrenType: "groups"
+    }, groupError && groupError.map((error, i) => /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-error-text",
       key: i
     }, error)), groups.map((i, index) => /*#__PURE__*/React$1.createElement("div", {
@@ -2712,11 +2844,7 @@ function getArrayFormRow(args) {
       onRemove: removable ? e => onRemove(joinCoords(name, index)) : null,
       onMoveUp: index > 0 && !isReadonly ? e => onMove(joinCoords(name, index), joinCoords(name, index - 1)) : null,
       onMoveDown: index < groups.length - 1 && !isReadonly ? e => onMove(joinCoords(name, index), joinCoords(name, index + 1)) : null
-    }), i)), addable && /*#__PURE__*/React$1.createElement(Button, {
-      className: "add",
-      onClick: e => onAdd(getBlankData(schema.items, args.getRef), coords),
-      title: "Add new item"
-    }, "Add item"))));
+    }), i))));
   }
 
   return [...rows, ...groups];
@@ -2847,7 +2975,9 @@ function getObjectFormRow(args) {
       onAdd: () => handleKeyValueAdd(data, coords, onAdd, schema.additionalProperties, args.getRef),
       editable: args.editable,
       onEdit: args.onKeyEdit,
-      key: 'row_group_' + name
+      key: 'row_group_' + name,
+      collapsible: keys.length > 0,
+      childrenType: "rows"
     }, groupError && groupError.map((error, i) => /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-error-text",
       key: i
@@ -3002,6 +3132,15 @@ class OneOf extends React$1.Component {
           let isRef = subschema.hasOwnProperty('$ref');
           if (isRef) subschema = this.props.parentArgs.getRef(subschema['$ref']);
           let subType = getSchemaType(subschema);
+
+          if (subschema.hasOwnProperty('const')) {
+            if (subschema.const === this.props.nextArgs.data) {
+              index = 1;
+              break;
+            } else {
+              continue;
+            }
+          }
 
           if (dataType === 'number') {
             if (subType === 'number' || subType === 'integer') {
@@ -3382,6 +3521,8 @@ function validateKeys(keys) {
       validation = validateAnyOf(value);
     } else if (value.hasOwnProperty('allOf')) {
       validation = validateAllOf(value);
+    } else if (value.hasOwnProperty('const')) {
+      validation = validateConst();
     } else {
       validation = {
         isValid: false,
@@ -3415,7 +3556,7 @@ function validateArray(schema) {
   } else if (schema.items.hasOwnProperty('$ref')) {
     return validateRef(schema.items);
   } else {
-    if (!schema.items.hasOwnProperty('oneOf') && !schema.items.hasOwnProperty('anyOf') && !schema.items.hasOwnProperty('allOf')) return {
+    if (!schema.items.hasOwnProperty('oneOf') && !schema.items.hasOwnProperty('anyOf') && !schema.items.hasOwnProperty('allOf') && !schema.items.hasOwnProperty('const')) return {
       isValid: false,
       msg: "Array 'items' must have a 'type' or '$ref' or 'oneOf' or 'anyOf'"
     };
@@ -3437,6 +3578,11 @@ function validateArray(schema) {
       isValid: false,
       msg: "Currently, 'allOf' inside array items is not supported"
     };
+  }
+
+  if (schema.items.hasOwnProperty('const')) {
+    validation = validateConst();
+    if (!validation.isValid) return validation;
   }
 
   return {
@@ -3488,6 +3634,13 @@ function validateAllOf(schema) {
   }
 
   return validation;
+}
+
+function validateConst(schema) {
+  return {
+    isValid: true,
+    msg: ""
+  };
 }
 
 function validateSubschemas(schema, keyword) {
@@ -3546,7 +3699,7 @@ class EditorState {
     if (!validation.isValid) throw new Error('Error while creating EditorState: Invalid schema: ' + validation.msg);
     if (typeof data === 'string' && data !== '') data = JSON.parse(data);
 
-    if (!data) {
+    if (!data && data !== null) {
       // create empty data from schema
       data = getBlankData(schema, ref => EditorState.getRef(ref, schema));
     } else {
