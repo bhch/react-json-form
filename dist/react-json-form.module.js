@@ -3699,7 +3699,7 @@ class EditorState {
     if (!validation.isValid) throw new Error('Error while creating EditorState: Invalid schema: ' + validation.msg);
     if (typeof data === 'string' && data !== '') data = JSON.parse(data);
 
-    if (!data && data !== null) {
+    if (!data) {
       // create empty data from schema
       data = getBlankData(schema, ref => EditorState.getRef(ref, schema));
     } else {
