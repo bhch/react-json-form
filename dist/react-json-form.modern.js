@@ -212,7 +212,12 @@ function getBlankObject(schema, getRef) {
     let value = schema_keys[key];
     let isRef = value.hasOwnProperty('$ref');
     let isConst = value.hasOwnProperty('const');
-    if (isRef) value = getRef(value['$ref']);
+
+    if (isRef) {
+      value = _extends({}, getRef(value['$ref']), value);
+      delete value['$ref'];
+    }
+
     let type = normalizeKeyword(value.type);
 
     if (!type) {
@@ -252,7 +257,8 @@ function getBlankArray(schema, getRef) {
   if (schema.items.hasOwnProperty('$ref')) {
     // :TODO: this mutates the original schema
     // but i'll fix it later
-    schema.items = getRef(schema.items['$ref']);
+    schema.items = _extends({}, getRef(schema.items['$ref']), schema.items);
+    delete schema.items['$ref'];
   }
 
   let type = normalizeKeyword(schema.items.type);
@@ -311,7 +317,11 @@ function getBlankAnyOf(schema, getRef) {
   return getBlankData(nextSchema, getRef);
 }
 function getBlankData(schema, getRef) {
-  if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
+  if (schema.hasOwnProperty('$ref')) {
+    schema = _extends({}, getRef(schema['$ref']), schema);
+    delete schema['$ref'];
+  }
+
   let type = getSchemaType(schema);
   let default_ = schema.default;
 
@@ -332,7 +342,8 @@ function getSyncedArray(data, schema, getRef) {
   if (schema.items.hasOwnProperty('$ref')) {
     // :TODO: this will most probably mutate the original schema
     // but i'll fix it later
-    schema.items = getRef(schema.items['$ref']);
+    schema.items = _extends({}, getRef(schema.items['$ref']), schema.items);
+    delete schema.items['$ref'];
   }
 
   let type;
@@ -394,7 +405,12 @@ function getSyncedObject(data, schema, getRef) {
     let key = keys[i];
     let schemaValue = schema_keys[key];
     let isRef = schemaValue.hasOwnProperty('$ref');
-    if (isRef) schemaValue = getRef(schemaValue['$ref']);
+
+    if (isRef) {
+      schemaValue = _extends({}, getRef(schemaValue['$ref']), schemaValue);
+      delete schemaValue['$ref'];
+    }
+
     let type;
     let default_;
 
@@ -448,7 +464,11 @@ function getSyncedAnyOf(data, schema, getRef) {
 }
 function getSyncedData(data, schema, getRef) {
   // adds those keys to data which are in schema but not in data
-  if (schema.hasOwnProperty('$ref')) schema = getRef(schema['$ref']);
+  if (schema.hasOwnProperty('$ref')) {
+    schema = _extends({}, getRef(schema['$ref']), schema);
+    delete schema['$ref'];
+  }
+
   let type = getSchemaType(schema);
   let syncFunc = getSyncFunc(type);
   if (syncFunc) return syncFunc(data, schema, getRef);
@@ -467,7 +487,12 @@ function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
 
   for (let i = 0; i < subschemas.length; i++) {
     let subschema = subschemas[i];
-    if (subschema.hasOwnProperty('$ref')) subschema = getRef(subschema['$ref']);
+
+    if (subschema.hasOwnProperty('$ref')) {
+      subschema = _extends({}, getRef(subschema['$ref']), subschema);
+      delete subschema['$ref'];
+    }
+
     let subType = getSchemaType(subschema);
 
     if (dataType === 'object') {
@@ -493,7 +518,12 @@ function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
     // so we'll just return the first schema that matches the data type
     for (let i = 0; i < subschemas.length; i++) {
       let subschema = subschemas[i];
-      if (subschema.hasOwnProperty('$ref')) subschema = getRef(subschema['$ref']);
+
+      if (subschema.hasOwnProperty('$ref')) {
+        subschema = _extends({}, getRef(subschema['$ref']), subschema);
+        delete subschema['$ref'];
+      }
+
       let subType = getSchemaType(subschema);
 
       if (dataType === subType) {
@@ -2724,7 +2754,12 @@ function getArrayFormRow(args) {
   let max_items = getKeyword(schema, 'max_items', 'maxItems') || 100;
   if (data.length >= max_items || isReadonly) addable = false;
   let isRef = schema.items.hasOwnProperty('$ref');
-  if (isRef) schema.items = args.getRef(schema.items['$ref']);
+
+  if (isRef) {
+    schema.items = _extends({}, args.getRef(schema.items['$ref']), schema.items);
+    delete schema.items['$ref'];
+  }
+
   let type = normalizeKeyword(schema.items.type);
   let nextArgs = {
     schema: schema.items,
@@ -2889,7 +2924,12 @@ function getObjectFormRow(args) {
     }
 
     let isRef = schemaValue.hasOwnProperty('$ref');
-    if (isRef) schemaValue = args.getRef(schemaValue['$ref']);
+
+    if (isRef) {
+      schemaValue = _extends({}, args.getRef(schemaValue['$ref']), schemaValue);
+      delete schemaValue['$ref'];
+    }
+
     if (isReadonly) schemaValue.readOnly = true;
     let type = normalizeKeyword(schemaValue.type);
 
@@ -3043,7 +3083,14 @@ class OneOfTopLevel extends React$1.Component {
       if (index === undefined) index = this.state.option;
       let schema = this.props.args.schema[this.schemaName][index];
       let isRef = schema.hasOwnProperty('$ref');
-      if (isRef) schema = this.props.args.getRef(schema['$ref']);
+
+      if (isRef) {
+        schema = _extends({}, this.props.args.getRef(schema['$ref']), {
+          schema
+        });
+        delete schema['$ref'];
+      }
+
       return schema;
     };
 
@@ -3130,7 +3177,12 @@ class OneOf extends React$1.Component {
         for (let i = 0; i < subschemas.length; i++) {
           let subschema = subschemas[i];
           let isRef = subschema.hasOwnProperty('$ref');
-          if (isRef) subschema = this.props.parentArgs.getRef(subschema['$ref']);
+
+          if (isRef) {
+            subschema = _extends({}, this.props.parentArgs.getRef(subschema['$ref']), subschema);
+            delete subschema['$ref'];
+          }
+
           let subType = getSchemaType(subschema);
 
           if (subschema.hasOwnProperty('const')) {
@@ -3250,7 +3302,12 @@ class OneOf extends React$1.Component {
       }
 
       let isRef = schema.hasOwnProperty('$ref');
-      if (isRef) schema = this.props.parentArgs.getRef(schema['$ref']);
+
+      if (isRef) {
+        schema = _extends({}, this.props.parentArgs.getRef(schema['$ref']), schema);
+        delete schema['$ref'];
+      }
+
       return schema;
     };
 
@@ -3425,6 +3482,10 @@ function validateSchema(schema) {
       validation = validateOneOf(schema);
     } else if (schema.hasOwnProperty('anyOf')) {
       validation = validateAnyOf(schema);
+    } else if (schema.hasOwnProperty('$ref')) {
+      validation = {
+        isValid: true
+      };
     } else {
       validation = {
         isValid: false,
@@ -3791,6 +3852,12 @@ class ReactJSONForm extends React$1.Component {
       let data = this.props.editorState.getData();
       let schema = this.props.editorState.getSchema();
       let formGroups = [];
+
+      if (schema.hasOwnProperty('$ref')) {
+        schema = _extends({}, this.getRef(schema['$ref']), schema);
+        delete schema['$ref'];
+      }
+
       let type = getSchemaType(schema);
       let args = {
         data: data,

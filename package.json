@@ -1,6 +1,6 @@
 {
   "name": "@bhch/react-json-form",
-  "version": "2.12.1",
+  "version": "2.13.0",
   "description": "Create forms using JSON Schema",
   "publishConfig": {
     "access": "public"
