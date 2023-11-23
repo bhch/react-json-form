@@ -14,8 +14,10 @@ export function getBlankObject(schema, getRef) {
         let isRef = value.hasOwnProperty('$ref');
         let isConst = value.hasOwnProperty('const');
         
-        if (isRef)
-            value = getRef(value['$ref']);
+        if (isRef) {
+            value = {...getRef(value['$ref']), ...value};
+            delete value['$ref'];
+        }
 
         let type = normalizeKeyword(value.type);
 
@@ -81,7 +83,8 @@ export function getBlankArray(schema, getRef) {
     if (schema.items.hasOwnProperty('$ref')) {
         // :TODO: this mutates the original schema
         // but i'll fix it later
-        schema.items = getRef(schema.items['$ref']);
+        schema.items = {...getRef(schema.items['$ref']), ...schema.items};
+        delete schema.items['$ref'];
     }
 
     let type = normalizeKeyword(schema.items.type);
@@ -166,8 +169,10 @@ export function getBlankAnyOf(schema, getRef) {
 
 
 export function getBlankData(schema, getRef) {
-    if (schema.hasOwnProperty('$ref'))
-        schema = getRef(schema['$ref']);
+    if (schema.hasOwnProperty('$ref')) {
+        schema = {...getRef(schema['$ref']), ...schema};
+        delete schema['$ref'];
+    }
 
     let type = getSchemaType(schema);
 
@@ -209,7 +214,8 @@ function getSyncedArray(data, schema, getRef) {
     if (schema.items.hasOwnProperty('$ref')) {
         // :TODO: this will most probably mutate the original schema
         // but i'll fix it later
-        schema.items = getRef(schema.items['$ref'])
+        schema.items = {...getRef(schema.items['$ref']), ...schema.items};
+        delete schema.items['$ref'];
     }
 
     let type;
@@ -291,8 +297,10 @@ function getSyncedObject(data, schema, getRef) {
         
         let isRef = schemaValue.hasOwnProperty('$ref');
         
-        if (isRef)
-            schemaValue = getRef(schemaValue['$ref']);
+        if (isRef) {
+            schemaValue = {...getRef(schemaValue['$ref']), ...schemaValue};
+            delete schemaValue['$ref'];
+        }
 
         let type;
         let default_;
@@ -384,8 +392,10 @@ export function getSyncedAnyOf(data, schema, getRef) {
 
 export function getSyncedData(data, schema, getRef) {
     // adds those keys to data which are in schema but not in data
-    if (schema.hasOwnProperty('$ref'))
-        schema = getRef(schema['$ref']);
+    if (schema.hasOwnProperty('$ref')) {
+        schema = {...getRef(schema['$ref']), ...schema};
+        delete schema['$ref'];
+    }
 
 
     let type = getSchemaType(schema);
@@ -424,8 +434,10 @@ export function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
     for (let i = 0; i < subschemas.length; i++) {
         let subschema = subschemas[i];
     
-        if (subschema.hasOwnProperty('$ref'))
-            subschema = getRef(subschema['$ref']);
+        if (subschema.hasOwnProperty('$ref')) {
+            subschema = {...getRef(subschema['$ref']), ...subschema};
+            delete subschema['$ref'];
+        }
 
         let subType = getSchemaType(subschema);
 
@@ -453,8 +465,10 @@ export function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
         for (let i = 0; i < subschemas.length; i++) {
             let subschema = subschemas[i];
         
-            if (subschema.hasOwnProperty('$ref'))
-                subschema = getRef(subschema['$ref']);
+            if (subschema.hasOwnProperty('$ref')) {
+                subschema = {...getRef(subschema['$ref']), ...subschema};
+                delete subschema['$ref'];
+            }
 
             let subType = getSchemaType(subschema);
 

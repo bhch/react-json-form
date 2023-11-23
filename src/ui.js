@@ -231,8 +231,10 @@ export function getArrayFormRow(args) {
 
     let isRef = schema.items.hasOwnProperty('$ref');
 
-    if (isRef)
-        schema.items = args.getRef(schema.items['$ref']);
+    if (isRef) {
+        schema.items = {...args.getRef(schema.items['$ref']), ...schema.items};
+        delete schema.items['$ref'];
+    }
 
     let type = normalizeKeyword(schema.items.type);
 
@@ -415,8 +417,10 @@ export function getObjectFormRow(args) {
 
         let isRef = schemaValue.hasOwnProperty('$ref');
 
-        if (isRef)
-            schemaValue = args.getRef(schemaValue['$ref']);
+        if (isRef) {
+            schemaValue = {...args.getRef(schemaValue['$ref']), ...schemaValue};
+            delete schemaValue['$ref'];
+        }
 
         if (isReadonly)
             schemaValue.readOnly = true;
@@ -591,8 +595,10 @@ class OneOfTopLevel extends React.Component {
 
         let isRef = schema.hasOwnProperty('$ref');
 
-        if (isRef)
-            schema = this.props.args.getRef(schema['$ref']);
+        if (isRef) {
+            schema = {...this.props.args.getRef(schema['$ref']), schema};
+            delete schema['$ref'];
+        }
 
         return schema;
     }
@@ -711,8 +717,10 @@ class OneOf extends React.Component {
                 let subschema = subschemas[i];
                 let isRef = subschema.hasOwnProperty('$ref');
 
-                if (isRef)
-                    subschema = this.props.parentArgs.getRef(subschema['$ref']);
+                if (isRef) {
+                    subschema = {...this.props.parentArgs.getRef(subschema['$ref']), ...subschema};
+                    delete subschema['$ref'];
+                }
 
                 let subType = getSchemaType(subschema);
 
@@ -839,8 +847,10 @@ class OneOf extends React.Component {
 
         let isRef = schema.hasOwnProperty('$ref');
 
-        if (isRef)
-            schema = this.props.parentArgs.getRef(schema['$ref']);
+        if (isRef) {
+            schema = {...this.props.parentArgs.getRef(schema['$ref']), ...schema};
+            delete schema['$ref'];
+        }
 
         return schema;
     }
