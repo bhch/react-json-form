@@ -19,6 +19,8 @@ export function validateSchema(schema) {
             validation = validateOneOf(schema);
         } else if (schema.hasOwnProperty('anyOf')) {
             validation = validateAnyOf(schema);
+        } else if (schema.hasOwnProperty('$ref')) {
+            validation = {isValid: true};
         } else {
             validation = {
                 isValid: false,

@@ -36,6 +36,11 @@ export default class ReactJSONForm extends React.Component {
         let schema = this.props.editorState.getSchema();
         let formGroups = [];
 
+        if (schema.hasOwnProperty('$ref')) {
+            schema = {...this.getRef(schema['$ref']), ...schema};
+            delete schema['$ref'];
+        }
+
         let type = getSchemaType(schema);
 
         let args = {
