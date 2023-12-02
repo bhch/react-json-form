@@ -294,7 +294,7 @@ function getSyncedObject(data, schema, getRef) {
     for (let i = 0; i < keys.length; i++) {
         let key = keys[i];
         let schemaValue = schema_keys[key];
-        
+
         let isRef = schemaValue.hasOwnProperty('$ref');
         
         if (isRef) {
@@ -314,10 +314,17 @@ function getSyncedObject(data, schema, getRef) {
         }
       
         if (!data.hasOwnProperty(key)) {
+            /* This key is declared in schema but it's not present in the data.
+               So we can use blank data here.
+            */
             if (type === 'array')
                 newData[key] = getSyncedArray([], schemaValue, getRef);
             else if (type === 'object')
                 newData[key] = getSyncedObject({}, schemaValue, getRef);
+            else if (type === 'oneOf')
+                newData[key] = getBlankOneOf(schemaValue, getRef);
+            else if (type === 'anyOf')
+                newData[key] = getBlankAntOf(schemaValue, getRef);
             else if (type === 'boolean')
                 newData[key] = default_ === false ? false : (default_ || null);
             else if (type === 'integer' || type === 'number')
@@ -329,6 +336,10 @@ function getSyncedObject(data, schema, getRef) {
                 newData[key] = getSyncedArray(data[key], schemaValue, getRef);
             else if (type === 'object')
                 newData[key] = getSyncedObject(data[key], schemaValue, getRef);
+            else if (type === 'oneOf')
+                newData[key] = getSyncedOneOf(data[key], schemaValue, getRef);
+            else if (type === 'anyOf')
+                newData[key] = getSyncedAnyOf(data[key], schemaValue, getRef);
             else {
                 // if the current value is not in choices, we reset to blank
                 if (!valueInChoices(schemaValue, data[key]))
@@ -349,8 +360,13 @@ function getSyncedObject(data, schema, getRef) {
 
         if (schemaValue.hasOwnProperty('const'))
             newData[key] = schemaValue.const;
-        
     }
+
+    if (schema.hasOwnProperty('oneOf'))
+        newData = {...newData, ...getSyncedOneOf(data, schema, getRef)};
+
+    if (schema.hasOwnProperty('anyOf'))
+        newData = {...newData, ...getSyncedAnyOf(data, schema, getRef)};
 
     return newData;
 }
@@ -396,7 +412,6 @@ export function getSyncedData(data, schema, getRef) {
         schema = {...getRef(schema['$ref']), ...schema};
         delete schema['$ref'];
     }
-
 
     let type = getSchemaType(schema);
 
@@ -477,6 +492,14 @@ export function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
                 break;
             }
         }
+    }
+
+    if (index === null) {
+        // still no match found
+        if (data === null) // for null data, return the first subschema and hope for the best
+            index = 1;
+        else // for anything else, throw error
+            throw new Error("No matching subschema found in '" + schemaName + "' for data '" + data + "' (type: " + dataType + ")");
     }
 
     return index;
