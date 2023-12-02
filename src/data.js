@@ -294,7 +294,6 @@ function getSyncedObject(data, schema, getRef) {
     for (let i = 0; i < keys.length; i++) {
         let key = keys[i];
         let schemaValue = schema_keys[key];
-
         let isRef = schemaValue.hasOwnProperty('$ref');
         
         if (isRef) {
@@ -497,7 +496,7 @@ export function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
     if (index === null) {
         // still no match found
         if (data === null) // for null data, return the first subschema and hope for the best
-            index = 1;
+            index = 0;
         else // for anything else, throw error
             throw new Error("No matching subschema found in '" + schemaName + "' for data '" + data + "' (type: " + dataType + ")");
     }
