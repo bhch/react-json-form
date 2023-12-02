@@ -547,7 +547,7 @@ function findMatchingSubschemaIndex(data, schema, getRef, schemaName) {
   if (index === null) {
     // still no match found
     if (data === null) // for null data, return the first subschema and hope for the best
-      index = 1;else // for anything else, throw error
+      index = 0;else // for anything else, throw error
       throw new Error("No matching subschema found in '" + schemaName + "' for data '" + data + "' (type: " + dataType + ")");
   }
 
