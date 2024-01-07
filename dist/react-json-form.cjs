@@ -4376,22 +4376,42 @@ function FormInstance(config) {
   this.onChange = this.onChange.bind(this);
 
   this.render = function () {
+    if (ReactDOM__default["default"].hasOwnProperty('createRoot')) this._renderReact18();else this._renderReact17();
+  };
+
+  this._renderReact17 = function () {
     try {
-      ReactDOM__default["default"].render( /*#__PURE__*/React__default["default"].createElement(FormContainer, {
-        schema: this.schema,
-        dataInputId: this.dataInputId,
-        data: this.data,
-        errorMap: this.errorMap,
-        fileHandler: this.fileHandler,
-        fileHandlerArgs: this.fileHandlerArgs,
-        onChange: this.onChange,
-        readonly: this.readonly
-      }), document.getElementById(this.containerId));
+      ReactDOM__default["default"].render(this._getFormContainerComponent(), document.getElementById(this.containerId));
     } catch (error) {
       ReactDOM__default["default"].render( /*#__PURE__*/React__default["default"].createElement(ErrorReporter, {
         error: error
       }), document.getElementById(this.containerId));
     }
+  };
+
+  this._renderReact18 = function () {
+    const root = ReactDOM__default["default"].createRoot(document.getElementById(this.containerId));
+
+    try {
+      root.render(this._getFormContainerComponent());
+    } catch (error) {
+      root.render( /*#__PURE__*/React__default["default"].createElement(ErrorReporter, {
+        error: error
+      }));
+    }
+  };
+
+  this._getFormContainerComponent = function () {
+    return /*#__PURE__*/React__default["default"].createElement(FormContainer, {
+      schema: this.schema,
+      dataInputId: this.dataInputId,
+      data: this.data,
+      errorMap: this.errorMap,
+      fileHandler: this.fileHandler,
+      fileHandlerArgs: this.fileHandlerArgs,
+      onChange: this.onChange,
+      readonly: this.readonly
+    });
   };
 
   this.update = function (config) {
