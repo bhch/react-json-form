@@ -50,18 +50,16 @@ export function FormInstance(config) {
     this.onChange = this.onChange.bind(this);
 
     this.render = function() {
+        if (ReactDOM.hasOwnProperty('createRoot'))
+            this._renderReact18();
+        else 
+            this._renderReact17();
+    };
+
+    this._renderReact17 = function() {
         try {
             ReactDOM.render(
-                <FormContainer
-                    schema={this.schema}
-                    dataInputId={this.dataInputId}
-                    data={this.data}
-                    errorMap={this.errorMap}
-                    fileHandler={this.fileHandler}
-                    fileHandlerArgs={this.fileHandlerArgs}
-                    onChange={this.onChange}
-                    readonly={this.readonly}
-                />,
+                this._getFormContainerComponent(),
                 document.getElementById(this.containerId)
             );
         } catch (error) {
@@ -70,6 +68,31 @@ export function FormInstance(config) {
                 document.getElementById(this.containerId)
             );
         }
+    };
+
+    this._renderReact18 = function() {
+        const root = ReactDOM.createRoot(document.getElementById(this.containerId));
+
+        try {
+            root.render(this._getFormContainerComponent());
+        } catch (error) {
+            root.render(<ErrorReporter error={error} />);
+        }
+    };
+
+    this._getFormContainerComponent = function() {
+        return (
+            <FormContainer
+                schema={this.schema}
+                dataInputId={this.dataInputId}
+                data={this.data}
+                errorMap={this.errorMap}
+                fileHandler={this.fileHandler}
+                fileHandlerArgs={this.fileHandlerArgs}
+                onChange={this.onChange}
+                readonly={this.readonly}
+            />
+        );
     };
 
     this.update = function(config) {
