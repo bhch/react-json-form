@@ -2,7 +2,7 @@ import React from 'react';
 import Button from './buttons';
 import Loader from './loaders';
 import {TimePicker} from './widgets';
-import {EditorContext, getCsrfCookie, capitalize, convertType, getCoordsFromName} from '../util';
+import {EditorContext, getCsrfCookie, capitalize, convertType, getCoordsFromName, choicesValueTitleMap} from '../util';
 
 
 export function Label(props) {
@@ -213,6 +213,7 @@ export class FormMultiSelectInput extends React.Component {
                         inputRef={this.input}
                         onClick={this.toggleOptions}
                         value={this.props.value}
+                        options={this.props.options}
                         onChange={this.handleChange}
                         disabled={this.props.readOnly}
                         placeholder={this.props.placeholder}
@@ -251,6 +252,7 @@ export class FormMultiSelectInputField extends React.Component {
     }
 
     render() {
+        let valueTitleMap = choicesValueTitleMap(this.props.options)
         return (
             <div
                 className="rjf-multiselect-field-input"
@@ -262,7 +264,7 @@ export class FormMultiSelectInputField extends React.Component {
                 this.props.value.length ?
                 this.props.value.map((item, index) => (
                     <span className="rjf-multiselect-field-input-item" key={item + '_' + index}>
-                        <span>{item}</span>
+                        <span>{valueTitleMap[item]}</span>
                         {this.props.disabled || <button title="Remove" type="button" onClick={(e) => this.handleRemove(e, index)}>&times;</button>}
                     </span>
                     )

@@ -190,6 +190,33 @@ export function getKey(obj, key, default_value) {
 }
 
 
+export function choicesValueTitleMap(choices) {
+    /* Returns a mapping of {value: title} for the given choices.
+     * E.g.:
+     *      Input: [{'title': 'One', 'value': 1}, 2]
+     *      Output: {1: 'One', 2: 2}
+    */
+
+    let map = {};
+
+    for (let i = 0; i < choices.length; i++) {
+        let choice = choices[i];
+        let value, title;
+        if (actualType(choice) === 'object') {
+            value = choice.value;
+            title = choice.title;
+        } else {
+            value = choice;
+            title = choice;
+        }
+
+        map[value] = title;
+    }
+
+    return map;
+}
+
+
 export function valueInChoices(schema, value) {
     /* Checks whether the given value is in schema choices or not.
        If schema doesn't have choices, returns true.
