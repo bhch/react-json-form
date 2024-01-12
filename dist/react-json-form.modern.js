@@ -177,6 +177,31 @@ function getKey(obj, key, default_value) {
   let val = obj[key];
   return typeof val !== 'undefined' ? val : default_value;
 }
+function choicesValueTitleMap(choices) {
+  /* Returns a mapping of {value: title} for the given choices.
+   * E.g.:
+   *      Input: [{'title': 'One', 'value': 1}, 2]
+   *      Output: {1: 'One', 2: 2}
+  */
+  let map = {};
+
+  for (let i = 0; i < choices.length; i++) {
+    let choice = choices[i];
+    let value, title;
+
+    if (actualType(choice) === 'object') {
+      value = choice.value;
+      title = choice.title;
+    } else {
+      value = choice;
+      title = choice;
+    }
+
+    map[value] = title;
+  }
+
+  return map;
+}
 function valueInChoices(schema, value) {
   /* Checks whether the given value is in schema choices or not.
      If schema doesn't have choices, returns true.
@@ -1164,6 +1189,7 @@ class FormMultiSelectInput extends React$1.Component {
       inputRef: this.input,
       onClick: this.toggleOptions,
       value: this.props.value,
+      options: this.props.options,
       onChange: this.handleChange,
       disabled: this.props.readOnly,
       placeholder: this.props.placeholder
@@ -1198,6 +1224,7 @@ class FormMultiSelectInputField extends React$1.Component {
   }
 
   render() {
+    let valueTitleMap = choicesValueTitleMap(this.props.options);
     return /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-multiselect-field-input",
       onClick: this.props.onClick,
@@ -1206,7 +1233,7 @@ class FormMultiSelectInputField extends React$1.Component {
     }, this.props.value.length ? this.props.value.map((item, index) => /*#__PURE__*/React$1.createElement("span", {
       className: "rjf-multiselect-field-input-item",
       key: item + '_' + index
-    }, /*#__PURE__*/React$1.createElement("span", null, item), this.props.disabled || /*#__PURE__*/React$1.createElement("button", {
+    }, /*#__PURE__*/React$1.createElement("span", null, valueTitleMap[item]), this.props.disabled || /*#__PURE__*/React$1.createElement("button", {
       title: "Remove",
       type: "button",
       onClick: e => this.handleRemove(e, index)
