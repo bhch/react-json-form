@@ -252,7 +252,7 @@ export class FormMultiSelectInputField extends React.Component {
     }
 
     render() {
-        let valueTitleMap = choicesValueTitleMap(this.props.options)
+        let valueTitleMap = choicesValueTitleMap(this.props.options || this.props.value)
         return (
             <div
                 className="rjf-multiselect-field-input"
