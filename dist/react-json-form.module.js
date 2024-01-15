@@ -1224,7 +1224,7 @@ class FormMultiSelectInputField extends React$1.Component {
   }
 
   render() {
-    let valueTitleMap = choicesValueTitleMap(this.props.options);
+    let valueTitleMap = choicesValueTitleMap(this.props.options || this.props.value);
     return /*#__PURE__*/React$1.createElement("div", {
       className: "rjf-multiselect-field-input",
       onClick: this.props.onClick,
