@@ -347,7 +347,14 @@ const DEMOS = [
                 email: {type: 'string', format: 'email'},
                 password: {type: 'string', format: 'password'},
                 colour: {type: 'string', format: 'color'},
+                url: {type: 'string', format: 'uri', 'title': 'URL'},
             }
+        },
+        data: {
+            'email': 'john@example.com',
+            'password': 'correcthorsebatterystaple',
+            'colour': '#ffff00',
+            'url': 'http://example.com'
         }
     },
 
