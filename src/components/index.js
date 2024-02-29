@@ -1,6 +1,6 @@
 import Button from './buttons';
 import {FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FormFileInput,
-    FormTextareaInput, FormDateTimeInput, FormMultiSelectInput} from './form';
+    FormTextareaInput, FormDateTimeInput, FormMultiSelectInput, FormURLInput} from './form';
 import AutoCompleteInput from './autocomplete';
 import {FormRow, FormGroup, FormRowControls, GroupTitle, GroupDescription} from './containers';
 import Loader from './loaders';
@@ -11,7 +11,7 @@ export {
     Button,
     FormInput, FormCheckInput, FormRadioInput, FormSelectInput, FormFileInput,
     FormTextareaInput, FormDateTimeInput, FormMultiSelectInput,
-    AutoCompleteInput,
+    AutoCompleteInput, FormURLInput,
     FormRow, FormGroup, FormRowControls, GroupTitle, GroupDescription,
     Loader,
     Icon,

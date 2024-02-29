@@ -2,6 +2,7 @@ import React from 'react';
 import Button from './buttons';
 import Loader from './loaders';
 import {TimePicker} from './widgets';
+import Icon from './icons';
 import {EditorContext, getCsrfCookie, capitalize, convertType, getCoordsFromName, choicesValueTitleMap} from '../util';
 
 
@@ -803,4 +804,28 @@ export class FormDateTimeInput extends React.Component {
             </div>
         );
     }
+}
+
+
+export function FormURLInput(props) {
+    return (
+        <div className={props.label ? 'rjf-url-field has-label' : 'rjf-url-field'}>
+            <FormInput
+                {...props}
+                type="url"
+                className="rjf-url-field-input"
+            />
+            {props.value &&
+            <a
+                href={props.value}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rjf-url-field-link"
+                title="Open in new tab"
+            >
+                <Icon name="box-arrow-up-right" /> <span>Open link</span>
+            </a>
+            }
+        </div>
+    );
 }

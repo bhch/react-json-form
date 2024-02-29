@@ -3,7 +3,7 @@ import {getBlankData, findMatchingSubschemaIndex, dataObjectMatchesSchema,
     dataArrayMatchesSchema} from './data';
 import {Button, FormInput, FormCheckInput, FormRadioInput, FormSelectInput,
     FormFileInput, FormRow, FormGroup, GroupTitle, GroupDescription, FormRowControls, FormTextareaInput,
-    FormDateTimeInput, FormMultiSelectInput, FileUploader, AutoCompleteInput} from './components';
+    FormDateTimeInput, FormMultiSelectInput, FileUploader, AutoCompleteInput, FormURLInput} from './components';
 import {getVerboseName, convertType, getCoordsFromName, getKeyword, normalizeKeyword,
     joinCoords, splitCoords, actualType, getSchemaType, isEqualset, isSubset} from './util';
 
@@ -81,14 +81,18 @@ function FormField(props) {
             InputField = FormInput;
 
             if (props.schema.format) {
-                if (props.schema.format === 'data-url') {
+                let format = props.schema.format;
+
+                if (format === 'data-url') {
                     InputField = FormFileInput;
-                } else if (props.schema.format === 'file-url') {
+                } else if (format === 'file-url') {
                     InputField = FileUploader;
-                } else if (normalizeKeyword(props.schema.format) === 'date-time') {
+                } else if (normalizeKeyword(format) === 'date-time') {
                     InputField = FormDateTimeInput;
+                } else if (format === 'uri' || format === 'uri-reference') {
+                    InputField = FormURLInput;
                 }
-                inputProps.type = props.schema.format;
+                inputProps.type = format;
             } else if (props.schema.widget === 'hidden') {
                 inputProps.type = 'hidden';
             } else {
