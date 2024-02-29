@@ -742,7 +742,8 @@ button.rjf-collapse-button {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.rjf-autocomplete-field {
+.rjf-autocomplete-field,
+.rjf-url-fild {
     position: relative;
 }
 .rjf-autocomplete-field-input {
@@ -750,28 +751,22 @@ button.rjf-collapse-button {
     padding-right: 40px !important;
     background-color: #fff !important;
 }
-.rjf-autocomplete-field-clear-button {
+.rjf-autocomplete-field-clear-button,
+.rjf-url-field-link {
     position: absolute;
     right: 6px;
-    top: 5px;
+    top: 2px;
     line-height: 1;
     padding: 1px 2px;
     background: transparent;
-    color: var(--link-fg);
     border: 0;
     z-index: 10;
     cursor: pointer;
 }
 .rjf-autocomplete-field.has-label .rjf-autocomplete-field-clear-button {
-    top: 5px;
+    top: 2px;
 }
-.rjf-autocomplete-field-clear-button:hover {
-    background-color: #eee;
-    color: var(--link-hover-color);
-}
-.rjf-autocomplete-field-clear-button > .rjf-icon {
-    display: none;
-}
+.rjf-autocomplete-field-clear-button > .rjf-icon,
 .rjf-autocomplete-field-clear-button > span {
     vertical-align: middle;
 }
@@ -840,6 +835,10 @@ button.rjf-collapse-button {
 .rjf-autocomplete-field-option.disabled:hover,
 .rjf-autocomplete-field-option.disabled:focus {
     background-color: transparent;
+}
+.rjf-url-field .rjf-url-field-link,
+.rjf-url-field.has-label .rjf-url-field-link {
+    top: 12px;
 }
 .rjf-loader {
     width: 32px;
