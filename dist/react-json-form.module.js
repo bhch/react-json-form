@@ -704,6 +704,10 @@ function Icon(props) {
     case 'three-dots-vertical':
       icon = /*#__PURE__*/React$1.createElement(ThreeDotsVertical, null);
       break;
+
+    case 'box-arrow-up-right':
+      icon = /*#__PURE__*/React$1.createElement(BoxArrowUpRight, null);
+      break;
   }
 
   return /*#__PURE__*/React$1.createElement("svg", {
@@ -755,6 +759,16 @@ function ThreeDotsVertical(props) {
   return /*#__PURE__*/React$1.createElement("path", {
     d: "M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"
   });
+}
+
+function BoxArrowUpRight(props) {
+  return /*#__PURE__*/React$1.createElement(React$1.Fragment, null, /*#__PURE__*/React$1.createElement("path", {
+    "fill-rule": "evenodd",
+    d: "M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"
+  }), /*#__PURE__*/React$1.createElement("path", {
+    "fill-rule": "evenodd",
+    d: "M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"
+  }));
 }
 
 class TimePicker extends React$1.Component {
@@ -1746,6 +1760,22 @@ class FormDateTimeInput extends React$1.Component {
   }
 
 }
+function FormURLInput(props) {
+  return /*#__PURE__*/React$1.createElement("div", {
+    className: props.label ? 'rjf-url-field has-label' : 'rjf-url-field'
+  }, /*#__PURE__*/React$1.createElement(FormInput, _extends({}, props, {
+    type: "url",
+    className: "rjf-url-field-input"
+  })), props.value && /*#__PURE__*/React$1.createElement("a", {
+    href: props.value,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    className: "rjf-url-field-link",
+    title: "Open in new tab"
+  }, /*#__PURE__*/React$1.createElement(Icon, {
+    name: "box-arrow-up-right"
+  }), " ", /*#__PURE__*/React$1.createElement("span", null, "Open link")));
+}
 
 class AutoCompleteInput extends React$1.Component {
   constructor(props) {
@@ -2647,15 +2677,19 @@ function FormField(props) {
       InputField = FormInput;
 
       if (props.schema.format) {
-        if (props.schema.format === 'data-url') {
+        let format = props.schema.format;
+
+        if (format === 'data-url') {
           InputField = FormFileInput;
-        } else if (props.schema.format === 'file-url') {
+        } else if (format === 'file-url') {
           InputField = FileUploader;
-        } else if (normalizeKeyword(props.schema.format) === 'date-time') {
+        } else if (normalizeKeyword(format) === 'date-time') {
           InputField = FormDateTimeInput;
+        } else if (format === 'uri' || format === 'uri-reference') {
+          InputField = FormURLInput;
         }
 
-        inputProps.type = props.schema.format;
+        inputProps.type = format;
       } else if (props.schema.widget === 'hidden') {
         inputProps.type = 'hidden';
       } else {
