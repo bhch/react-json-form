@@ -586,9 +586,7 @@ class OneOfTopLevel extends React.Component {
     }
 
     getOptions = () => {
-        return this.props.args.schema[this.schemaName].map((option, index) => {
-            return {label: option.title || 'Option ' + (index + 1), value: index};
-        });
+        return Array.from(this.props.args.schema[this.schemaName].keys(), (index) => ({label: this.getSchema(index).title || 'Option ' + (index + 1), value: index}));
     }
 
     getSchema = (index) => {
