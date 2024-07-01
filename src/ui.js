@@ -120,6 +120,7 @@ function FormField(props) {
                 inputProps.type = 'range';
             else
                 inputProps.type = 'number';
+                inputProps.step = 'any'
 
             InputField = FormInput;
 
