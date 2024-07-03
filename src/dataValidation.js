@@ -97,7 +97,7 @@ export default function DataValidator(schema) {
         let next_schema = schema.items;
         if (next_schema.hasOwnProperty('$ref'))
             next_schema = this.getRef(next_schema.$ref);
-        let next_type = normalizeKeyword(next_schema.type);
+        let next_type = getSchemaType(next_schema);
 
         let minItems = getKeyword(schema, 'minItems', 'min_items');
         let maxItems = getKeyword(schema, 'maxItems', 'max_items');
@@ -128,16 +128,9 @@ export default function DataValidator(schema) {
 
         let next_validator = this.getValidator(next_type);
 
-        if (!next_validator) {
-            if (next_schema.hasOwnProperty('oneOf')) {
-                next_validator = this.validateOneOf;
-            } else if (next_schema.hasOwnProperty('anyOf')) {
-                next_validator = this.validateAnyOf;
-            } else if (next_schema.hasOwnProperty('anyOf')) {
-                // currently allOf is not supported in array items
-                // next_validator = this.validateAllOf;
-            }
-        }
+        // currently allOf is not supported in array items
+        if (next_type === 'allOf')
+            next_validator = null;
 
         if (next_validator) {
             for (let i = 0; i < data.length; i++)
@@ -188,7 +181,7 @@ export default function DataValidator(schema) {
                     next_schema['required'] = true;
             }
 
-            let next_type = normalizeKeyword(next_schema.type);
+            let next_type = getSchemaType(next_schema);
 
             let next_validator = this.getValidator(next_type);
 
