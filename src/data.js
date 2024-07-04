@@ -231,8 +231,10 @@ function getSyncedArray(data, schema, getRef) {
 
     let minItems = schema.minItems || schema.min_items || 0;
 
-    while (data.length < minItems)
-        data.push(FILLER);
+    if (schema.items.widget !== 'multiselect') {
+        while (data.length < minItems)
+            data.push(FILLER);
+    }
 
     for (let i = 0; i < data.length; i++) {
         let item = data[i];
