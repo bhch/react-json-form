@@ -390,7 +390,9 @@ function getSyncedArray(data, schema, getRef) {
 
   let minItems = schema.minItems || schema.min_items || 0;
 
-  while (data.length < minItems) data.push(FILLER);
+  if (schema.items.widget !== 'multiselect') {
+    while (data.length < minItems) data.push(FILLER);
+  }
 
   for (let i = 0; i < data.length; i++) {
     let item = data[i];
@@ -2718,6 +2720,7 @@ function FormField(props) {
 
     case 'number':
       if (type === 'range') inputProps.type = 'range';else inputProps.type = 'number';
+      inputProps.step = 'any';
       InputField = FormInput;
       if (props.schema.minimum || props.schema.minimum === 0) inputProps.min = props.schema.minimum;
       if (props.schema.maximum || props.schema.maximum === 0) inputProps.max = props.schema.maximum;
@@ -3150,12 +3153,10 @@ class OneOfTopLevel extends React__default["default"].Component {
     };
 
     this.getOptions = () => {
-      return this.props.args.schema[this.schemaName].map((option, index) => {
-        return {
-          label: option.title || 'Option ' + (index + 1),
-          value: index
-        };
-      });
+      return Array.from(this.props.args.schema[this.schemaName].keys(), index => ({
+        label: this.getSchema(index).title || 'Option ' + (index + 1),
+        value: index
+      }));
     };
 
     this.getSchema = index => {
@@ -4171,7 +4172,7 @@ function DataValidator(schema) {
 
     let next_schema = schema.items;
     if (next_schema.hasOwnProperty('$ref')) next_schema = this.getRef(next_schema.$ref);
-    let next_type = normalizeKeyword(next_schema.type);
+    let next_type = getSchemaType(next_schema);
     let minItems = getKeyword(schema, 'minItems', 'min_items');
     let maxItems = getKeyword(schema, 'maxItems', 'max_items');
     let choices = getKeyword(schema.items, 'choices', 'enum');
@@ -4193,15 +4194,9 @@ function DataValidator(schema) {
       if (typeof invalid_choice !== 'undefined') this.addError(coords, 'Invalid choice + "' + invalid_choice + '"');
     }
 
-    let next_validator = this.getValidator(next_type);
+    let next_validator = this.getValidator(next_type); // currently allOf is not supported in array items
 
-    if (!next_validator) {
-      if (next_schema.hasOwnProperty('oneOf')) {
-        next_validator = this.validateOneOf;
-      } else if (next_schema.hasOwnProperty('anyOf')) {
-        next_validator = this.validateAnyOf;
-      } else if (next_schema.hasOwnProperty('anyOf')) ;
-    }
+    if (next_type === 'allOf') next_validator = null;
 
     if (next_validator) {
       for (let i = 0; i < data.length; i++) next_validator(next_schema, data[i], this.joinCoords([coords, i]));
@@ -4239,7 +4234,7 @@ function DataValidator(schema) {
         if (schema.required.indexOf(key) > -1 && !next_schema.hasOwnProperty('required')) next_schema['required'] = true;
       }
 
-      let next_type = normalizeKeyword(next_schema.type);
+      let next_type = getSchemaType(next_schema);
       let next_validator = this.getValidator(next_type);
       if (next_validator) next_validator(next_schema, data[key], this.joinCoords([coords, key]));else {
         this.addError(coords, 'Unsupported type "' + next_type + '" for object properties (keys).');
