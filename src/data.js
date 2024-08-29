@@ -325,7 +325,7 @@ function getSyncedObject(data, schema, getRef) {
             else if (type === 'oneOf')
                 newData[key] = getBlankOneOf(schemaValue, getRef);
             else if (type === 'anyOf')
-                newData[key] = getBlankAntOf(schemaValue, getRef);
+                newData[key] = getBlankAnyOf(schemaValue, getRef);
             else if (type === 'boolean')
                 newData[key] = default_ === false ? false : (default_ || null);
             else if (type === 'integer' || type === 'number')
