@@ -453,7 +453,7 @@ function getSyncedObject(data, schema, getRef) {
       /* This key is declared in schema but it's not present in the data.
          So we can use blank data here.
       */
-      if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'oneOf') newData[key] = getBlankOneOf(schemaValue, getRef);else if (type === 'anyOf') newData[key] = getBlankAntOf(schemaValue, getRef);else if (type === 'boolean') newData[key] = default_ === false ? false : default_ || null;else if (type === 'integer' || type === 'number') newData[key] = default_ === 0 ? 0 : default_ || null;else newData[key] = default_ || '';
+      if (type === 'array') newData[key] = getSyncedArray([], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject({}, schemaValue, getRef);else if (type === 'oneOf') newData[key] = getBlankOneOf(schemaValue, getRef);else if (type === 'anyOf') newData[key] = getBlankAnyOf(schemaValue, getRef);else if (type === 'boolean') newData[key] = default_ === false ? false : default_ || null;else if (type === 'integer' || type === 'number') newData[key] = default_ === 0 ? 0 : default_ || null;else newData[key] = default_ || '';
     } else {
       if (type === 'array') newData[key] = getSyncedArray(data[key], schemaValue, getRef);else if (type === 'object') newData[key] = getSyncedObject(data[key], schemaValue, getRef);else if (type === 'oneOf') newData[key] = getSyncedOneOf(data[key], schemaValue, getRef);else if (type === 'anyOf') newData[key] = getSyncedAnyOf(data[key], schemaValue, getRef);else {
         // if the current value is not in choices, we reset to blank
