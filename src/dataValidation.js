@@ -101,7 +101,6 @@ export default function DataValidator(schema) {
 
         let minItems = getKeyword(schema, 'minItems', 'min_items');
         let maxItems = getKeyword(schema, 'maxItems', 'max_items');
-        let choices = getKeyword(schema.items, 'choices', 'enum');
 
         if (minItems && data.length < parseInt(minItems))
             this.addError(coords, 'Minimum ' + minItems + ' items required.');
@@ -118,12 +117,6 @@ export default function DataValidator(schema) {
                 if (data.length !== new Set(data).size)
                     this.addError(coords, 'All items in this list must be unique.');
             }
-        }
-
-        if (choices) {
-            let invalid_choice = data.find((i) => choices.indexOf(i) === -1);
-            if (typeof invalid_choice !== 'undefined')
-                this.addError(coords, 'Invalid choice + "' + invalid_choice + '"');
         }
 
         let next_validator = this.getValidator(next_type);
