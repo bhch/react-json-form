@@ -834,6 +834,7 @@ class OneOf extends React.Component {
 
         let parentType = this.getParentType();
 
+        let isReadonly = false;
         let schema;
 
         if (parentType === 'object') {
@@ -842,11 +843,14 @@ class OneOf extends React.Component {
                 schema = {...this.props.nextArgs.schema[this.schemaName][index]};
                 if (!schema.title)
                     schema.title = this.props.nextArgs.schema.title;
+                isReadonly = getKeyword(this.props.nextArgs.schema, 'readOnly', 'readonly', isReadonly);
             } else {
                 schema = this.props.parentArgs.schema[this.schemaName][index];
+                isReadonly = getKeyword(this.props.parentArgs.schema, 'readOnly', 'readonly', isReadonly);
             }
         } else if (parentType === 'array') {
             schema = this.props.parentArgs.schema.items[this.schemaName][index];
+            isReadonly = getKeyword(this.props.parentArgs.schema, 'readOnly', 'readonly', isReadonly);
         } else {
             schema = {'type': 'string'};
         }
@@ -857,6 +861,9 @@ class OneOf extends React.Component {
             schema = {...this.props.parentArgs.getRef(schema['$ref']), ...schema};
             delete schema['$ref'];
         }
+
+        if (isReadonly)
+            schema.readOnly = true;
 
         return schema;
     }
@@ -937,6 +944,7 @@ class OneOf extends React.Component {
         let selectedOption = this.findSelectedOption();
 
         let schema = this.getSchema(selectedOption);
+        let isReadonly = getKeyword(schema, 'readOnly', 'readonly');
         let type = getSchemaType(schema);
         let args = this.props.nextArgs ? this.props.nextArgs : this.props.parentArgs;
         let rowFunc;
@@ -975,6 +983,7 @@ class OneOf extends React.Component {
                         onChange={(e) => this.handleOptionChange(e, selectedOption)}
                         className="rjf-oneof-selector-input"
                         label={selectorLabel}
+                        readOnly={isReadonly}
                     />
                 </div>
 
