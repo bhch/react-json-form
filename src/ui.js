@@ -47,13 +47,14 @@ function FormField(props) {
     if (props.schema.handler)
         inputProps.handler = props.schema.handler;
 
+    let schemaType = normalizeKeyword(props.schema.type);
     let type;
 
     if (props.schema.hasOwnProperty('const')) {
         type = actualType(props.schema.const);
         inputProps.readOnly = true;
     } else {
-        type = normalizeKeyword(props.schema.type);
+        type = schemaType;
     }
 
     let choices = getKeyword(props.schema, 'choices', 'enum');
@@ -113,14 +114,16 @@ function FormField(props) {
             break;
         case 'range':
         case 'integer':
-            inputProps.step = '1';
-            // fall through
         case 'number':
             if (type === 'range')
                 inputProps.type = 'range';
             else
                 inputProps.type = 'number';
-                inputProps.step = 'any'
+
+            if (schemaType === 'integer')
+                inputProps.step = '1';
+            else
+                inputProps.step = 'any';
 
             InputField = FormInput;
 
